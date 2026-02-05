@@ -1,0 +1,1574 @@
+/*
+ * NerveMind - Dialog Styles
+ * 
+ * Shared styles for all dialog windows.
+ * Replaces inline setStyle() calls in dialog classes.
+ */
+
+/* ===== Base Dialog ===== */
+.dialog-pane {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-padding: 0;
+    -fx-border-width: 0;
+}
+
+.dialog-pane>.content {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-padding: 20px;
+}
+
+.dialog-pane>.content .label {
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.dialog-pane>.button-bar {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-padding: 10px 20px;
+}
+
+/* ===== Dialog Header ===== */
+.dialog__header {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-padding: 20px 25px;
+}
+
+.dialog__title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.dialog__subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: -nervemind-text-muted;
+}
+
+.dialog__icon {
+    -fx-padding: 8px;
+    -fx-background-radius: 8px;
+}
+
+/* ===== Dialog Content ===== */
+.dialog__content {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-padding: 20px;
+}
+
+.dialog__section {
+    -fx-padding: 15px;
+}
+
+.dialog__section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-accent-cyan;
+}
+
+/* ===== Dialog Buttons ===== */
+.dialog__button-primary {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.dialog__button-primary:hover {
+    -fx-background-color: derive(-nervemind-accent-blue, 10%);
+}
+
+.dialog__button-primary:pressed {
+    -fx-background-color: derive(-nervemind-accent-blue, -10%);
+}
+
+.dialog__button-secondary {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.dialog__button-secondary:hover {
+    -fx-background-color: derive(-nervemind-bg-tertiary, 10%);
+}
+
+.dialog__button-danger {
+    -fx-background-color: -nervemind-danger;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.dialog__button-danger:hover {
+    -fx-background-color: derive(-nervemind-danger, 10%);
+}
+
+.dialog__button-success {
+    -fx-background-color: -nervemind-success;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+/* ===== Form Elements in Dialogs ===== */
+.dialog__label {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-size: 13px;
+}
+
+.dialog__label--muted {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.dialog__input {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-prompt-text-fill: -nervemind-text-disabled;
+    -fx-background-radius: 6px;
+    -fx-border-radius: 6px;
+    -fx-padding: 8px 12px;
+}
+
+.dialog__input:focused {
+    -fx-border-color: -nervemind-accent-blue;
+    -fx-border-width: 1px;
+}
+
+.dialog__textarea {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-control-inner-background: -nervemind-bg-tertiary;
+}
+
+.dialog__combobox {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.dialog__checkbox {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.dialog__spinner {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+/* ===== Settings Dialog Specific ===== */
+.settings-dialog__category-list {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-border-width: 0;
+}
+
+.settings-dialog__category-item {
+    -fx-background-color: transparent;
+    -fx-padding: 12px 16px;
+    -fx-cursor: hand;
+}
+
+.settings-dialog__category-item:hover {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.settings-dialog__category-item--selected {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-border-color: -nervemind-accent-blue;
+    -fx-border-width: 0 0 0 3px;
+}
+
+.settings-dialog__category-label {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-size: 13px;
+}
+
+.settings-dialog__content-pane {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.settings-dialog__setting-row {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-background-radius: 6px;
+    -fx-padding: 12px 15px;
+}
+
+/* ===== Variable Manager Specific ===== */
+.variable-manager__table {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-border-color: -nervemind-border;
+}
+
+.variable-manager__cell {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.variable-manager__cell--code {
+    -fx-font-family: 'Consolas', 'Courier New', monospace;
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.variable-manager__type-badge {
+    -fx-padding: 2px 6px;
+    -fx-background-radius: 3px;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-size: 10px;
+}
+
+.variable-manager__type-badge--string {
+    -fx-background-color: #3b82f6;
+}
+
+.variable-manager__type-badge--number {
+    -fx-background-color: #22c55e;
+}
+
+.variable-manager__type-badge--boolean {
+    -fx-background-color: #a855f7;
+}
+
+.variable-manager__type-badge--json {
+    -fx-background-color: #f97316;
+}
+
+/* ===== Help Text ===== */
+.dialog__help-text {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+/* ===== Separator ===== */
+.dialog__separator {
+    -fx-background-color: -nervemind-border;
+}
+
+/* ===== About Dialog Specific ===== */
+.about-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-pref-width: 500px;
+    -fx-pref-height: 240px;
+}
+
+.about-dialog__app-name {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-accent-cyan;
+}
+
+.about-dialog__description {
+    -fx-font-size: 14px;
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.about-dialog__version {
+    -fx-font-size: 12px;
+    -fx-text-fill: -nervemind-accent-blue-light;
+}
+
+.about-dialog__info {
+    -fx-font-size: 14px;
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.about-dialog__link {
+    -fx-font-size: 14px;
+    -fx-text-fill: -nervemind-accent-cyan;
+}
+
+.about-dialog__link:hover {
+    -fx-text-fill: derive(-nervemind-accent-cyan, 20%);
+}
+
+.about-dialog__close-button {
+    -fx-background-color: -nervemind-accent-cyan;
+    -fx-text-fill: -nervemind-bg-primary;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+    -fx-cursor: hand;
+}
+
+.about-dialog__close-button:hover {
+    -fx-background-color: derive(-nervemind-accent-cyan, 10%);
+}
+
+/* ===== Workflow List Dialog Specific ===== */
+.workflow-list-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.workflow-list-dialog__section-label {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-weight: bold;
+}
+
+.workflow-list-dialog__list {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+}
+
+.workflow-list-dialog__list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 10px;
+}
+
+.workflow-list-dialog__list .list-cell:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.workflow-list-dialog__list .list-cell:selected {
+    -fx-background-color: -nervemind-accent-blue;
+}
+
+.workflow-list-dialog__cell-name {
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.workflow-list-dialog__cell-info {
+    -fx-font-size: 11px;
+    -fx-text-fill: -nervemind-text-muted;
+}
+
+.workflow-list-dialog__details-pane {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px;
+}
+
+.workflow-list-dialog__details-text {
+    -fx-text-fill: -nervemind-text-secondary;
+    -fx-padding: 10px;
+}
+
+.workflow-list-dialog__delete-button {
+    -fx-background-color: -nervemind-danger;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-padding: 6px 12px;
+    -fx-cursor: hand;
+}
+
+.workflow-list-dialog__delete-button:hover {
+    -fx-background-color: derive(-nervemind-danger, 10%);
+}
+
+.workflow-list-dialog__delete-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* ===== Variable Manager Dialog Specific ===== */
+.variable-manager-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.variable-manager-dialog__header {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.variable-manager-dialog__title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.variable-manager-dialog__subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -nervemind-text-muted;
+}
+
+.variable-manager-dialog__toolbar {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.variable-manager-dialog__table {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-border-color: -nervemind-border;
+}
+
+.variable-manager-dialog__table .table-row-cell {
+    -fx-background-color: transparent;
+}
+
+.variable-manager-dialog__table .table-row-cell:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.variable-manager-dialog__table .table-row-cell:selected {
+    -fx-background-color: rgba(59, 130, 246, 0.3);
+}
+
+.variable-manager-dialog__table .table-cell {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-padding: 8px 10px;
+}
+
+.variable-manager-dialog__type-badge,
+.variable-manager-dialog__scope-badge {
+    -fx-padding: 2px 8px;
+    -fx-background-radius: 3px;
+    -fx-font-size: 11px;
+}
+
+.variable-manager-dialog__description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-style: italic;
+}
+
+.variable-manager-dialog__footer {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+/* ===== Credential Manager Dialog Specific ===== */
+.credential-manager-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.credential-manager-dialog__header {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.credential-manager-dialog__title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.credential-manager-dialog__subtitle {
+    -fx-font-size: 12px;
+    -fx-text-fill: -nervemind-text-muted;
+}
+
+.credential-manager-dialog__icon {
+    -fx-fill: #fbbf24;
+}
+
+.credential-manager-dialog__toolbar {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.credential-manager-dialog__table {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-border-color: -nervemind-border;
+}
+
+.credential-manager-dialog__table .table-row-cell {
+    -fx-background-color: transparent;
+}
+
+.credential-manager-dialog__table .table-row-cell:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.credential-manager-dialog__table .table-row-cell:selected {
+    -fx-background-color: rgba(251, 191, 36, 0.2);
+}
+
+.credential-manager-dialog__table .table-cell {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-padding: 8px 10px;
+}
+
+.credential-manager-dialog__name {
+    -fx-font-weight: bold;
+}
+
+.credential-manager-dialog__type-label {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.credential-manager-dialog__type-icon {
+    -fx-fill: #fbbf24;
+}
+
+.credential-manager-dialog__footer {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+/* ===== Settings Dialog Specific (FXML) ===== */
+.settings-dialog {
+    -fx-background-color: #2e3440;
+}
+
+.settings-dialog__sidebar {
+    -fx-background-color: #2e3440;
+}
+
+.settings-dialog__sidebar-title {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88c0d0;
+}
+
+.settings-dialog__category-list {
+    -fx-background-color: #2e3440;
+    -fx-border-width: 0;
+}
+
+.settings-dialog__category-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 12px 16px;
+}
+
+.settings-dialog__category-list .list-cell:hover {
+    -fx-background-color: #3b4252;
+}
+
+.settings-dialog__category-list .list-cell:selected {
+    -fx-background-color: #434c5e;
+    -fx-border-color: #88c0d0;
+    -fx-border-width: 0 0 0 3px;
+}
+
+.settings-dialog__category-cell {
+    -fx-padding: 4px 0;
+}
+
+.settings-dialog__category-cell-icon {
+    -fx-fill: #d8dee9;
+}
+
+.settings-dialog__category-cell-label {
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 13px;
+}
+
+.settings-dialog__content-area {
+    -fx-background-color: #3b4252;
+}
+
+.settings-dialog__category-header {
+    -fx-background-color: #434c5e;
+}
+
+.settings-dialog__category-icon {
+    -fx-fill: #88c0d0;
+}
+
+.settings-dialog__category-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #eceff4;
+}
+
+.settings-dialog__category-description {
+    -fx-font-size: 12px;
+    -fx-text-fill: #d8dee9;
+}
+
+.settings-dialog__scroll-pane {
+    -fx-background: #3b4252;
+    -fx-background-color: #3b4252;
+}
+
+.settings-dialog__settings-container {
+    -fx-background-color: #3b4252;
+}
+
+.settings-dialog__section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88c0d0;
+}
+
+.settings-dialog__section-separator {
+    -fx-padding: 0;
+}
+
+.settings-dialog__section-separator .line {
+    -fx-border-color: #4c566a;
+    -fx-border-width: 1 0 0 0;
+}
+
+.settings-dialog__setting-row {
+    -fx-background-color: #434c5e;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 15px;
+}
+
+.settings-dialog__setting-label {
+    -fx-font-size: 13px;
+    -fx-text-fill: #eceff4;
+}
+
+.settings-dialog__setting-description {
+    -fx-font-size: 11px;
+    -fx-text-fill: #a3be8c;
+}
+
+.settings-dialog__toggle {
+    -fx-text-fill: white;
+}
+
+.settings-dialog__spinner {
+    -fx-background-color: #4c566a;
+}
+
+.settings-dialog__text-field,
+.settings-dialog__password-field {
+    -fx-background-color: #4c566a;
+    -fx-text-fill: #eceff4;
+    -fx-prompt-text-fill: #d8dee9;
+}
+
+.settings-dialog__combobox {
+    -fx-background-color: #4c566a;
+}
+
+.settings-dialog__toggle-btn,
+.settings-dialog__browse-btn {
+    -fx-background-color: #4c566a;
+}
+
+.settings-dialog__footer {
+    -fx-background-color: #434c5e;
+}
+
+/* ===== Guide View Dialog Specific ===== */
+.guide-view-dialog {
+    -fx-background-color: #1e1e1e;
+}
+
+.guide-view-dialog__left-panel {
+    -fx-background-color: #1e1e1e;
+}
+
+.guide-view-dialog__header {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.guide-view-dialog__step-list {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: transparent;
+}
+
+.guide-view-dialog__step-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8px;
+}
+
+.guide-view-dialog__step-list .list-cell:hover {
+    -fx-background-color: #2a2a2a;
+}
+
+.guide-view-dialog__step-list .list-cell:selected {
+    -fx-background-color: #3b82f6;
+}
+
+.guide-view-dialog__step-indicator {
+    -fx-background-color: #374151;
+    -fx-text-fill: #e5e5e5;
+    -fx-background-radius: 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-min-width: 24px;
+    -fx-min-height: 24px;
+    -fx-max-width: 24px;
+    -fx-max-height: 24px;
+    -fx-alignment: center;
+}
+
+.guide-view-dialog__step-indicator--selected {
+    -fx-background-color: white;
+    -fx-text-fill: #3b82f6;
+}
+
+.guide-view-dialog__step-title {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-size: 12px;
+}
+
+.guide-view-dialog__center-panel {
+    -fx-background-color: #252525;
+}
+
+.guide-view-dialog__content-pane {
+    -fx-background-color: #252525;
+}
+
+.guide-view-dialog__scroll-pane {
+    -fx-background-color: #252525;
+    -fx-background: #252525;
+    -fx-border-color: transparent;
+}
+
+.guide-view-dialog__step-title-label {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-weight: bold;
+    -fx-font-size: 18px;
+}
+
+.guide-view-dialog__separator {
+    -fx-background-color: #404040;
+}
+
+.guide-view-dialog__content-text {
+    -fx-fill: #d1d5db;
+}
+
+.guide-view-dialog__code-label {
+    -fx-text-fill: #71717a;
+    -fx-font-weight: bold;
+}
+
+.guide-view-dialog__code-area {
+    -fx-control-inner-background: #1a1a1a;
+    -fx-text-fill: #e5e5e5;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.guide-view-dialog__highlight-info {
+    -fx-text-fill: #60a5fa;
+    -fx-font-style: italic;
+}
+
+.guide-view-dialog__nav-bar {
+    -fx-alignment: center;
+}
+
+.guide-view-dialog__nav-button {
+    -fx-background-color: #333333;
+    -fx-text-fill: #e5e5e5;
+    -fx-background-radius: 4;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.guide-view-dialog__nav-button:hover {
+    -fx-background-color: #404040;
+}
+
+.guide-view-dialog__nav-button:disabled {
+    -fx-opacity: 0.5;
+}
+
+.guide-view-dialog__step-counter {
+    -fx-text-fill: #71717a;
+}
+
+.guide-view-dialog__divider {
+    -fx-background-color: #404040;
+}
+
+.guide-view-dialog__table {
+    -fx-border-color: #404040;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.guide-view-dialog__table-header-row {
+    -fx-background-color: #2a2a2a;
+}
+
+.guide-view-dialog__table-header-cell {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-weight: bold;
+    -fx-padding: 8 12;
+    -fx-border-color: #404040;
+    -fx-border-width: 0 1 1 0;
+    -fx-alignment: center-left;
+}
+
+.guide-view-dialog__table-data-row {
+    -fx-background-color: #1e1e1e;
+}
+
+.guide-view-dialog__table-data-row:hover {
+    -fx-background-color: #252525;
+}
+
+.guide-view-dialog__table-data-cell {
+    -fx-text-fill: #d1d5db;
+    -fx-padding: 8 12;
+    -fx-border-color: #404040;
+    -fx-border-width: 0 1 1 0;
+    -fx-alignment: center-left;
+}
+
+/* ===== Samples Browser Dialog Specific ===== */
+.samples-browser-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.samples-browser-dialog__search-field {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 8;
+}
+
+.samples-browser-dialog__filter-label {
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.samples-browser-dialog__filter-combo {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.samples-browser-dialog__list {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.samples-browser-dialog__list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 10px;
+}
+
+.samples-browser-dialog__list .list-cell:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.samples-browser-dialog__list .list-cell:selected {
+    -fx-background-color: -nervemind-accent-blue;
+}
+
+.samples-browser-dialog__sample-name {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.samples-browser-dialog__sample-description {
+    -fx-text-fill: -nervemind-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.samples-browser-dialog__badge {
+    -fx-padding: 2 8;
+    -fx-background-radius: 3;
+    -fx-font-size: 10px;
+}
+
+.samples-browser-dialog__badge--category {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-text-fill: white;
+}
+
+.samples-browser-dialog__badge--difficulty-beginner {
+    -fx-background-color: -nervemind-accent-green;
+    -fx-text-fill: white;
+}
+
+.samples-browser-dialog__badge--difficulty-intermediate {
+    -fx-background-color: -nervemind-accent-yellow;
+    -fx-text-fill: -nervemind-bg-primary;
+}
+
+.samples-browser-dialog__badge--difficulty-advanced {
+    -fx-background-color: -nervemind-accent-red;
+    -fx-text-fill: white;
+}
+
+.samples-browser-dialog__status-label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+/* Sample cell styles */
+.samples-browser-dialog__cell {
+    -fx-background-color: transparent;
+    -fx-padding: 8 12;
+}
+
+.samples-browser-dialog__cell--hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.samples-browser-dialog__cell--selected {
+    -fx-background-color: -nervemind-accent-blue;
+}
+
+.samples-browser-dialog__cell-name {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.samples-browser-dialog__cell-difficulty {
+    -fx-text-fill: -nervemind-accent-yellow;
+}
+
+.samples-browser-dialog__cell-description {
+    -fx-text-fill: -nervemind-text-secondary;
+    -fx-font-size: 12px;
+}
+
+.samples-browser-dialog__tag {
+    -fx-background-color: #374151;
+    -fx-text-fill: #d1d5db;
+    -fx-padding: 2 8;
+    -fx-background-radius: 10;
+    -fx-font-size: 10px;
+}
+
+.samples-browser-dialog__category-tag {
+    -fx-background-color: #1e3a5f;
+    -fx-text-fill: #d1d5db;
+    -fx-padding: 2 8;
+    -fx-background-radius: 10;
+    -fx-font-size: 10px;
+}
+
+/* ===== Plugin Manager Dialog Specific ===== */
+.plugin-manager-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.plugin-manager-dialog__header-icon {
+    -fx-fill: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__header-label {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.plugin-manager-dialog__description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 12px;
+}
+
+.plugin-manager-dialog__search-field {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-prompt-text-fill: -nervemind-text-muted;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.plugin-manager-dialog__tool-button {
+    -fx-background-color: transparent;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+    -fx-text-fill: -nervemind-text-muted;
+}
+
+.plugin-manager-dialog__tool-button:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-border-color: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__section-header {
+    -fx-text-fill: -nervemind-accent-cyan;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+}
+
+.plugin-manager-dialog__section-hint {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.plugin-manager-dialog__plugin-card {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6;
+    -fx-padding: 10px;
+}
+
+.plugin-manager-dialog__plugin-card:hover {
+    -fx-border-color: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__plugin-name {
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-size: 13px;
+}
+
+.plugin-manager-dialog__plugin-description {
+    -fx-text-fill: -nervemind-text-secondary;
+    -fx-font-size: 11px;
+}
+
+.plugin-manager-dialog__plugin-version {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 10px;
+}
+
+.plugin-manager-dialog__source-badge {
+    -fx-padding: 1 6;
+    -fx-background-radius: 3;
+    -fx-font-size: 9px;
+}
+
+.plugin-manager-dialog__source-badge--builtin {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-text-fill: white;
+}
+
+.plugin-manager-dialog__source-badge--external {
+    -fx-background-color: -nervemind-success;
+    -fx-text-fill: -nervemind-bg-primary;
+}
+
+.plugin-manager-dialog__status-label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.plugin-manager-dialog__header-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.plugin-manager-dialog__header-description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 12px;
+}
+
+.plugin-manager-dialog__scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.plugin-manager-dialog__tool-button-icon {
+    -fx-fill: -nervemind-text-muted;
+}
+
+.plugin-manager-dialog__tool-button:hover .plugin-manager-dialog__tool-button-icon {
+    -fx-fill: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__section-icon {
+    -fx-fill: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.plugin-manager-dialog__section-description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.plugin-manager-dialog__empty-label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-style: italic;
+    -fx-padding: 10;
+}
+
+.plugin-manager-dialog__card {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 8;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 8;
+}
+
+.plugin-manager-dialog__card--enabled {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-border-color: -nervemind-border-light;
+}
+
+.plugin-manager-dialog__card--hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-border-color: -nervemind-border-light;
+}
+
+.plugin-manager-dialog__card--enabled.plugin-manager-dialog__card--hover {
+    -fx-background-color: -nervemind-bg-card;
+    -fx-border-color: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__card-icon--enabled {
+    -fx-fill: -nervemind-accent-blue;
+}
+
+.plugin-manager-dialog__card-icon--disabled {
+    -fx-fill: -nervemind-text-disabled;
+}
+
+.plugin-manager-dialog__card-name {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.plugin-manager-dialog__card-name--disabled {
+    -fx-text-fill: -nervemind-text-disabled;
+}
+
+.plugin-manager-dialog__card-description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.plugin-manager-dialog__badge--trigger {
+    -fx-background-color: -nervemind-accent-orange;
+    -fx-text-fill: -nervemind-bg-primary;
+    -fx-padding: 1 6;
+    -fx-background-radius: 3;
+    -fx-font-size: 9px;
+}
+
+.plugin-manager-dialog__badge--action {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-text-fill: white;
+    -fx-padding: 1 6;
+    -fx-background-radius: 3;
+    -fx-font-size: 9px;
+}
+
+.plugin-manager-dialog__badge--version {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 10px;
+}
+
+.plugin-manager-dialog__badge--external {
+    -fx-text-fill: -nervemind-success;
+    -fx-font-size: 10px;
+}
+
+.plugin-manager-dialog__badge--builtin {
+    -fx-text-fill: -nervemind-accent-purple;
+    -fx-font-size: 10px;
+}
+
+.plugin-manager-dialog__card-id {
+    -fx-text-fill: -nervemind-text-disabled;
+    -fx-font-size: 9px;
+    -fx-font-family: monospace;
+}
+
+.plugin-manager-dialog__enable-button--enabled {
+    -fx-background-color: -nervemind-success;
+    -fx-text-fill: -nervemind-bg-primary;
+    -fx-background-radius: 4;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+
+.plugin-manager-dialog__enable-button--disabled {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-disabled;
+    -fx-background-radius: 4;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+
+/* ===== Icon Picker Dialog Specific ===== */
+.icon-picker-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.icon-picker-dialog__search-field {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-prompt-text-fill: -nervemind-text-muted;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.icon-picker-dialog__filter-combo {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.icon-picker-dialog__label {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.icon-picker-dialog__scroll-pane {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background: -nervemind-bg-secondary;
+}
+
+.icon-picker-dialog__icon-grid {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.icon-picker-dialog__icon-button {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-background-radius: 6;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6;
+    -fx-cursor: hand;
+}
+
+.icon-picker-dialog__icon-button:hover {
+    -fx-background-color: -nervemind-bg-card;
+    -fx-border-color: -nervemind-border-light;
+}
+
+.icon-picker-dialog__icon-button--selected {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-border-color: -nervemind-accent-blue;
+}
+
+.icon-picker-dialog__preview-label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+}
+
+.icon-picker-dialog__preview-icon {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 8;
+}
+
+.icon-picker-dialog__selected-label {
+    -fx-text-fill: #a1a1aa;
+    -fx-font-size: 12px;
+}
+
+.icon-picker-dialog__category-filter {
+    -fx-background-color: #333333;
+    -fx-text-fill: #e5e5e5;
+    -fx-border-color: #444444;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.icon-picker-dialog__grid {
+    -fx-background-color: #252525;
+}
+
+.icon-picker-dialog__reset-button {
+    -fx-background-color: #333333;
+    -fx-text-fill: #e5e5e5;
+    -fx-border-color: #444444;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.icon-picker-dialog__reset-button:hover {
+    -fx-background-color: #444444;
+    -fx-border-color: #555555;
+}
+
+.icon-picker-dialog__tooltip {
+    -fx-background-color: #1a1a1a;
+    -fx-text-fill: #e5e5e5;
+    -fx-font-size: 11px;
+}
+
+/* ===== Workflow Settings Dialog Specific ===== */
+.workflow-settings-dialog {
+    -fx-background-color: #1e1e1e;
+}
+
+.workflow-settings-dialog__header-icon {
+    -fx-fill: #6366f1;
+}
+
+.workflow-settings-dialog__header-label {
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #e5e5e5;
+}
+
+.workflow-settings-dialog__description {
+    -fx-text-fill: #888888;
+    -fx-font-size: 12px;
+}
+
+.workflow-settings-dialog__label {
+    -fx-text-fill: #e5e5e5;
+}
+
+.workflow-settings-dialog__input {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e5e5;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.workflow-settings-dialog__textarea {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e5e5;
+    -fx-control-inner-background: #2d2d2d;
+    -fx-prompt-text-fill: #888888;
+}
+
+.workflow-settings-dialog__active-icon {
+    -fx-fill: #22c55e;
+}
+
+.workflow-settings-dialog__checkbox {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-weight: bold;
+}
+
+.workflow-settings-dialog__hint {
+    -fx-text-fill: #888888;
+    -fx-font-size: 11px;
+}
+
+/* ===== Node Debug Dialog Specific ===== */
+.node-debug-dialog {
+    -fx-background-color: #1a1a1a;
+}
+
+.node-debug-dialog__header {
+    -fx-padding: 10px 0 15px 0;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: #333333;
+}
+
+.node-debug-dialog__header-icon {
+    -fx-fill: #8b5cf6;
+    -fx-icon-color: #8b5cf6;
+}
+
+.node-debug-dialog__node-name {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.node-debug-dialog__node-type {
+    -fx-text-fill: #71717a;
+    -fx-font-size: 12px;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.node-debug-dialog__section {
+    -fx-background-color: #252525;
+    -fx-border-color: #333333;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 10px;
+}
+
+.node-debug-dialog__section-title {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-weight: bold;
+}
+
+.node-debug-dialog__text {
+    -fx-text-fill: #a1a1aa;
+}
+
+.node-debug-dialog__code-area {
+    -fx-control-inner-background: #1a1a1a;
+    -fx-text-fill: #e5e5e5;
+    -fx-font-family: 'Consolas', 'Monaco', monospace;
+    -fx-font-size: 12px;
+    -fx-border-color: #333333;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.node-debug-dialog__copy-button {
+    -fx-background-color: #333333;
+    -fx-text-fill: #e5e5e5;
+    -fx-border-color: #444444;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 4 8;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+}
+
+.node-debug-dialog__copy-button:hover {
+    -fx-background-color: #444444;
+}
+
+.node-debug-dialog__status-success {
+    -fx-text-fill: #22c55e;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.node-debug-dialog__status-failed {
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.node-debug-dialog__status-running {
+    -fx-text-fill: #3b82f6;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.node-debug-dialog__status-skipped {
+    -fx-text-fill: #a1a1aa;
+    -fx-font-weight: bold;
+    -fx-font-size: 14px;
+}
+
+.node-debug-dialog__error-section {
+    -fx-background-color: rgba(239, 68, 68, 0.1);
+    -fx-border-color: #ef4444;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 10px;
+}
+
+.node-debug-dialog__error-title {
+    -fx-text-fill: #ef4444;
+    -fx-font-weight: bold;
+}
+
+/* SplitPane for resizable Input/Output sections */
+.node-debug-dialog__split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.node-debug-dialog__split-pane>.split-pane-divider {
+    -fx-background-color: #3f3f46;
+    -fx-padding: 2 0 2 0;
+}
+
+.node-debug-dialog__split-pane>.split-pane-divider:hover {
+    -fx-background-color: #8b5cf6;
+}
+
+.node-debug-dialog__data-section {
+    -fx-background-color: transparent;
+}
+
+/* ===== Edit Dialogs (Variable/Credential) ===== */
+.edit-dialog {
+    -fx-background-color: #1e1e1e;
+}
+
+.edit-dialog__grid {
+    -fx-background-color: #1e1e1e;
+}
+
+.edit-dialog__label {
+    -fx-text-fill: #e5e5e5;
+}
+
+.edit-dialog__input {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e5e5;
+    -fx-prompt-text-fill: #888888;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.edit-dialog__textarea {
+    -fx-background-color: #2d2d2d;
+    -fx-text-fill: #e5e5e5;
+    -fx-control-inner-background: #2d2d2d;
+    -fx-prompt-text-fill: #888888;
+}
+
+.edit-dialog__combobox {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+}
+
+.edit-dialog__checkbox {
+    -fx-text-fill: #a3a3a3;
+}
+
+.edit-dialog__info-label {
+    -fx-text-fill: #fbbf24;
+    -fx-font-size: 11px;
+}
+
+.edit-dialog__button-primary {
+    -fx-background-color: #4a9eff;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.edit-dialog__button-primary--purple {
+    -fx-background-color: #a855f7;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+.edit-dialog__button-secondary {
+    -fx-background-color: #3b3b3b;
+    -fx-text-fill: white;
+    -fx-background-radius: 4;
+    -fx-cursor: hand;
+}
+
+/* ===== Keyboard Shortcuts Dialog ===== */
+.shortcuts-dialog {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.shortcuts-dialog__title {
+    -fx-font-size: 24px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.shortcuts-dialog__scroll {
+    -fx-background-color: transparent;
+    -fx-background: -nervemind-bg-secondary;
+}
+
+.shortcuts-dialog__scroll>.viewport {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.shortcuts-dialog__section-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-accent-cyan;
+    -fx-padding: 0 0 5 0;
+}
+
+.shortcuts-dialog__grid {
+    -fx-padding: 5 0 0 10;
+}
+
+.shortcuts-dialog__key {
+    -fx-font-family: "Consolas", "Monaco", monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: -nervemind-accent-yellow;
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-padding: 4 10;
+    -fx-background-radius: 4;
+    -fx-min-width: 120;
+}
+
+.shortcuts-dialog__action {
+    -fx-font-size: 13px;
+    -fx-text-fill: -nervemind-text-secondary;
+}
+
+.shortcuts-dialog__close-button {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-background-radius: 4;
+    -fx-padding: 8 20;
+    -fx-cursor: hand;
+}
+
+.shortcuts-dialog__close-button:hover {
+    -fx-background-color: derive(-nervemind-bg-tertiary, 15%);
+}

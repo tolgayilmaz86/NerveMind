@@ -1,0 +1,450 @@
+/*
+ * NerveMind - Properties Panel Styles
+ * 
+ * Styles for the node properties panel (right sidebar).
+ * Replaces inline setStyle() calls in NodePropertiesPanel.
+ */
+
+/* ===== Properties Panel Container ===== */
+.properties-panel {
+    -fx-background-color: #242933;
+    -fx-min-width: 280px;
+    -fx-pref-width: 300px;
+    -fx-max-width: 350px;
+}
+
+.properties-panel .scroll-pane {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.properties-panel .scroll-pane>.viewport {
+    -fx-background-color: transparent;
+}
+
+.properties-panel .scroll-pane>.corner {
+    -fx-background-color: transparent;
+}
+
+/* All labels in properties panel should have proper text color */
+.properties-panel .label,
+.properties-section .label {
+    -fx-text-fill: #eceff4;
+}
+
+/* All text in properties panel */
+.properties-panel .text,
+.properties-section .text {
+    -fx-fill: #eceff4;
+}
+
+/* Ensure all nested labels have white text */
+.properties-panel Label,
+.properties-section Label {
+    -fx-text-fill: #eceff4;
+}
+
+/* TitledPane content labels */
+.properties-panel .titled-pane>.content .label {
+    -fx-text-fill: #eceff4;
+}
+
+/* Parameter container labels */
+.properties-panel VBox .label,
+.properties-section VBox .label {
+    -fx-text-fill: #eceff4;
+}
+
+/* Generic text nodes */
+.properties-panel Text,
+.properties-section Text {
+    -fx-fill: #eceff4;
+}
+
+/* Labeled controls (ensures all text in buttons, labels, checkboxes etc.) */
+.properties-panel .labeled,
+.properties-section .labeled {
+    -fx-text-fill: #eceff4;
+}
+
+/* Button text */
+.properties-panel .button,
+.properties-section .button {
+    -fx-text-fill: #eceff4;
+}
+
+/* ===== Properties Header ===== */
+.properties-header {
+    -fx-background-color: #3b4252;
+    -fx-padding: 14px 16px 12px 16px;
+}
+
+.properties-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #eceff4;
+}
+
+.properties-subtitle {
+    -fx-font-size: 11px;
+    -fx-text-fill: #8b949e;
+}
+
+/* ===== Node Type Accent Bar ===== */
+.node-type-accent {
+    -fx-min-height: 3px;
+    -fx-max-height: 3px;
+    -fx-background-color: #5e81ac;
+}
+
+.node-type-accent--trigger {
+    -fx-background-color: #40c057;
+}
+
+.node-type-accent--action {
+    -fx-background-color: #4a9eff;
+}
+
+.node-type-accent--condition {
+    -fx-background-color: #fcc419;
+}
+
+.node-type-accent--ai {
+    -fx-background-color: #9775fa;
+}
+
+.node-type-accent--data {
+    -fx-background-color: #ff922b;
+}
+
+/* ===== Properties Sections ===== */
+.properties-section {
+    -fx-padding: 15px;
+}
+
+.properties-titled-pane {
+    -fx-background-color: transparent;
+    -fx-text-fill: #eceff4;
+}
+
+.properties-titled-pane>.title {
+    -fx-background-color: #3b4252;
+    -fx-padding: 10px 15px;
+}
+
+.properties-titled-pane>.title>.arrow-button {
+    -fx-background-color: transparent;
+}
+
+.properties-titled-pane>.title>.arrow-button>.arrow {
+    -fx-background-color: #eceff4;
+}
+
+.properties-titled-pane>.title .label {
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: bold;
+}
+
+.properties-titled-pane>.content {
+    -fx-background-color: #242933;
+    -fx-padding: 10px;
+}
+
+/* TitledPane content text areas should have proper text color */
+.properties-titled-pane>.content .text-area {
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #eceff4;
+    -fx-control-inner-background: #3b4252;
+}
+
+.properties-titled-pane>.content .text-area .content {
+    -fx-background-color: #3b4252;
+}
+
+.properties-titled-pane>.content .text-area .text {
+    -fx-fill: #eceff4;
+}
+
+.properties-titled-pane>.content .check-box {
+    -fx-text-fill: #eceff4;
+}
+
+.properties-titled-pane>.content .check-box .text {
+    -fx-fill: #eceff4;
+}
+
+/* ===== Property Labels ===== */
+.properties-panel .property-label,
+.property-label {
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-padding: 0 0 4px 0;
+}
+
+.property-label--required::after {
+    content: " *";
+    -fx-text-fill: #bf616a;
+}
+
+.properties-panel .property-hint,
+.property-hint {
+    -fx-text-fill: #8b949e;
+    -fx-font-size: 11px;
+    -fx-font-style: italic;
+    -fx-padding: 5px 0;
+}
+
+.properties-panel .property-checkbox,
+.properties-section .check-box,
+.property-checkbox {
+    -fx-text-fill: #eceff4;
+}
+
+.properties-panel .property-checkbox .text,
+.properties-section .check-box .text,
+.property-checkbox .text {
+    -fx-fill: #eceff4;
+}
+
+/* ===== Property Inputs ===== */
+.properties-panel .text-field,
+.properties-section .text-field {
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #eceff4;
+    -fx-prompt-text-fill: #616e88;
+    -fx-background-radius: 4px;
+    -fx-padding: 8px 10px;
+}
+
+.properties-panel .text-field:focused,
+.properties-section .text-field:focused {
+    -fx-border-color: #4a9eff;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+.properties-panel .text-area {
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #eceff4;
+    -fx-control-inner-background: #3b4252;
+    -fx-background-radius: 4px;
+    -fx-prompt-text-fill: #616e88;
+}
+
+/* TextArea inner content and text styling */
+.properties-panel .text-area .content {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .text-area .text {
+    -fx-fill: #eceff4;
+}
+
+.properties-panel .text-area .scroll-pane {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .text-area .scroll-pane .viewport {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .text-area:focused {
+    -fx-border-color: #4a9eff;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+/* Checkbox text styling - ensure all checkbox labels are visible */
+.properties-panel .check-box,
+.properties-section .check-box,
+.properties-panel .property-checkbox,
+.properties-section .property-checkbox {
+    -fx-text-fill: #eceff4;
+}
+
+.properties-panel .check-box .text,
+.properties-section .check-box .text,
+.properties-panel .property-checkbox .text,
+.properties-section .property-checkbox .text {
+    -fx-fill: #eceff4;
+}
+
+.properties-panel .check-box>.box,
+.properties-panel .property-checkbox>.box {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #616e88;
+    -fx-border-radius: 3px;
+}
+
+.properties-panel .check-box:selected>.box,
+.properties-panel .property-checkbox:selected>.box {
+    -fx-background-color: #4a9eff;
+    -fx-border-color: #4a9eff;
+}
+
+.properties-panel .check-box:selected>.box>.mark {
+    -fx-background-color: white;
+}
+
+.properties-panel .combo-box,
+.properties-section .combo-box {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .combo-box .list-cell,
+.properties-section .combo-box .list-cell {
+    -fx-text-fill: #eceff4;
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .combo-box .arrow-button,
+.properties-section .combo-box .arrow-button {
+    -fx-background-color: transparent;
+}
+
+.properties-panel .combo-box-popup .list-view,
+.properties-section .combo-box-popup .list-view,
+.combo-box-popup .list-view {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .combo-box-popup .list-cell,
+.properties-section .combo-box-popup .list-cell,
+.combo-box-popup .list-cell {
+    -fx-text-fill: #eceff4;
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .combo-box-popup .list-cell:hover,
+.properties-section .combo-box-popup .list-cell:hover,
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: #434c5e;
+}
+
+.properties-panel .spinner,
+.properties-section .spinner {
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .spinner .text-field,
+.properties-section .spinner .text-field {
+    -fx-text-fill: #eceff4;
+    -fx-background-color: #3b4252;
+}
+
+.properties-panel .spinner .text-field .text,
+.properties-section .spinner .text-field .text {
+    -fx-fill: #eceff4;
+}
+
+.properties-panel .spinner .increment-arrow-button,
+.properties-panel .spinner .decrement-arrow-button,
+.properties-section .spinner .increment-arrow-button,
+.properties-section .spinner .decrement-arrow-button {
+    -fx-background-color: #434c5e;
+}
+
+.properties-panel .spinner .increment-arrow-button .increment-arrow,
+.properties-panel .spinner .decrement-arrow-button .decrement-arrow,
+.properties-section .spinner .increment-arrow-button .increment-arrow,
+.properties-section .spinner .decrement-arrow-button .decrement-arrow {
+    -fx-background-color: #eceff4;
+}
+
+/* ===== Scrollpane Content ===== */
+.properties-content {
+    -fx-background-color: transparent;
+}
+
+/* ===== Parameter Rows ===== */
+.parameter-row {
+    -fx-padding: 8px 0;
+}
+
+.parameter-row--complex {
+    -fx-background-color: #3b4252;
+    -fx-background-radius: 4px;
+    -fx-padding: 10px;
+    -fx-margin: 5px 0;
+}
+
+/* ===== Help Button ===== */
+.properties-panel .icon-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-padding: 5px;
+}
+
+.properties-panel .icon-button:hover {
+    -fx-background-color: #434c5e;
+    -fx-background-radius: 4px;
+}
+
+/* ===== Action Buttons ===== */
+.properties-panel__actions {
+    -fx-background-color: #3b4252;
+    -fx-padding: 10px 15px;
+    -fx-border-color: #4c566a;
+    -fx-border-width: 1px 0 0 0;
+}
+
+.properties-panel__apply-btn {
+    -fx-background-color: #5e81ac;
+    -fx-text-fill: white;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 16px;
+}
+
+.properties-panel__apply-btn:hover {
+    -fx-background-color: #6b8eb9;
+}
+
+.properties-panel__delete-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: #bf616a;
+    -fx-background-radius: 6px;
+    -fx-border-color: #bf616a;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+    -fx-padding: 8px 16px;
+}
+
+.properties-panel__delete-btn:hover {
+    -fx-background-color: rgba(191, 97, 106, 0.1);
+}
+
+/* ===== Validation Messages ===== */
+.property-validation {
+    -fx-font-size: 10px;
+    -fx-padding: 4px 0 0 0;
+}
+
+.property-validation--error {
+    -fx-text-fill: #bf616a;
+}
+
+.property-validation--warning {
+    -fx-text-fill: #ebcb8b;
+}
+
+.property-validation--success {
+    -fx-text-fill: #a3be8c;
+}
+
+/* ===== Empty State ===== */
+.properties-panel__empty {
+    -fx-padding: 30px;
+    -fx-alignment: center;
+}
+
+.properties-panel__empty-icon {
+    -fx-opacity: 0.5;
+}
+
+.properties-panel__empty-text {
+    -fx-text-fill: #8b949e;
+    -fx-font-size: 13px;
+    -fx-text-alignment: center;
+    -fx-padding: 10px 0 0 0;
+}

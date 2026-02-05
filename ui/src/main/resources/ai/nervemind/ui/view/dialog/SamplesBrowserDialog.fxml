@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.SamplesBrowserController"
+      spacing="15"
+      prefWidth="700"
+      prefHeight="600"
+      styleClass="samples-browser-dialog"
+      stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/dialog.css">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- Search Field -->
+    <TextField fx:id="searchField"
+               promptText="🔍 Search samples by name, description, or tags..."
+               styleClass="samples-browser-dialog__search-field"/>
+
+    <!-- Filters Row -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <Label text="Filters:" styleClass="samples-browser-dialog__filter-label"/>
+        <ComboBox fx:id="categoryFilter"
+                  promptText="Category"
+                  prefWidth="130"
+                  styleClass="samples-browser-dialog__filter-combo"/>
+        <ComboBox fx:id="languageFilter"
+                  promptText="Language"
+                  prefWidth="130"
+                  styleClass="samples-browser-dialog__filter-combo"/>
+        <ComboBox fx:id="difficultyFilter"
+                  promptText="Difficulty"
+                  prefWidth="130"
+                  styleClass="samples-browser-dialog__filter-combo"/>
+    </HBox>
+
+    <!-- Sample List -->
+    <ListView fx:id="sampleListView"
+              VBox.vgrow="ALWAYS"
+              styleClass="samples-browser-dialog__list"/>
+
+    <!-- Status Bar -->
+    <Label fx:id="statusLabel" styleClass="samples-browser-dialog__status-label"/>
+
+    <!-- Button Bar -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="viewGuideButton"
+                text="View Guide"
+                onAction="#onViewGuide"
+                styleClass="dialog__button-secondary">
+            <graphic>
+                <FontIcon iconLiteral="mdi2b-book-open-page-variant" iconSize="14"/>
+            </graphic>
+        </Button>
+        
+        <HBox HBox.hgrow="ALWAYS"/>
+        
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="importButton"
+                        text="Import Workflow"
+                        onAction="#onImport"
+                        styleClass="dialog__button-primary"
+                        defaultButton="true"/>
+                <Button fx:id="closeButton"
+                        text="Close"
+                        onAction="#onClose"
+                        styleClass="dialog__button-secondary"
+                        cancelButton="true"/>
+            </buttons>
+        </ButtonBar>
+    </HBox>
+</VBox>

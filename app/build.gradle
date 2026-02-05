@@ -1,0 +1,411 @@
+import org.panteleyev.jpackage.ImageType
+
+plugins {
+    id 'org.springframework.boot'
+    id 'org.flywaydb.flyway'
+    id 'org.panteleyev.jpackageplugin'
+    id 'org.openjfx.javafxplugin' version '0.1.0'
+    id 'checkstyle'
+    id 'pmd'
+    // id 'com.github.spotbugs' version '6.0.4'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
+
+javafx {
+    version = "21"
+    modules = ['javafx.controls', 'javafx.fxml', 'javafx.swing', 'javafx.graphics']
+}
+
+flyway {
+    url = "jdbc:h2:file:${project.rootDir}/data/nervemind"
+    user = 'sa'
+}
+
+tasks.register('cleanLibs', Delete) {
+    delete layout.buildDirectory.dir("libs")
+}
+
+bootJar {
+    dependsOn cleanLibs
+    manifest {
+        attributes 'Implementation-Version': "${project.appVersion}"
+        attributes 'Implementation-Title': "${project.name}"
+    }
+}
+
+bootRun {
+    jvmArgs "-ea", 
+            "--enable-preview",
+            "-Djava.net.preferIPv4Stack=true", 
+            "-Dfile.encoding=UTF-8",
+            "--enable-native-access=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED"
+    systemProperty 'spring.profiles.active', 'dev'
+}
+
+springBoot {
+    mainClass = 'ai.nervemind.app.NerveMindApplication'
+    buildInfo {
+        excludes = ['time']
+        properties {
+            name = rootProject.name
+        }
+    }
+}
+
+test {
+    useJUnitPlatform {
+        // Exclude integration tests from regular test runs
+        excludeTags 'integration-samples'
+    }
+    jvmArgs "-ea", 
+            "--enable-preview",
+            "-Djava.net.preferIPv4Stack=true", 
+            "-Dfile.encoding=UTF-8",
+            "--enable-native-access=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED"
+}
+
+// Integration tests task - runs sample workflow tests with real credentials
+tasks.register('integrationTest', Test) {
+    group = 'verification'
+    description = 'Run sample workflow integration tests with real API credentials'
+    
+    // Use same test classes and classpath as regular test task
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    
+    useJUnitPlatform {
+        includeTags 'integration-samples'
+    }
+    
+    // Enable integration tests
+    systemProperty 'test.integration', 'true'
+    systemProperty 'spring.profiles.active', 'integration'
+    
+    jvmArgs "-ea", 
+            "--enable-preview",
+            "-Djava.net.preferIPv4Stack=true", 
+            "-Dfile.encoding=UTF-8",
+            "--enable-native-access=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang=ALL-UNNAMED"
+    
+    // Don't fail on test failures - we want the full report
+    ignoreFailures = true
+    
+    // Detailed test output
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        exceptionFormat = 'full'
+    }
+    
+    // Generate reports
+    reports {
+        html.required = true
+        junitXml.required = true
+    }
+    
+    // Run after regular tests
+    shouldRunAfter test
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
+jpackage {
+    dependsOn bootJar
+    appName = rootProject.name
+    def rawVersion = "${project.appVersion}".split("-")[0]
+    if (org.gradle.internal.os.OperatingSystem.current().isMacOsX() && rawVersion.startsWith("0.")) {
+        appVersion = "1" + rawVersion.substring(1)
+    } else {
+        appVersion = rawVersion
+    }
+    vendor = "NerveMind"
+    copyright = "Copyright 2026 NerveMind. All Rights Reserved"
+    appDescription = "AI-Native Workflow Automation Platform"
+    input = layout.buildDirectory.dir("libs")
+    destination = layout.buildDirectory.dir("distributions")
+    mainJar = tasks.bootJar.archiveFileName.get()
+    
+    // Embedded GraalVM runtime configuration
+    // Downloads and bundles a complete JRE with the installer
+    // This ensures the application runs without requiring Java installation
+    def runtimeImagePath = findProperty('jpackage.runtime')
+    if (runtimeImagePath) {
+        def runtimeImageFile = project.file(runtimeImagePath)
+        if (runtimeImageFile.exists()) {
+            runtimeImage = runtimeImageFile
+        }
+    }
+    
+    // JVM options for the bundled runtime
+    javaOptions = [
+        '-Djava.net.preferIPv4Stack=true',
+        '-Dfile.encoding=UTF-8',
+        '--enable-preview',
+        '--enable-native-access=ALL-UNNAMED',
+        '--add-opens=java.base/java.lang=ALL-UNNAMED',
+        '--add-opens=java.base/java.util=ALL-UNNAMED',
+        '--add-opens=java.base/java.nio=ALL-UNNAMED',
+        '--add-opens=java.base/java.util.concurrent=ALL-UNNAMED',
+        '-Xms256m',
+        '-Xmx1024m',
+        '-XX:MaxMetaspaceSize=256m',
+        '-XX:+UseG1GC',
+        '-XX:+UseStringDeduplication',
+        '-Dvisualvm.display.name=NerveMind',
+        '-Dspring.output.ansi.enabled=never',
+        // GraalVM polyglot options for JavaScript execution
+        '-Dpolyglot.engine.WarnInterpreterOnly=false'
+    ]
+    
+    // Additional modules to include in the runtime image
+    addModules = [
+        'java.base',
+        'java.compiler',
+        'java.desktop',
+        'java.instrument',
+        'java.logging',
+        'java.management',
+        'java.management.rmi',
+        'java.naming',
+        'java.net.http',
+        'java.prefs',
+        'java.rmi',
+        'java.scripting',
+        'java.security.jgss',
+        'java.security.sasl',
+        'java.sql',
+        'java.transaction.xa',
+        'java.xml',
+        'java.xml.crypto',
+        'jdk.charsets',
+        'jdk.crypto.ec',
+        'jdk.jfr',
+        'jdk.management',
+        'jdk.management.agent',
+        'jdk.net',
+        'jdk.sctp',
+        'jdk.unsupported',
+        'jdk.zipfs'
+    ]
+    
+    windows {
+        // Use APP_IMAGE for portable builds, MSI for installer
+        def isPortable = findProperty('jpackage.portable') == 'true'
+        type = isPortable ? ImageType.APP_IMAGE : ImageType.MSI
+        
+        if (!isPortable) {
+            winMenu = true
+            winPerUserInstall = true
+            winDirChooser = true
+            winMenuGroup = rootProject.name
+            winShortcut = true
+            winShortcutPrompt = true
+            // Unique UUID for Windows installer upgrades (generated once, never change)
+            winUpgradeUuid = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        }
+
+        // Icon for the application
+        icon = rootProject.layout.projectDirectory.file("ui/src/main/resources/images/icon.ico")
+    }
+    
+    linux {
+        def isPortable = findProperty('jpackage.portable') == 'true'
+        type = isPortable ? ImageType.APP_IMAGE : ImageType.DEB
+        
+        icon = rootProject.layout.projectDirectory.file("ui/src/main/resources/images/icon.png")
+        if (!isPortable) {
+            linuxShortcut = true
+            linuxMenuGroup = "Development"
+            linuxAppCategory = "Development"
+        }
+    }
+    
+    mac {
+        def isPortable = findProperty('jpackage.portable') == 'true'
+        type = isPortable ? ImageType.APP_IMAGE : ImageType.DMG
+
+        macPackageIdentifier = "ai.nervemind.app"
+        macPackageName = rootProject.name
+    }
+}
+
+// =============================================================================
+// WiX Toolset Configuration (for advanced MSI customization)
+// =============================================================================
+// WiX Toolset is automatically used by jpackage on Windows for MSI creation.
+// For advanced customization, you can provide custom WiX source files.
+//
+// Prerequisites:
+//   1. Install WiX Toolset v3.11+ from https://wixtoolset.org/
+//   2. Add WiX bin directory to PATH (e.g., C:\Program Files (x86)\WiX Toolset v3.11\bin)
+//   3. Or set WIX environment variable pointing to WiX installation
+//
+// To verify WiX installation:
+//   > candle -? (should show WiX Candle compiler help)
+//   > light -?  (should show WiX Light linker help)
+//
+// Custom WiX templates can be placed in: tools/wix/
+// =============================================================================
+
+// Task to verify WiX installation before building installer
+tasks.register('verifyWix') {
+    group = 'installer'
+    description = 'Verify WiX Toolset installation'
+    
+    doLast {
+        def wixPath = System.getenv('WIX')
+        def pathDirs = System.getenv('PATH')?.split(File.pathSeparator) ?: []
+        
+        def candleFound = false
+        
+        // Check WIX environment variable
+        if (wixPath) {
+            def candleExe = new File(wixPath, 'bin/candle.exe')
+            if (candleExe.exists()) {
+                candleFound = true
+                println "✓ WiX Toolset found at: ${wixPath}"
+            }
+        }
+        
+        // Check PATH
+        if (!candleFound) {
+            for (dir in pathDirs) {
+                def candleExe = new File(dir, 'candle.exe')
+                if (candleExe.exists()) {
+                    candleFound = true
+                    println "✓ WiX Toolset found in PATH: ${dir}"
+                    break
+                }
+            }
+        }
+        
+        if (!candleFound) {
+            println """
+            ⚠ WiX Toolset not found!
+            
+            To install WiX Toolset:
+            1. Download from: https://wixtoolset.org/releases/
+            2. Install WiX Toolset v3.11 or later
+            3. Add to PATH or set WIX environment variable
+            
+            Alternatively, use winget:
+               winget install WixToolset.WixToolset
+            
+            Or use Chocolatey:
+               choco install wixtoolset
+            """
+        }
+    }
+}
+
+// Make jpackage depend on WiX verification (optional, uncomment to enforce)
+// tasks.named('jpackage').configure { dependsOn 'verifyWix' }
+
+// =============================================================================
+// Static Analysis Configuration
+// =============================================================================
+
+// Checkstyle configuration
+checkstyle {
+    toolVersion = '10.12.4'
+    configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+}
+
+// PMD configuration
+pmd {
+    toolVersion = '7.21.0'
+    ruleSets = [rootProject.file('config/pmd/pmd.xml').toString()]
+    // Don't fail build on violations - just report them
+    ignoreFailures = true
+}
+
+// SpotBugs configuration
+// spotbugs {
+//     toolVersion = '4.8.3'
+//     excludeFilter = rootProject.file('config/spotbugs/exclude.xml')
+// }
+
+dependencies {
+    // Spring Boot BOM
+    implementation(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    annotationProcessor(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    developmentOnly(platform("org.springframework.boot:spring-boot-dependencies:$springBootVersion"))
+    
+    // Configuration processor
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    
+    // Project modules
+    implementation project(':common')
+    implementation project(':ui')
+    implementation project(':plugin-api')
+    
+    // Plugins (bundled with the application)
+    runtimeOnly project(':plugins:file-watcher')
+    
+    // Spring Boot Starters
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation('org.springframework.boot:spring-boot-starter-webflux') {
+        exclude group: 'io.netty', module: 'netty-transport-native-epoll'
+    }
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    
+    // Flyway
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'
+    
+    // Database
+    implementation 'com.h2database:h2'
+    
+    // Encryption
+    implementation "org.bouncycastle:bcpg-jdk18on:$bouncycastleVersion"
+    implementation "org.bouncycastle:bcpkix-jdk18on:$bouncycastleVersion"
+    
+    // GraalVM for scripting
+    implementation "org.graalvm.polyglot:polyglot:$graalvmVersion"
+    implementation "org.graalvm.polyglot:js:$graalvmVersion"
+    implementation "org.graalvm.polyglot:python:$graalvmVersion"
+    
+    // Apache Commons
+    implementation "org.apache.commons:commons-lang3:$apacheCommonsLangVersion"
+    implementation "org.apache.commons:commons-collections4:$apacheCommonsCollectionsVersion"
+    
+    // JSON processing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    
+    // API Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
+    
+    // JNA for native access
+    implementation "net.java.dev.jna:jna-platform:$jnaVersion"
+    
+    // Development
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    developmentOnly 'org.springframework.boot:spring-boot-starter-actuator'
+    
+    // Testing
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: "com.vaadin.external.google", module: "android-json"
+    }
+    testImplementation "com.tngtech.archunit:archunit-junit5:$archunitVersion"
+    testImplementation "org.wiremock:wiremock-standalone:$wiremockVersion"
+}

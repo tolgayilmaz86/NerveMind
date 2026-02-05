@@ -1,0 +1,281 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<!--
+    ExecutionConsole.fxml - Execution Console Window Layout
+    
+    This FXML defines the layout for the workflow execution console which
+    displays execution logs, session summaries, and progress information.
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ai.nervemind.ui.view.console.ExecutionConsoleController"
+            styleClass="execution-console">
+    
+    <!-- Top Toolbar -->
+    <top>
+        <ToolBar fx:id="mainToolbar" styleClass="console-toolbar">
+            <!-- Clear button -->
+            <Button fx:id="clearBtn" 
+                    onAction="#onClear"
+                    styleClass="console-tool-button">
+            </Button>
+            
+            <!-- Copy button -->
+            <Button fx:id="copyBtn" 
+                    onAction="#onCopy"
+                    styleClass="console-tool-button">
+            </Button>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <!-- Auto-scroll toggle -->
+            <ToggleButton fx:id="autoScrollBtn" 
+                          styleClass="console-tool-button">
+            </ToggleButton>
+            
+            <!-- Timestamps toggle -->
+            <ToggleButton fx:id="timestampBtn"
+                          styleClass="console-tool-button">
+            </ToggleButton>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <!-- DEBUG filter toggle -->
+            <ToggleButton fx:id="debugBtn" 
+                          text="DEBUG"
+                          styleClass="console-level-toggle, console-level-debug">
+            </ToggleButton>
+            
+            <!-- TRACE filter toggle -->
+            <ToggleButton fx:id="traceBtn" 
+                          text="TRACE"
+                          styleClass="console-level-toggle, console-level-trace">
+            </ToggleButton>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <!-- Filter text field -->
+            <TextField fx:id="filterField" 
+                       promptText="Filter logs..."
+                       prefWidth="180"
+                       styleClass="console-filter-field"/>
+            
+            <Separator orientation="VERTICAL"/>
+            
+            <!-- Session selector -->
+            <Label text="Session:" styleClass="console-toolbar-label"/>
+            <ComboBox fx:id="sessionSelector" 
+                      promptText="Select session..."
+                      prefWidth="200"
+                      styleClass="console-session-selector"/>
+        </ToolBar>
+    </top>
+    
+    <!-- Center: Main Tab Pane -->
+    <center>
+        <TabPane fx:id="mainTabPane" 
+                 tabClosingPolicy="UNAVAILABLE"
+                 styleClass="console-tab-pane">
+            
+            <!-- Summary Tab -->
+            <Tab fx:id="summaryTab" text="Summary" closable="false">
+                <ScrollPane fx:id="summaryScrollPane" 
+                            fitToWidth="true"
+                            styleClass="console-scroll">
+                    <VBox fx:id="summaryContainer" 
+                          spacing="15"
+                          styleClass="console-summary-container">
+                        <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+                        
+                        <!-- Placeholder content - dynamically replaced -->
+                        <Label fx:id="emptyStateLabel"
+                               text="No execution selected. Run a workflow to see details."
+                               styleClass="console-empty-state"/>
+                        
+                        <!-- Header section (hidden when empty) -->
+                        <HBox fx:id="sessionHeader" 
+                              spacing="10" 
+                              alignment="CENTER_LEFT"
+                              visible="false" managed="false"
+                              styleClass="console-session-header">
+                            <Label fx:id="sessionTitleLabel" 
+                                   styleClass="console-session-title"/>
+                        </HBox>
+                        
+                        <!-- Status Card -->
+                        <VBox fx:id="statusCard" 
+                              visible="false" managed="false"
+                              styleClass="console-card">
+                            <Label text="Execution Status" styleClass="console-card-title"/>
+                            <Separator/>
+                            <GridPane fx:id="statusGrid" hgap="20" vgap="8" styleClass="console-status-grid">
+                                <Label text="Status:" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="console-grid-label"/>
+                                <HBox fx:id="statusBadgeContainer" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+                                
+                                <Label text="Execution ID:" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="console-grid-label"/>
+                                <Label fx:id="executionIdLabel" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="console-code"/>
+                                
+                                <Label text="Started:" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="console-grid-label"/>
+                                <Label fx:id="startTimeLabel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+                                
+                                <Label text="Duration:" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="console-grid-label"/>
+                                <Label fx:id="durationLabel" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="console-duration"/>
+                            </GridPane>
+                        </VBox>
+                        
+                        <!-- Progress Card (shown when running) -->
+                        <VBox fx:id="progressCard" 
+                              visible="false" managed="false"
+                              styleClass="console-card">
+                            <Label text="Progress" styleClass="console-card-title"/>
+                            <Separator/>
+                            <VBox spacing="8">
+                                <ProgressBar fx:id="progressBar" maxWidth="Infinity"/>
+                                <Label fx:id="progressLabel" styleClass="console-progress-text"/>
+                            </VBox>
+                        </VBox>
+                        
+                        <!-- Metrics Card -->
+                        <VBox fx:id="metricsCard" 
+                              visible="false" managed="false"
+                              styleClass="console-card">
+                            <Label text="Metrics" styleClass="console-card-title"/>
+                            <Separator/>
+                            <HBox fx:id="metricsContainer" spacing="15" alignment="CENTER_LEFT">
+                                <!-- Metric boxes added dynamically -->
+                            </HBox>
+                        </VBox>
+                        
+                        <!-- Nodes Card -->
+                        <VBox fx:id="nodesCard" 
+                              visible="false" managed="false"
+                              styleClass="console-card">
+                            <Label text="Node Execution" styleClass="console-card-title"/>
+                            <Separator/>
+                            <VBox fx:id="nodesContainer" spacing="5">
+                                <!-- Node execution rows added dynamically -->
+                            </VBox>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+            
+            <!-- Logs Tab -->
+            <Tab fx:id="logsTab" text="Logs" closable="false">
+                <BorderPane styleClass="console-logs-pane">
+                    <!-- Logs toolbar -->
+                    <top>
+                        <HBox fx:id="logsToolbar" 
+                              spacing="8"
+                              alignment="CENTER_LEFT"
+                              styleClass="console-logs-toolbar">
+                            <padding><Insets top="8" right="12" bottom="8" left="12"/></padding>
+                            
+                            <Label text="Logs:" styleClass="console-logs-title"/>
+                            
+                            <!-- Statistics badges -->
+                            <HBox fx:id="statsBox" spacing="12" alignment="CENTER_LEFT">
+                                <HBox styleClass="console-stat-badge, stat-info">
+                                    <Label fx:id="infoIconLabel" styleClass="stat-icon"/>
+                                    <Label fx:id="infoCountLabel" text="0" styleClass="stat-count"/>
+                                </HBox>
+                                <HBox styleClass="console-stat-badge, stat-warn">
+                                    <Label fx:id="warnIconLabel" styleClass="stat-icon"/>
+                                    <Label fx:id="warnCountLabel" text="0" styleClass="stat-count"/>
+                                </HBox>
+                                <HBox styleClass="console-stat-badge, stat-error">
+                                    <Label fx:id="errorIconLabel" styleClass="stat-icon"/>
+                                    <Label fx:id="errorCountLabel" text="0" styleClass="stat-count"/>
+                                </HBox>
+                            </HBox>
+                            
+                            <Separator orientation="VERTICAL"/>
+                            
+                            <!-- Jump to error button -->
+                            <Button fx:id="jumpErrorBtn" 
+                                    text="Jump to Error"
+                                    onAction="#onJumpToError"
+                                    styleClass="console-link-button, error-link"/>
+                            
+                            <!-- Line numbers toggle -->
+                            <ToggleButton fx:id="lineNumBtn" 
+                                          text="#"
+                                          styleClass="console-level-toggle"/>
+                            
+                            <!-- Expand/Collapse buttons -->
+                            <Button fx:id="expandAllBtn"
+                                    onAction="#onExpandAll"
+                                    styleClass="console-tool-button"/>
+                            <Button fx:id="collapseAllBtn"
+                                    onAction="#onCollapseAll"
+                                    styleClass="console-tool-button"/>
+                            
+                            <!-- Spacer -->
+                            <Region HBox.hgrow="ALWAYS"/>
+                            
+                            <!-- Export button -->
+                            <Button fx:id="exportBtn" 
+                                    text="Export"
+                                    onAction="#onExport"
+                                    styleClass="console-link-button"/>
+                            
+                            <!-- Total entries label -->
+                            <Label fx:id="totalEntriesLabel" 
+                                   text="0 entries"
+                                   styleClass="console-count-label"/>
+                        </HBox>
+                    </top>
+                    
+                    <!-- Logs scroll pane -->
+                    <center>
+                        <ScrollPane fx:id="logsScrollPane" 
+                                    fitToWidth="true"
+                                    styleClass="console-scroll">
+                            <VBox fx:id="logContainer" 
+                                  spacing="1"
+                                  styleClass="console-log-container">
+                                <padding><Insets top="5" right="10" bottom="10" left="10"/></padding>
+                            </VBox>
+                        </ScrollPane>
+                    </center>
+                </BorderPane>
+            </Tab>
+        </TabPane>
+    </center>
+    
+    <!-- Bottom: Status Bar -->
+    <bottom>
+        <HBox fx:id="statusBar" 
+              spacing="10"
+              alignment="CENTER_LEFT"
+              styleClass="console-status-bar">
+            <padding><Insets top="5" right="10" bottom="5" left="10"/></padding>
+            
+            <Label fx:id="statusLabel" text="Ready" styleClass="console-status-text"/>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <Label fx:id="filterStatusLabel" styleClass="console-filter-status"/>
+            <Label fx:id="sessionCountLabel" text="Sessions: 0" styleClass="console-session-count"/>
+        </HBox>
+    </bottom>
+</BorderPane>

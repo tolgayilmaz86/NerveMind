@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.ExpressionEditorDialogController"
+      styleClass="expression-editor-dialog" spacing="15" prefWidth="700" prefHeight="550">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    
+    <!-- Header -->
+    <HBox spacing="12" alignment="CENTER_LEFT">
+        <FontIcon iconLiteral="mdi2c-code-braces" iconSize="28" styleClass="expression-editor-dialog__header-icon"/>
+        <VBox spacing="2">
+            <Label text="Expression Editor" styleClass="expression-editor-dialog__title"/>
+            <Label text="Build expressions with variables and functions" styleClass="expression-editor-dialog__subtitle"/>
+        </VBox>
+    </HBox>
+    
+    <!-- Tab Pane -->
+    <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" styleClass="expression-dialog-tabs" VBox.vgrow="ALWAYS">
+        <!-- Editor Tab -->
+        <Tab fx:id="editorTab" text="Editor">
+            <graphic>
+                <FontIcon iconLiteral="mdi2c-code-braces" iconSize="16"/>
+            </graphic>
+            <VBox fx:id="editorContent" spacing="10">
+                <padding>
+                    <Insets top="10" right="10" bottom="10" left="10"/>
+                </padding>
+                <Label text="💡 Tip: Press Ctrl+Space for autocomplete, use ${variable} for variables" 
+                       styleClass="expression-editor-dialog__hint"/>
+                <!-- ExpressionEditorComponent is added here programmatically at index 1 -->
+            </VBox>
+        </Tab>
+        
+        <!-- Help Tab -->
+        <Tab fx:id="helpTab" text="Reference">
+            <graphic>
+                <FontIcon iconLiteral="mdi2f-function" iconSize="16"/>
+            </graphic>
+            <ScrollPane fx:id="helpScrollPane" fitToWidth="true" styleClass="expression-editor-dialog__help-scroll">
+                <VBox spacing="15">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    
+                    <!-- Variables Section -->
+                    <VBox spacing="8">
+                        <Label text="Variables" styleClass="expression-editor-dialog__section-title"/>
+                        <Label wrapText="true" styleClass="expression-editor-dialog__help-text">
+                            <text>Use ${variableName} to reference variables.
+Examples:
+  • ${name} - Reference the 'name' variable
+  • ${user.email} - Access nested property
+  • Hello, ${name}! - Combine with text</text>
+                        </Label>
+                    </VBox>
+                    
+                    <!-- Functions Section -->
+                    <VBox spacing="8">
+                        <Label text="Functions" styleClass="expression-editor-dialog__section-title"/>
+                        <Label wrapText="true" styleClass="expression-editor-dialog__help-text--mono">
+                            <text>Available functions:
+
+String Functions:
+  • concat(a, b, ...) - Concatenate strings
+  • upper(text) - Convert to uppercase
+  • lower(text) - Convert to lowercase
+  • trim(text) - Remove whitespace
+  • substring(text, start, end) - Extract substring
+  • replace(text, find, replace) - Replace text
+  • length(text) - Get string length
+
+Conditional Functions:
+  • if(condition, thenValue, elseValue)
+  • eq(a, b) - Check equality
+  • gt(a, b) - Greater than
+  • lt(a, b) - Less than
+  • and(a, b) - Logical AND
+  • or(a, b) - Logical OR
+  • not(value) - Logical NOT
+
+Math Functions:
+  • add(a, b) - Addition
+  • subtract(a, b) - Subtraction
+  • multiply(a, b) - Multiplication
+  • divide(a, b) - Division
+  • round(number) - Round to integer
+  • floor(number) - Round down
+  • ceil(number) - Round up
+
+Date Functions:
+  • now() - Current timestamp
+  • formatDate(date, pattern) - Format date</text>
+                        </Label>
+                    </VBox>
+                </VBox>
+            </ScrollPane>
+        </Tab>
+    </TabPane>
+    
+    <!-- Preview Section -->
+    <VBox spacing="5">
+        <Label text="Preview" styleClass="expression-editor-dialog__preview-label"/>
+        <TextArea fx:id="previewArea" editable="false" prefRowCount="3" wrapText="true"
+                  promptText="Expression preview will appear here..."
+                  styleClass="expression-editor-dialog__preview-area"/>
+    </VBox>
+    
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="copyButton" text="Copy" onAction="#handleCopy" styleClass="dialog__button-secondary"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" styleClass="dialog__button-secondary"/>
+        <Button fx:id="insertButton" text="Insert" onAction="#handleInsert" styleClass="dialog__button-primary"/>
+    </HBox>
+</VBox>

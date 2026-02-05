@@ -1,0 +1,69 @@
+# NerveMind
+
+# Build outputs
+build/
+out/
+bin/
+.gradle/
+
+#Java compiled files
+*.class
+*.war
+*.ear
+*.nar
+*.zip
+*.tar.gz
+*.rar
+*.exe
+*.dll
+*.so
+*.dylib
+*.o
+*.obj
+*.pyc
+# Exclude Gradle wrapper JAR
+gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+.agent/
+.vscode/
+
+# Data files
+data/
+*.db
+*.mv.db
+*.trace.db
+
+# Plugins directory (runtime-loaded plugins)
+app/plugins/
+plugins/*.jar
+
+# Logs
+*.log
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Installer outputs
+installer/output/
+
+# Credentials (never commit)
+**/credentials.json
+**/secrets.properties
+
+# Environment variables
+.env
+
+#tools 
+scripts/wix*
+tools/wix*
+.github/skills/

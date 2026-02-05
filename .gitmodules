@@ -1,0 +1,6 @@
+[submodule "plugins/connection-label"]
+	path = plugins/connection-label
+	url = d:/repos/nervemind-plugin-connection-label
+[submodule "plugins/file-watcher"]
+	path = plugins/file-watcher
+	url = d:/repos/nervemind-plugin-file-watcher

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="ai.nervemind.ui.view.dialog.GuideViewController"
+            styleClass="guide-view-dialog" prefWidth="900" prefHeight="600">
+    
+    <!-- Left Panel: Step List -->
+    <left>
+        <VBox spacing="10" styleClass="guide-view-dialog__left-panel" prefWidth="220" minWidth="200">
+            <padding>
+                <Insets top="15" right="15" bottom="15" left="15"/>
+            </padding>
+            <Label text="Steps" styleClass="guide-view-dialog__header"/>
+            <ListView fx:id="stepListView" styleClass="guide-view-dialog__step-list" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </left>
+    
+    <!-- Divider -->
+    <Region styleClass="guide-view-dialog__divider" BorderPane.alignment="CENTER"/>
+    
+    <!-- Center Panel: Content -->
+    <center>
+        <VBox spacing="15" styleClass="guide-view-dialog__center-panel">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+            
+            <!-- Scrollable Content -->
+            <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+                        styleClass="guide-view-dialog__scroll-pane" VBox.vgrow="ALWAYS">
+                <VBox fx:id="contentPane" spacing="15" styleClass="guide-view-dialog__content-pane">
+                    <padding>
+                        <Insets top="5" right="5" bottom="5" left="5"/>
+                    </padding>
+                </VBox>
+            </ScrollPane>
+            
+            <!-- Navigation Bar -->
+            <HBox spacing="15" alignment="CENTER" styleClass="guide-view-dialog__nav-bar">
+                <padding>
+                    <Insets top="15"/>
+                </padding>
+                <Button fx:id="prevButton" text="◀ Previous" onAction="#handlePrevious" 
+                        styleClass="guide-view-dialog__nav-button"/>
+                <Label fx:id="stepCounter" text="Step 1 of 1" styleClass="guide-view-dialog__step-counter"/>
+                <Button fx:id="nextButton" text="Next ▶" onAction="#handleNext" 
+                        styleClass="guide-view-dialog__nav-button"/>
+            </HBox>
+        </VBox>
+    </center>
+    
+    <!-- Bottom: Action Buttons -->
+    <bottom>
+        <HBox spacing="10" alignment="CENTER_RIGHT" styleClass="guide-view-dialog__button-bar">
+            <padding>
+                <Insets top="15" right="20" bottom="15" left="20"/>
+            </padding>
+            <Button fx:id="backButton" text="◀ Back to Samples" onAction="#handleBack" 
+                    styleClass="dialog__button-secondary">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2a-arrow-left" iconSize="14"/>
+                </graphic>
+            </Button>
+            <Button fx:id="highlightButton" text="Highlight Nodes" onAction="#handleHighlight" 
+                    styleClass="dialog__button-secondary">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2i-image-filter-center-focus" iconSize="14"/>
+                </graphic>
+            </Button>
+            <Button fx:id="importButton" text="Import Workflow" onAction="#handleImport" 
+                    styleClass="dialog__button-secondary">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2d-download" iconSize="14"/>
+                </graphic>
+            </Button>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="closeButton" text="Close" onAction="#handleClose" 
+                    styleClass="dialog__button-primary"/>
+        </HBox>
+    </bottom>
+</BorderPane>

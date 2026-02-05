@@ -1,0 +1,315 @@
+{
+    "id": "sample-support-ticket-router",
+    "name": "Smart Support Ticket Router",
+    "description": "Automated triage system that classifies incoming support requests using AI and routes them to the appropriate department. Demonstrates webhook triggers, text classification, and multi-path routing.",
+    "category": "Business Automation",
+    "difficulty": "intermediate",
+    "language": "javascript",
+    "tags": [
+        "webhook",
+        "classifier",
+        "routing",
+        "switch",
+        "ai",
+        "support",
+        "automation"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates an **agentic routing** pattern - using AI to automatically classify and route incoming requests.\n\n**What you'll learn:**\n- Setting up Webhook Triggers to receive external data\n- Using Text Classifier for AI-powered categorization\n- Using Switch nodes for multi-path routing\n- Building scalable automation pipelines\n\n**Use cases:**\n- Customer support triage\n- Email routing\n- Ticket assignment\n- Lead qualification",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Webhook Trigger",
+                "content": "The Webhook Trigger listens for incoming HTTP requests, simulating a form submission or API call.\n\n**Configuration:**\n- **Path**: `/support-ticket` - The endpoint URL\n- **Method**: POST - Accepts form data\n\n**Expected payload:**\n```json\n{\n  \"email\": \"user@example.com\",\n  \"subject\": \"Payment failed\",\n  \"message\": \"I was charged twice...\"\n}\n```\n\n**Testing:** Use the Manual Trigger alternative to test without setting up webhooks.",
+                "highlightNodes": [
+                    "webhook_1"
+                ],
+                "codeSnippet": "// Webhook URL will be:\n// http://localhost:8080/webhook/support-ticket\n\n// Test with curl:\ncurl -X POST http://localhost:8080/webhook/support-ticket \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"email\":\"test@example.com\",\"message\":\"billing issue\"}'"
+            },
+            {
+                "title": "Text Classifier (AI Triage)",
+                "content": "The Text Classifier uses AI to categorize the support request.\n\n**How it works:**\n1. Sends the message text to an LLM\n2. LLM analyzes sentiment and topic\n3. Returns a classification label\n\n**Categories configured:**\n- `URGENT` - Critical issues needing immediate attention\n- `BILLING` - Payment, subscription, refund requests\n- `TECHNICAL` - Product bugs, how-to questions\n- `GENERAL` - Everything else",
+                "highlightNodes": [
+                    "classifier_1"
+                ],
+                "codeSnippet": "// Classifier output:\n{\n  \"classification\": \"BILLING\",\n  \"confidence\": 0.92,\n  \"reasoning\": \"User mentions payment and charges\"\n}"
+            },
+            {
+                "title": "Switch Node (Multi-Path Router)",
+                "content": "The Switch node routes the request to different handlers based on the classification.\n\n**Configuration:**\n- Evaluates `{{ classification }}` against multiple rules\n- Each rule maps to a different output port\n- Supports fallback for unmatched cases\n\n**Routes:**\n- Port 1: URGENT → Page on-call\n- Port 2: BILLING → Billing team queue\n- Port 3: TECHNICAL → Tech support queue\n- Default: GENERAL → General inbox",
+                "highlightNodes": [
+                    "switch_1"
+                ],
+                "codeSnippet": "// Switch configuration:\n{\n  \"rules\": [\n    { \"value\": \"URGENT\", \"output\": 1 },\n    { \"value\": \"BILLING\", \"output\": 2 },\n    { \"value\": \"TECHNICAL\", \"output\": 3 }\n  ],\n  \"fallbackOutput\": 4\n}"
+            },
+            {
+                "title": "Department Handlers",
+                "content": "Each branch has a Code node that simulates department-specific handling.\n\n**In production, you might:**\n- Create tickets in Jira/Zendesk\n- Send Slack notifications\n- Update a database\n- Trigger email notifications\n\nThe handlers are kept simple here for demonstration.",
+                "highlightNodes": [
+                    "code_urgent",
+                    "code_billing",
+                    "code_tech",
+                    "code_general"
+                ],
+                "codeSnippet": "// Example: Urgent handler\nreturn {\n  action: 'PAGE_ONCALL',\n  priority: 'P1',\n  assignedTo: 'on-call-team',\n  notification: 'SMS + Slack',\n  sla: '15 minutes'\n};"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Testing with Manual Trigger:**\n1. The workflow includes a Manual Trigger as an alternative entry point\n2. Edit the Code node \"Sample Request\" to change test data\n3. Click Run to test the classification and routing\n\n**Testing with Webhook:**\n1. Activate the workflow (toggle in toolbar)\n2. Send a POST request to `/webhook/support-ticket`\n3. Watch the Console for routing results\n\n**Customizing:**\n- Add more categories in the Text Classifier\n- Add more routes in the Switch node\n- Replace Code handlers with real integrations",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Smart Support Ticket Router",
+        "description": "AI-powered support ticket classification and routing",
+        "nodes": [
+            {
+                "id": "trigger_manual",
+                "type": "manualTrigger",
+                "name": "Test Trigger",
+                "position": {
+                    "x": 100,
+                    "y": 100
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Use this for testing without webhook"
+            },
+            {
+                "id": "code_sample",
+                "type": "code",
+                "name": "Sample Request",
+                "position": {
+                    "x": 300,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Simulate an incoming support request\n// Change these values to test different classifications\n\nreturn {\n  email: 'customer@example.com',\n  subject: 'Payment Issue',\n  message: 'I was charged twice for my subscription last month. Please help me get a refund for the duplicate charge. Order ID: 12345',\n  timestamp: new Date().toISOString(),\n  source: 'manual_test'\n};"
+                },
+                "disabled": false,
+                "notes": "Edit to test different request types"
+            },
+            {
+                "id": "webhook_1",
+                "type": "webhookTrigger",
+                "name": "Support Webhook",
+                "position": {
+                    "x": 100,
+                    "y": 300
+                },
+                "parameters": {
+                    "path": "/support-ticket",
+                    "method": "POST",
+                    "responseMode": "onReceived"
+                },
+                "disabled": true,
+                "notes": "Enable this and disable manual trigger for production"
+            },
+            {
+                "id": "merge_input",
+                "type": "merge",
+                "name": "Merge Inputs",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "waitForAll": false
+                },
+                "disabled": false,
+                "notes": "Combines manual and webhook inputs"
+            },
+            {
+                "id": "classifier_1",
+                "type": "textClassifier",
+                "name": "Classify Ticket",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "text": "{{ subject }} - {{ message }}",
+                    "categories": [
+                        "URGENT",
+                        "BILLING",
+                        "TECHNICAL",
+                        "GENERAL"
+                    ],
+                    "prompt": "Classify this support ticket into one of the categories. Consider:\n- URGENT: System down, security issues, data loss, angry/frustrated tone\n- BILLING: Payments, refunds, subscriptions, invoices, charges\n- TECHNICAL: Bugs, errors, how-to questions, feature requests\n- GENERAL: Everything else\n\nRespond with only the category name."
+                },
+                "disabled": false,
+                "notes": "AI-powered ticket classification"
+            },
+            {
+                "id": "switch_1",
+                "type": "switch",
+                "name": "Route by Category",
+                "position": {
+                    "x": 900,
+                    "y": 200
+                },
+                "parameters": {
+                    "value": "{{ classification }}",
+                    "rules": [
+                        {
+                            "value": "URGENT",
+                            "output": 0
+                        },
+                        {
+                            "value": "BILLING",
+                            "output": 1
+                        },
+                        {
+                            "value": "TECHNICAL",
+                            "output": 2
+                        }
+                    ],
+                    "fallbackOutput": "3"
+                },
+                "disabled": false,
+                "notes": "Routes to department based on classification"
+            },
+            {
+                "id": "code_urgent",
+                "type": "code",
+                "name": "🚨 Page On-Call",
+                "position": {
+                    "x": 1100,
+                    "y": 50
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// URGENT: Page on-call team immediately\nconsole.log('🚨 URGENT TICKET - Paging on-call team!');\n\nreturn {\n  action: 'PAGE_ONCALL',\n  priority: 'P1',\n  assignedTo: 'on-call-team',\n  notification: ['SMS', 'Slack', 'PagerDuty'],\n  sla: '15 minutes',\n  ticket: {\n    email: input.email,\n    subject: input.subject,\n    classification: input.classification,\n    confidence: input.confidence\n  },\n  processedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Handles urgent/critical tickets"
+            },
+            {
+                "id": "code_billing",
+                "type": "code",
+                "name": "💳 Billing Queue",
+                "position": {
+                    "x": 1100,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// BILLING: Route to billing department\nconsole.log('💳 Routing to Billing Team');\n\nreturn {\n  action: 'QUEUE_TICKET',\n  department: 'billing',\n  priority: 'P2',\n  assignedTo: 'billing-team',\n  notification: ['Email', 'Slack #billing'],\n  sla: '4 hours',\n  ticket: {\n    email: input.email,\n    subject: input.subject,\n    classification: input.classification\n  },\n  processedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Handles billing-related tickets"
+            },
+            {
+                "id": "code_tech",
+                "type": "code",
+                "name": "🔧 Tech Support",
+                "position": {
+                    "x": 1100,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// TECHNICAL: Route to tech support\nconsole.log('🔧 Routing to Tech Support');\n\nreturn {\n  action: 'QUEUE_TICKET',\n  department: 'tech-support',\n  priority: 'P3',\n  assignedTo: 'tech-team',\n  notification: ['Slack #support'],\n  sla: '8 hours',\n  ticket: {\n    email: input.email,\n    subject: input.subject,\n    classification: input.classification\n  },\n  processedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Handles technical support tickets"
+            },
+            {
+                "id": "code_general",
+                "type": "code",
+                "name": "📬 General Inbox",
+                "position": {
+                    "x": 1100,
+                    "y": 350
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// GENERAL: Route to general inbox\nconsole.log('📬 Routing to General Inbox');\n\nreturn {\n  action: 'QUEUE_TICKET',\n  department: 'general',\n  priority: 'P4',\n  assignedTo: 'support-inbox',\n  notification: ['Email'],\n  sla: '24 hours',\n  ticket: {\n    email: input.email,\n    subject: input.subject,\n    classification: input.classification || 'GENERAL'\n  },\n  processedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Handles general inquiries"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_manual",
+                "sourceOutput": "main",
+                "targetNodeId": "code_sample",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_sample",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_input",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "webhook_1",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_input",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "merge_input",
+                "sourceOutput": "main",
+                "targetNodeId": "classifier_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "classifier_1",
+                "sourceOutput": "main",
+                "targetNodeId": "switch_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "switch_1",
+                "sourceOutput": "0",
+                "targetNodeId": "code_urgent",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "switch_1",
+                "sourceOutput": "1",
+                "targetNodeId": "code_billing",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "switch_1",
+                "sourceOutput": "2",
+                "targetNodeId": "code_tech",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "switch_1",
+                "sourceOutput": "3",
+                "targetNodeId": "code_general",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {},
+        "isActive": false,
+        "triggerType": "MANUAL",
+        "version": 1
+    }
+}

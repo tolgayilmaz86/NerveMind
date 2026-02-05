@@ -1,0 +1,200 @@
+{
+    "id": "sample-local-knowledge-base",
+    "name": "Local Knowledge Base (RAG)",
+    "description": "A privacy-focused Q&A chatbot that uses local documents for context. Demonstrates RAG (Retrieval-Augmented Generation) with in-memory embeddings - no external database needed.",
+    "category": "AI/ML",
+    "difficulty": "intermediate",
+    "language": "javascript",
+    "tags": [
+        "rag",
+        "embedding",
+        "ai",
+        "chatbot",
+        "document-qa",
+        "privacy"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **RAG (Retrieval-Augmented Generation)** - one of the most popular AI patterns for building document Q&A systems.\n\n**What you'll learn:**\n- Loading and preparing a knowledge base\n- Using the Embedding node to vectorize text\n- Using the RAG node for context-aware answers\n- Building a complete Q&A pipeline\n\n**Key benefit:** Everything runs locally - no external vector database required!",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Manual Trigger with Question",
+                "content": "The workflow starts with a Manual Trigger. In a real scenario, you might use a Webhook Trigger to receive questions from a chat interface.\n\n**Input format:**\nThe trigger passes a question that the user wants answered from the knowledge base.",
+                "highlightNodes": [
+                    "trigger_1"
+                ],
+                "codeSnippet": "// Sample input:\n{\n  \"question\": \"How do I reset my password?\"\n}"
+            },
+            {
+                "title": "Load Knowledge Base (Code Node)",
+                "content": "This Code node simulates loading your knowledge base. In production, you might:\n- Read from a text file\n- Load from a database\n- Fetch from an API\n\nThe key is to return an array of text chunks that will be searched.",
+                "highlightNodes": [
+                    "code_kb"
+                ],
+                "codeSnippet": "// Knowledge base as an array of text chunks\nconst knowledgeBase = [\n  \"To reset your password, go to Settings > Security > Reset Password.\",\n  \"Our support hours are Monday-Friday, 9 AM to 5 PM EST.\",\n  \"For billing inquiries, email billing@example.com\"\n];\n\nreturn {\n  question: input.question || \"How do I reset my password?\",\n  documents: knowledgeBase\n};"
+            },
+            {
+                "title": "Generate Embeddings",
+                "content": "The Embedding node converts both the question and knowledge base documents into numerical vectors (embeddings).\n\n**Why embeddings?**\nEmbeddings capture semantic meaning, so \"reset password\" will match \"change credentials\" even though the words are different.\n\n**Configuration:**\n- `text`: The question to embed\n- `documents`: The knowledge base chunks to embed",
+                "highlightNodes": [
+                    "embedding_1"
+                ],
+                "codeSnippet": "// The node produces vectors like:\n{\n  \"questionVector\": [0.1, -0.3, 0.5, ...],\n  \"documentVectors\": [\n    [0.2, -0.1, 0.4, ...],\n    [0.8, 0.2, -0.1, ...]\n  ]\n}"
+            },
+            {
+                "title": "RAG: Retrieve and Generate",
+                "content": "The RAG node is where the magic happens:\n\n1. **Retrieve**: Finds the most relevant documents using vector similarity\n2. **Augment**: Adds the relevant context to the prompt\n3. **Generate**: Uses the LLM to answer based on the context\n\n**Key parameters:**\n- `topK`: Number of relevant documents to retrieve (default: 3)\n- `prompt`: Instructions for the LLM\n- `temperature`: Controls response creativity",
+                "highlightNodes": [
+                    "rag_1"
+                ],
+                "codeSnippet": "// RAG internally builds a prompt like:\n\"Based on the following context:\\n\\n\"\n+ \"Context 1: To reset your password...\\n\"\n+ \"Context 2: For account issues...\\n\\n\"\n+ \"Answer this question: How do I reset my password?\""
+            },
+            {
+                "title": "Format Response (Set Node)",
+                "content": "The Set node formats the final response for output.\n\nThis is useful for:\n- Standardizing the response format\n- Adding metadata (sources, confidence)\n- Preparing data for downstream systems",
+                "highlightNodes": [
+                    "set_output"
+                ],
+                "codeSnippet": "// Output format:\n{\n  \"answer\": \"To reset your password, go to Settings > Security...\",\n  \"question\": \"How do I reset my password?\",\n  \"sources\": [\"Knowledge Base Doc #1\"]\n}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**To test this workflow:**\n\n1. **Configure an LLM provider:**\n   - Go to Settings → AI Providers\n   - Set up OpenAI, Ollama, or another provider\n\n2. **Run the workflow:**\n   - Click Run (or press F5)\n   - Watch the Console for the answer\n\n3. **Customize:**\n   - Edit the Code node to add your own knowledge base\n   - Adjust topK in RAG to retrieve more/fewer documents\n   - Modify the prompt for different answer styles\n\n**Pro tip:** For larger knowledge bases, consider chunking documents into smaller pieces for better retrieval accuracy.",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Local Knowledge Base (RAG)",
+        "description": "Q&A chatbot using RAG with local documents",
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Ask Question",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {
+                    "inputData": {
+                        "question": "How do I reset my password?"
+                    }
+                },
+                "disabled": false,
+                "notes": "Enter your question in inputData"
+            },
+            {
+                "id": "code_kb",
+                "type": "code",
+                "name": "Load Knowledge Base",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Simulated knowledge base - replace with your own content!\n// In production, you might load from files or a database.\n\nconst knowledgeBase = [\n  \"PASSWORD RESET: To reset your password, navigate to Settings > Security > Reset Password. You'll receive an email with a reset link that expires in 24 hours.\",\n  \"ACCOUNT RECOVERY: If you've lost access to your email, contact support@example.com with your username and the last 4 digits of your payment method.\",\n  \"SUPPORT HOURS: Our support team is available Monday through Friday, 9 AM to 5 PM Eastern Time. Response time is typically within 4 hours.\",\n  \"BILLING INQUIRIES: For billing questions, refunds, or subscription changes, email billing@example.com or call 1-800-555-0123.\",\n  \"TWO-FACTOR AUTH: Enable 2FA in Settings > Security > Two-Factor Authentication. We support authenticator apps and SMS verification.\",\n  \"DATA EXPORT: You can export your data anytime from Settings > Privacy > Export My Data. The download will be ready within 24 hours.\"\n];\n\nconst question = input.question || 'How do I reset my password?';\n\nreturn {\n  question: question,\n  documents: knowledgeBase,\n  timestamp: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Replace this with your own knowledge base content"
+            },
+            {
+                "id": "embedding_1",
+                "type": "embedding",
+                "name": "Generate Embeddings",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "text": "{{ question }}",
+                    "documents": "{{ documents }}",
+                    "model": "text-embedding-ada-002"
+                },
+                "disabled": false,
+                "notes": "Converts text to vector embeddings for semantic search"
+            },
+            {
+                "id": "rag_1",
+                "type": "rag",
+                "name": "RAG Answer",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "question": "{{ question }}",
+                    "topK": 3,
+                    "prompt": "You are a helpful customer support assistant. Answer the user's question based ONLY on the provided context. If the answer is not in the context, say \"I don't have information about that in my knowledge base.\"\n\nBe concise and helpful.",
+                    "temperature": 0.3,
+                    "maxTokens": 500
+                },
+                "disabled": false,
+                "notes": "Retrieves relevant context and generates an answer"
+            },
+            {
+                "id": "set_output",
+                "type": "set",
+                "name": "Format Response",
+                "position": {
+                    "x": 900,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "answer": "{{ answer }}",
+                        "question": "{{ question }}",
+                        "sourcesUsed": "{{ retrievedDocuments }}",
+                        "timestamp": "{{ timestamp }}"
+                    }
+                },
+                "disabled": false,
+                "notes": "Formats the final response"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceOutput": "main",
+                "targetNodeId": "code_kb",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_kb",
+                "sourceOutput": "main",
+                "targetNodeId": "embedding_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "embedding_1",
+                "sourceOutput": "main",
+                "targetNodeId": "rag_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "rag_1",
+                "sourceOutput": "main",
+                "targetNodeId": "set_output",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {},
+        "isActive": false,
+        "triggerType": "MANUAL",
+        "version": 1
+    }
+}

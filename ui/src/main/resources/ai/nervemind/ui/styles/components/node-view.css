@@ -1,0 +1,222 @@
+/*
+ * NerveMind - Node View Styles
+ * 
+ * Styles for individual node views on the canvas.
+ * Replaces inline setStyle() calls in NodeView.java.
+ */
+
+/* ===== Node Container ===== */
+.node-view {
+    -fx-cursor: hand;
+}
+
+/* ===== Node Box (Square with Icon) ===== */
+.node-box {
+    -fx-min-width: 80px;
+    -fx-min-height: 80px;
+    -fx-max-width: 80px;
+    -fx-max-height: 80px;
+}
+
+.node-box__background {
+    -fx-fill: #262626;
+    -fx-stroke: #404040;
+    -fx-stroke-width: 1.5;
+    -fx-arc-width: 24;
+    -fx-arc-height: 24;
+}
+
+.node-view:hover .node-box__background {
+    -fx-stroke: -nervemind-accent-blue-light;
+    -fx-stroke-width: 2;
+}
+
+.node-view--selected .node-box__background {
+    -fx-stroke: -nervemind-accent-yellow;
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(235, 203, 139, 0.3), 10, 0, 0, 0);
+}
+
+/* ===== Node Icon ===== */
+.node-box__icon {
+    -fx-icon-size: 42;
+}
+
+/* Node type-specific icon colors */
+.node-view--trigger .node-box__icon {
+    -fx-icon-color: -nervemind-node-trigger;
+}
+
+.node-view--action .node-box__icon {
+    -fx-icon-color: -nervemind-node-action;
+}
+
+.node-view--condition .node-box__icon {
+    -fx-icon-color: -nervemind-node-condition;
+}
+
+.node-view--ai .node-box__icon {
+    -fx-icon-color: -nervemind-node-ai;
+}
+
+.node-view--data .node-box__icon {
+    -fx-icon-color: -nervemind-node-data;
+}
+
+/* ===== Node Labels ===== */
+.node-name-label {
+    -fx-text-fill: #e5e5e5;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-max-width: 95px;
+    -fx-min-width: 70px;
+    -fx-alignment: center;
+}
+
+.node-subtitle-label {
+    -fx-text-fill: #737373;
+    -fx-font-size: 10px;
+    -fx-max-width: 90px;
+    -fx-alignment: center;
+}
+
+/* ===== Node Handles (Connection Points) ===== */
+.node-handle {
+    -fx-stroke-width: 2;
+    -fx-cursor: crosshair;
+}
+
+.node-handle--input {
+    -fx-fill: -nervemind-node-trigger;
+    -fx-stroke: derive(-nervemind-node-trigger, -20%);
+}
+
+.node-handle--output {
+    -fx-fill: -nervemind-node-action;
+    -fx-stroke: derive(-nervemind-node-action, -20%);
+}
+
+.node-handle:hover {
+    -fx-fill: -nervemind-accent-yellow;
+    -fx-stroke: derive(-nervemind-accent-yellow, -20%);
+    -fx-effect: dropshadow(gaussian, rgba(255, 212, 59, 0.5), 5, 0, 0, 0);
+}
+
+.node-handle--active {
+    -fx-fill: -nervemind-accent-yellow;
+    -fx-stroke: derive(-nervemind-accent-yellow, -20%);
+}
+
+/* ===== Execution States ===== */
+.node-view--idle .node-box__background {
+    /* Default state - no additional styles */
+}
+
+.node-view--queued .node-box__background {
+    -fx-stroke: -nervemind-accent-cyan;
+    -fx-stroke-dash-array: 5 5;
+}
+
+.node-view--running .node-box__background {
+    -fx-stroke: -nervemind-accent-blue;
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(94, 129, 172, 0.5), 10, 0, 0, 0);
+}
+
+.node-view--success .node-box__background {
+    -fx-stroke: -nervemind-success;
+    -fx-stroke-width: 2;
+}
+
+.node-view--error .node-box__background {
+    -fx-stroke: -nervemind-danger;
+    -fx-stroke-width: 2;
+    -fx-effect: dropshadow(gaussian, rgba(191, 97, 106, 0.5), 10, 0, 0, 0);
+}
+
+.node-view--skipped .node-box__background {
+    -fx-opacity: 0.5;
+}
+
+/* ===== Execution Indicator (Spinner) ===== */
+.execution-indicator {
+    -fx-pref-width: 24px;
+    -fx-pref-height: 24px;
+    -fx-max-width: 24px;
+    -fx-max-height: 24px;
+}
+
+/* ===== Execution Badge ===== */
+.execution-badge {
+    -fx-min-width: 20px;
+    -fx-min-height: 20px;
+    -fx-max-width: 20px;
+    -fx-max-height: 20px;
+    -fx-background-radius: 10px;
+    -fx-alignment: center;
+    -fx-font-size: 12px;
+}
+
+.execution-badge--success {
+    -fx-background-color: -nervemind-success;
+    -fx-text-fill: white;
+}
+
+.execution-badge--error {
+    -fx-background-color: -nervemind-danger;
+    -fx-text-fill: white;
+}
+
+.execution-badge--skipped {
+    -fx-background-color: -nervemind-text-muted;
+    -fx-text-fill: white;
+}
+
+/* ===== Error Label ===== */
+.node-error-label {
+    -fx-text-fill: -nervemind-danger;
+    -fx-font-size: 10px;
+    -fx-padding: 2px 6px;
+    -fx-background-color: rgba(191, 97, 106, 0.15);
+    -fx-background-radius: 4px;
+    -fx-max-width: 140px;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+}
+
+/* ===== Disabled State ===== */
+.node-view--disabled {
+    -fx-opacity: 0.5;
+}
+
+.node-view--disabled .node-box__background {
+    -fx-stroke-dash-array: 4 4;
+}
+
+/* ===== Node Context Menu ===== */
+.node-context-menu {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6px;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.node-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 12px;
+}
+
+.node-context-menu .menu-item:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.node-context-menu .menu-item .label {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.node-context-menu .menu-item--danger .label {
+    -fx-text-fill: -nervemind-danger;
+}

@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    NodePropertiesPanel Component
+    
+    Right-side panel for editing node properties including:
+    - Header with node type icon and title
+    - Common fields (name, disabled, notes)
+    - Dynamic parameters section
+    - Action buttons (Advanced, Reset, Apply)
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/21"
+         xmlns:fx="http://javafx.com/fxml/1"
+         styleClass="properties-panel"
+         stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/properties.css"
+         prefWidth="300"
+         minWidth="280"
+         maxWidth="350"
+         spacing="0">
+
+    <!-- Header Container with Accent Bar -->
+    <VBox spacing="0">
+        <!-- Header -->
+        <HBox fx:id="header" styleClass="properties-header" alignment="CENTER_LEFT" spacing="12">
+            <padding>
+                <Insets top="14" right="16" bottom="12" left="16"/>
+            </padding>
+            
+            <!-- Icon Container -->
+            <VBox fx:id="iconContainer" alignment="CENTER" styleClass="properties-icon-container">
+                <padding>
+                    <Insets topRightBottomLeft="8"/>
+                </padding>
+                <FontIcon fx:id="nodeTypeIcon" iconLiteral="mdi2c-cog" iconSize="20"/>
+            </VBox>
+            
+            <!-- Title Box -->
+            <VBox spacing="2" HBox.hgrow="ALWAYS">
+                <Label fx:id="titleLabel" text="Node Properties" styleClass="properties-title"/>
+                <Label fx:id="subtitleLabel" text="Select a node to edit" styleClass="properties-subtitle"/>
+            </VBox>
+            
+            <Region HBox.hgrow="ALWAYS"/>
+            
+            <!-- Help Button -->
+            <Button fx:id="helpButton" styleClass="icon-button" onAction="#onShowHelp">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2h-help-circle-outline" iconSize="18"/>
+                </graphic>
+                <tooltip>
+                    <Tooltip text="Show help &amp; examples"/>
+                </tooltip>
+            </Button>
+            
+            <!-- Close Button -->
+            <Button fx:id="closeButton" styleClass="icon-button" onAction="#onClose">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2c-close" iconSize="18"/>
+                </graphic>
+                <tooltip>
+                    <Tooltip text="Close panel"/>
+                </tooltip>
+            </Button>
+        </HBox>
+        
+        <!-- Accent Bar -->
+        <Region fx:id="accentBar" styleClass="node-type-accent" prefHeight="3"/>
+    </VBox>
+
+    <!-- Scrollable Content -->
+    <ScrollPane fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" VBox.vgrow="ALWAYS">
+        <VBox spacing="0" styleClass="properties-content">
+            
+            <!-- Common Properties Section -->
+            <VBox styleClass="properties-section" spacing="10">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                
+                <Label text="Name" styleClass="property-label"/>
+                <TextField fx:id="nameField" promptText="Node name"/>
+                
+                <CheckBox fx:id="disabledCheckbox" text="Disabled" styleClass="property-checkbox"/>
+            </VBox>
+            
+            <Separator/>
+            
+            <!-- Parameters Section -->
+            <TitledPane fx:id="parametersPane" text="Parameters" expanded="true" 
+                        styleClass="properties-titled-pane">
+                <VBox fx:id="parametersContainer" spacing="10">
+                    <padding>
+                        <Insets top="15" right="15" bottom="15" left="15"/>
+                    </padding>
+                    <!-- Dynamic parameter fields will be added here -->
+                </VBox>
+            </TitledPane>
+            
+            <Separator/>
+            
+            <!-- Notes Section -->
+            <VBox styleClass="properties-section" spacing="5">
+                <padding>
+                    <Insets top="15" right="15" bottom="15" left="15"/>
+                </padding>
+                
+                <Label text="Notes" styleClass="property-label"/>
+                <TextArea fx:id="notesArea" 
+                          promptText="Add notes about this node..."
+                          prefRowCount="3"
+                          wrapText="true"/>
+            </VBox>
+            
+        </VBox>
+    </ScrollPane>
+
+    <!-- Action Buttons -->
+    <HBox fx:id="actionsContainer" styleClass="properties-actions" alignment="CENTER_LEFT" spacing="10">
+        <padding>
+            <Insets top="12" right="16" bottom="12" left="16"/>
+        </padding>
+        
+        <Button fx:id="advancedButton" text="Advanced" styleClass="advanced-button" 
+                onAction="#onShowAdvanced">
+            <tooltip>
+                <Tooltip text="Open raw JSON parameter editor"/>
+            </tooltip>
+        </Button>
+        
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button fx:id="resetButton" text="Reset" styleClass="secondary-button" 
+                onAction="#onReset"/>
+        
+        <Button fx:id="applyButton" text="Apply" styleClass="accent-button" 
+                onAction="#onApply"/>
+    </HBox>
+
+</fx:root>

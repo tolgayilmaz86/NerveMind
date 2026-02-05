@@ -1,0 +1,273 @@
+{
+    "id": "13-python-data-transform",
+    "name": "Python Data Transformation",
+    "description": "Demonstrates Python scripting in Code nodes for data transformation. Shows both embedded (GraalPy) and external Python capabilities with data processing examples.",
+    "category": "Data Processing",
+    "difficulty": "beginner",
+    "language": "python",
+    "tags": [
+        "python",
+        "data-processing",
+        "transformation",
+        "scripting",
+        "graalpy"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **Python scripting** in NerveMind Code nodes.\n\n**What you'll learn:**\n- Writing Python code in Code nodes\n- Accessing input data from previous nodes\n- Data transformation with Python\n- String manipulation and list processing\n\n**Python Execution Modes:**\n- **Embedded (GraalPy)**: Zero-install, sandboxed, fast startup\n- **External**: Full Python ecosystem with pip packages\n- **Auto**: Tries external first, falls back to embedded\n\nConfigure in Settings → Python Scripting.",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Input Data Setup",
+                "content": "The Set node creates sample data - a list of products with various properties.\n\nIn a real scenario, this data might come from:\n- An HTTP Request to an API\n- A database query\n- A file import",
+                "highlightNodes": [
+                    "set_data"
+                ],
+                "codeSnippet": "// Sample input data structure:\n{\n  \"products\": [\n    {\"name\": \"Laptop\", \"price\": 999.99, \"category\": \"electronics\"},\n    {\"name\": \"Book\", \"price\": 19.99, \"category\": \"books\"}\n  ]\n}"
+            },
+            {
+                "title": "Python Transform: Clean & Normalize",
+                "content": "The first Python Code node demonstrates basic data cleaning:\n- Normalize text to uppercase\n- Round prices to 2 decimal places\n- Add computed fields\n\n**Key concept:** Access input data via `input` dict, return a dict with results.",
+                "highlightNodes": [
+                    "py_clean"
+                ],
+                "codeSnippet": "# Access input data\nproducts = input.get('products', [])\n\n# Transform each product\ncleaned = []\nfor p in products:\n    cleaned.append({\n        'name': p['name'].upper(),\n        'price': round(p['price'], 2),\n        'category': p['category'].lower()\n    })\n\nreturn {'cleaned_products': cleaned}"
+            },
+            {
+                "title": "Python Transform: Aggregate Statistics",
+                "content": "This Code node calculates aggregate statistics using Python's built-in functions:\n- Total product count\n- Price statistics (min, max, average)\n- Group by category\n\n**Note:** Uses only Python standard library, works in both embedded and external modes.",
+                "highlightNodes": [
+                    "py_stats"
+                ],
+                "codeSnippet": "products = input.get('cleaned_products', [])\nprices = [p['price'] for p in products]\n\nreturn {\n    'total_count': len(products),\n    'total_value': sum(prices),\n    'avg_price': sum(prices) / len(prices) if prices else 0,\n    'min_price': min(prices) if prices else 0,\n    'max_price': max(prices) if prices else 0\n}"
+            },
+            {
+                "title": "Python Transform: Filter & Sort",
+                "content": "The final Python node demonstrates filtering and sorting:\n- Filter products above a price threshold\n- Sort by price descending\n- Use list comprehensions for concise code\n\n**Pythonic tip:** List comprehensions are efficient and readable!",
+                "highlightNodes": [
+                    "py_filter"
+                ],
+                "codeSnippet": "products = input.get('cleaned_products', [])\nthreshold = 50.0\n\n# Filter expensive products\nexpensive = [p for p in products if p['price'] > threshold]\n\n# Sort by price descending\nsorted_products = sorted(expensive, key=lambda x: x['price'], reverse=True)\n\nreturn {'expensive_products': sorted_products}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**To test this workflow:**\n\n1. **Check Python Settings (Optional):**\n   - Go to Settings → Python Scripting\n   - Choose execution mode (embedded/external/auto)\n   - Default 'embedded' works out of the box!\n\n2. **Run the workflow:**\n   - Click Run (or press F5)\n   - Watch the Console for results\n\n3. **Experiment:**\n   - Edit the Code nodes to try your own transformations\n   - Change the filter threshold\n   - Add new computed fields\n\n**Pro tip:** Use the Debug View (right-click node → Debug View) to see input/output data for each node.",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Python Data Transformation",
+        "description": "Data processing using Python Code nodes",
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Start",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Click Run to start the pipeline"
+            },
+            {
+                "id": "set_data",
+                "type": "set",
+                "name": "Sample Products",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "products": [
+                            {
+                                "name": "Gaming Laptop",
+                                "price": 1299.99,
+                                "category": "Electronics",
+                                "inStock": true
+                            },
+                            {
+                                "name": "Python Programming Book",
+                                "price": 49.99,
+                                "category": "Books",
+                                "inStock": true
+                            },
+                            {
+                                "name": "Wireless Headphones",
+                                "price": 199.99,
+                                "category": "Electronics",
+                                "inStock": true
+                            },
+                            {
+                                "name": "Ergonomic Keyboard",
+                                "price": 149.99,
+                                "category": "Electronics",
+                                "inStock": false
+                            },
+                            {
+                                "name": "Desk Lamp",
+                                "price": 34.99,
+                                "category": "Home Office",
+                                "inStock": true
+                            },
+                            {
+                                "name": "Monitor Stand",
+                                "price": 89.99,
+                                "category": "Home Office",
+                                "inStock": true
+                            }
+                        ]
+                    }
+                },
+                "disabled": false,
+                "notes": "Sample product data for transformation"
+            },
+            {
+                "id": "py_clean",
+                "type": "code",
+                "name": "Clean & Normalize",
+                "position": {
+                    "x": 520,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Clean and normalize product data\nproducts = input.get('products', [])\n\ncleaned = []\nfor product in products:\n    cleaned.append({\n        'name': product['name'].strip().upper(),\n        'price': round(float(product['price']), 2),\n        'category': product['category'].strip().lower(),\n        'in_stock': bool(product.get('inStock', False))\n    })\n\nreturn {'cleaned_products': cleaned, 'original_count': len(products)}"
+                },
+                "disabled": false,
+                "notes": "Normalize text casing and round prices"
+            },
+            {
+                "id": "py_stats",
+                "type": "code",
+                "name": "Calculate Statistics",
+                "position": {
+                    "x": 740,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Calculate aggregate statistics\nproducts = input.get('cleaned_products', [])\n\n# Extract prices\nprices = [p['price'] for p in products]\n\n# Group by category\ncategories = {}\nfor p in products:\n    cat = p['category']\n    if cat not in categories:\n        categories[cat] = []\n    categories[cat].append(p['name'])\n\n# Calculate stats\nstats = {\n    'total_products': len(products),\n    'total_value': round(sum(prices), 2),\n    'average_price': round(sum(prices) / len(prices), 2) if prices else 0,\n    'min_price': min(prices) if prices else 0,\n    'max_price': max(prices) if prices else 0,\n    'categories': categories,\n    'category_count': len(categories)\n}\n\nreturn {'statistics': stats}"
+                },
+                "disabled": false,
+                "notes": "Compute price statistics and category grouping"
+            },
+            {
+                "id": "py_filter",
+                "type": "code",
+                "name": "Filter & Sort",
+                "position": {
+                    "x": 740,
+                    "y": 300
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Filter and sort products\nproducts = input.get('cleaned_products', [])\n\n# Filter: only in-stock items above $50\nMIN_PRICE = 50.0\nfiltered = [p for p in products if p['in_stock'] and p['price'] > MIN_PRICE]\n\n# Sort by price (highest first)\nsorted_products = sorted(filtered, key=lambda x: x['price'], reverse=True)\n\n# Create summary\nsummary = [\n    f\"{p['name']}: ${p['price']:.2f}\"\n    for p in sorted_products\n]\n\nreturn {\n    'premium_products': sorted_products,\n    'premium_count': len(sorted_products),\n    'premium_summary': summary\n}"
+                },
+                "disabled": false,
+                "notes": "Filter expensive in-stock items and sort"
+            },
+            {
+                "id": "merge_results",
+                "type": "merge",
+                "name": "Combine Results",
+                "position": {
+                    "x": 960,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "merge"
+                },
+                "disabled": false,
+                "notes": "Combine statistics and filtered products"
+            },
+            {
+                "id": "set_output",
+                "type": "set",
+                "name": "Format Output",
+                "position": {
+                    "x": 1180,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "report": {
+                            "title": "Product Analysis Report",
+                            "generated_at": "{{ new Date().toISOString() }}",
+                            "statistics": "{{ statistics }}",
+                            "premium_products": "{{ premium_products }}",
+                            "summary": "{{ premium_summary }}"
+                        }
+                    }
+                },
+                "disabled": false,
+                "notes": "Format final report output"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceOutput": "main",
+                "targetNodeId": "set_data",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "set_data",
+                "sourceOutput": "main",
+                "targetNodeId": "py_clean",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "py_clean",
+                "sourceOutput": "main",
+                "targetNodeId": "py_stats",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "py_clean",
+                "sourceOutput": "main",
+                "targetNodeId": "py_filter",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "py_stats",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "py_filter",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "merge_results",
+                "sourceOutput": "main",
+                "targetNodeId": "set_output",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {
+            "timezone": "UTC"
+        }
+    }
+}

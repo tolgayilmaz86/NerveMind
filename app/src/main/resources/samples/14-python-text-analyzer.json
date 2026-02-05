@@ -1,0 +1,286 @@
+{
+    "id": "14-python-text-analyzer",
+    "name": "Python Text Analyzer",
+    "description": "Analyzes text using Python for word frequency, sentiment hints, and summary extraction. Demonstrates Python string processing and the Parallel node for concurrent analysis.",
+    "category": "Data Processing",
+    "difficulty": "intermediate",
+    "language": "python",
+    "tags": [
+        "python",
+        "text-analysis",
+        "nlp",
+        "parallel",
+        "word-frequency"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **text analysis with Python** using only the standard library.\n\n**What you'll learn:**\n- Text processing with Python regex and string methods\n- Word frequency analysis\n- Basic sentiment detection\n- Parallel execution for concurrent processing\n\n**Use cases:**\n- Document summarization\n- Content analysis\n- Pre-processing for AI workflows",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Input Text",
+                "content": "The Set node provides sample text for analysis. This could be:\n- User input from a form\n- Content from an HTTP request\n- Text extracted from a document\n\nThe sample text is a product review that we'll analyze.",
+                "highlightNodes": [
+                    "set_text"
+                ],
+                "codeSnippet": "// The input contains:\n{\n  \"text\": \"I absolutely love this product! The quality is amazing...\",\n  \"source\": \"customer_review\"\n}"
+            },
+            {
+                "title": "Parallel Processing",
+                "content": "The **Parallel node** splits execution into three concurrent paths:\n1. Word Frequency Analysis\n2. Sentiment Analysis\n3. Text Statistics\n\nThis demonstrates how to run independent analyses simultaneously for better performance.",
+                "highlightNodes": [
+                    "parallel_1"
+                ],
+                "codeSnippet": "// Parallel executes all branches at once\n// Results are merged after all complete"
+            },
+            {
+                "title": "Word Frequency Analysis",
+                "content": "This Python node counts word occurrences using the `collections.Counter` class.\n\n**Techniques used:**\n- Regex for word extraction\n- Counter for frequency counting\n- List slicing for top N results",
+                "highlightNodes": [
+                    "py_wordfreq"
+                ],
+                "codeSnippet": "import re\nfrom collections import Counter\n\ntext = input.get('text', '')\nwords = re.findall(r'\\b\\w+\\b', text.lower())\nword_counts = Counter(words)\ntop_words = word_counts.most_common(10)\n\nreturn {'word_frequency': dict(top_words)}"
+            },
+            {
+                "title": "Sentiment Indicators",
+                "content": "A simple rule-based sentiment analysis using positive/negative word lists.\n\n**Note:** For production use, consider using an LLM Chat node for more accurate sentiment analysis!",
+                "highlightNodes": [
+                    "py_sentiment"
+                ],
+                "codeSnippet": "POSITIVE = ['love', 'great', 'amazing', 'excellent', 'good']\nNEGATIVE = ['hate', 'bad', 'terrible', 'awful', 'poor']\n\nwords = text.lower().split()\npos = sum(1 for w in words if w in POSITIVE)\nneg = sum(1 for w in words if w in NEGATIVE)\n\nsentiment = 'positive' if pos > neg else 'negative' if neg > pos else 'neutral'"
+            },
+            {
+                "title": "Text Statistics",
+                "content": "Basic text metrics: character count, word count, sentence count, and reading time estimate.",
+                "highlightNodes": [
+                    "py_stats"
+                ],
+                "codeSnippet": "text = input.get('text', '')\n\nstats = {\n    'char_count': len(text),\n    'word_count': len(text.split()),\n    'sentence_count': text.count('.') + text.count('!') + text.count('?'),\n    'reading_time_minutes': round(len(text.split()) / 200, 1)\n}"
+            },
+            {
+                "title": "Merge Results",
+                "content": "After parallel branches complete, the Merge node combines all analysis results into a single output.\n\nThe final Set node formats everything into a comprehensive report.",
+                "highlightNodes": [
+                    "merge_1",
+                    "set_report"
+                ],
+                "codeSnippet": "// Final report contains:\n{\n  \"analysis\": {\n    \"word_frequency\": {...},\n    \"sentiment\": {...},\n    \"statistics\": {...}\n  }\n}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**To test this workflow:**\n\n1. **Run as-is:**\n   - Click Run (F5) to analyze the sample text\n\n2. **Try your own text:**\n   - Edit the 'Sample Text' Set node\n   - Replace the text content with your own\n\n3. **Extend the analysis:**\n   - Add more Python nodes for additional metrics\n   - Connect to an LLM for AI-powered analysis\n   - Add file output to save results\n\n**Tip:** This workflow works entirely with embedded Python (GraalPy) - no external Python needed!",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Python Text Analyzer",
+        "description": "Parallel text analysis using Python",
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Start Analysis",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Click Run to analyze the sample text"
+            },
+            {
+                "id": "set_text",
+                "type": "set",
+                "name": "Sample Text",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "text": "I absolutely love this product! The quality is amazing and it exceeded all my expectations. The customer service was excellent - they responded quickly and were very helpful. I've been using it for a month now and it still works perfectly. The price was reasonable for such great quality. I would highly recommend this to anyone looking for a reliable solution. The only minor issue was the packaging, which could be better. Overall, this is one of the best purchases I've made this year. Great job to the team behind this product!",
+                        "source": "customer_review",
+                        "timestamp": "2026-02-03T10:30:00Z"
+                    }
+                },
+                "disabled": false,
+                "notes": "Sample text to analyze - edit this to try your own"
+            },
+            {
+                "id": "parallel_1",
+                "type": "parallel",
+                "name": "Parallel Analysis",
+                "position": {
+                    "x": 520,
+                    "y": 200
+                },
+                "parameters": {
+                    "branches": 3
+                },
+                "disabled": false,
+                "notes": "Run word freq, sentiment, and stats in parallel"
+            },
+            {
+                "id": "py_wordfreq",
+                "type": "code",
+                "name": "Word Frequency",
+                "position": {
+                    "x": 740,
+                    "y": 80
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import re\nfrom collections import Counter\n\n# Get input text\ntext = input.get('text', '')\n\n# Extract words (lowercase, letters only)\nwords = re.findall(r'\\b[a-zA-Z]+\\b', text.lower())\n\n# Filter out common stop words\nSTOP_WORDS = {'the', 'a', 'an', 'is', 'it', 'to', 'and', 'of', 'for', 'in', 'on', 'this', 'that', 'was', 'i', 'be'}\nfiltered_words = [w for w in words if w not in STOP_WORDS and len(w) > 2]\n\n# Count frequencies\nword_counts = Counter(filtered_words)\ntop_10 = word_counts.most_common(10)\n\nreturn {\n    'word_frequency': dict(top_10),\n    'unique_words': len(set(filtered_words)),\n    'total_words': len(filtered_words)\n}"
+                },
+                "disabled": false,
+                "notes": "Count word frequencies, filter stop words"
+            },
+            {
+                "id": "py_sentiment",
+                "type": "code",
+                "name": "Sentiment Analysis",
+                "position": {
+                    "x": 740,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import re\n\n# Get input text\ntext = input.get('text', '').lower()\n\n# Simple sentiment word lists\nPOSITIVE_WORDS = [\n    'love', 'great', 'amazing', 'excellent', 'good', 'best', 'perfect',\n    'wonderful', 'fantastic', 'awesome', 'helpful', 'recommend', 'reliable'\n]\nNEGATIVE_WORDS = [\n    'hate', 'bad', 'terrible', 'awful', 'poor', 'worst', 'horrible',\n    'disappointing', 'useless', 'broken', 'issue', 'problem'\n]\n\n# Extract words\nwords = re.findall(r'\\b[a-zA-Z]+\\b', text)\n\n# Count positive and negative words\npositive_found = [w for w in words if w in POSITIVE_WORDS]\nnegative_found = [w for w in words if w in NEGATIVE_WORDS]\n\npos_count = len(positive_found)\nneg_count = len(negative_found)\n\n# Determine overall sentiment\nif pos_count > neg_count * 2:\n    sentiment = 'very_positive'\nelif pos_count > neg_count:\n    sentiment = 'positive'\nelif neg_count > pos_count * 2:\n    sentiment = 'very_negative'\nelif neg_count > pos_count:\n    sentiment = 'negative'\nelse:\n    sentiment = 'neutral'\n\n# Calculate confidence (0-1)\ntotal_sentiment_words = pos_count + neg_count\nconfidence = min(total_sentiment_words / 10, 1.0) if total_sentiment_words > 0 else 0\n\nreturn {\n    'sentiment': {\n        'label': sentiment,\n        'positive_score': pos_count,\n        'negative_score': neg_count,\n        'confidence': round(confidence, 2),\n        'positive_words': positive_found,\n        'negative_words': negative_found\n    }\n}"
+                },
+                "disabled": false,
+                "notes": "Simple rule-based sentiment analysis"
+            },
+            {
+                "id": "py_stats",
+                "type": "code",
+                "name": "Text Statistics",
+                "position": {
+                    "x": 740,
+                    "y": 320
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import re\n\n# Get input text\ntext = input.get('text', '')\n\n# Basic counts\nchar_count = len(text)\nchar_no_space = len(text.replace(' ', ''))\nword_count = len(text.split())\n\n# Sentence detection\nsentences = re.split(r'[.!?]+', text)\nsentences = [s.strip() for s in sentences if s.strip()]\nsentence_count = len(sentences)\n\n# Average calculations\navg_word_length = char_no_space / word_count if word_count > 0 else 0\navg_sentence_length = word_count / sentence_count if sentence_count > 0 else 0\n\n# Reading time (average 200 words per minute)\nreading_time_seconds = (word_count / 200) * 60\n\nreturn {\n    'statistics': {\n        'character_count': char_count,\n        'character_count_no_spaces': char_no_space,\n        'word_count': word_count,\n        'sentence_count': sentence_count,\n        'paragraph_count': text.count('\\n\\n') + 1,\n        'avg_word_length': round(avg_word_length, 1),\n        'avg_sentence_length': round(avg_sentence_length, 1),\n        'reading_time_seconds': round(reading_time_seconds),\n        'reading_time_display': f\"{int(reading_time_seconds // 60)}m {int(reading_time_seconds % 60)}s\"\n    }\n}"
+                },
+                "disabled": false,
+                "notes": "Calculate comprehensive text statistics"
+            },
+            {
+                "id": "merge_1",
+                "type": "merge",
+                "name": "Combine Results",
+                "position": {
+                    "x": 960,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "inputCount": 3
+                },
+                "disabled": false,
+                "notes": "Combine all parallel analysis results"
+            },
+            {
+                "id": "set_report",
+                "type": "set",
+                "name": "Format Report",
+                "position": {
+                    "x": 1180,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "analysis_report": {
+                            "title": "Text Analysis Report",
+                            "source": "{{ source }}",
+                            "analyzed_at": "{{ new Date().toISOString() }}",
+                            "text_preview": "{{ text.substring(0, 100) + '...' }}",
+                            "word_frequency": "{{ word_frequency }}",
+                            "sentiment": "{{ sentiment }}",
+                            "statistics": "{{ statistics }}"
+                        }
+                    }
+                },
+                "disabled": false,
+                "notes": "Format final analysis report"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceOutput": "main",
+                "targetNodeId": "set_text",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "set_text",
+                "sourceOutput": "main",
+                "targetNodeId": "parallel_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "branch_0",
+                "targetNodeId": "py_wordfreq",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "branch_1",
+                "targetNodeId": "py_sentiment",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "branch_2",
+                "targetNodeId": "py_stats",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "py_wordfreq",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "py_sentiment",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "py_stats",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "merge_1",
+                "sourceOutput": "main",
+                "targetNodeId": "set_report",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {
+            "timezone": "UTC"
+        }
+    }
+}

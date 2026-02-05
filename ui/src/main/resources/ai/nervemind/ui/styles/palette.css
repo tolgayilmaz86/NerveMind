@@ -1,0 +1,183 @@
+/*
+ * NerveMind - Node Palette Styles
+ * 
+ * Styles for the node palette (left sidebar).
+ * Replaces inline setStyle() calls in palette-related code.
+ */
+
+/* ===== Palette Container ===== */
+.node-palette {
+    -fx-background-color: -nervemind-bg-darker;
+    -fx-border-color: -nervemind-bg-card;
+    -fx-border-width: 0 1px 0 0;
+    -fx-min-width: 200px;
+    -fx-pref-width: 220px;
+}
+
+.palette-scroll {
+    -fx-background-color: -nervemind-bg-card;
+}
+
+.palette-scroll>.viewport {
+    -fx-background-color: -nervemind-bg-card;
+}
+
+/* ===== Palette Header ===== */
+.palette__header {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-padding: 12px 15px;
+    -fx-border-color: -nervemind-border;
+    -fx-border-width: 0 0 1px 0;
+}
+
+.palette__title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+/* ===== Palette Search ===== */
+.palette__search {
+    -fx-background-color: -nervemind-bg-tertiary;
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-prompt-text-fill: -nervemind-text-disabled;
+    -fx-background-radius: 6px;
+    -fx-padding: 8px 12px;
+    -fx-margin: 10px;
+}
+
+.palette__search:focused {
+    -fx-border-color: -nervemind-accent-blue;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1px;
+}
+
+/* ===== Palette Section (Accordion) ===== */
+.palette-section {
+    -fx-background-color: transparent;
+}
+
+.palette-section>.title {
+    -fx-background-color: -nervemind-bg-card;
+    -fx-padding: 10px 15px;
+}
+
+.palette-section>.title>.arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 5px 0 0;
+}
+
+.palette-section>.title>.arrow-button>.arrow {
+    -fx-background-color: -nervemind-text-muted;
+}
+
+.palette-section>.title:hover {
+    -fx-background-color: -nervemind-bg-secondary;
+}
+
+.palette-section>.title .label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-transform: uppercase;
+}
+
+.palette-section>.content {
+    -fx-background-color: transparent;
+    -fx-padding: 5px 0;
+}
+
+/* ===== Palette Item (Node) ===== */
+.palette-item {
+    -fx-background-color: -nervemind-bg-card;
+    -fx-background-radius: 6px;
+    -fx-padding: 10px 12px;
+    -fx-margin: 3px 8px;
+    -fx-cursor: hand;
+}
+
+.palette-item:hover {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.2), 4, 0, 0, 2);
+}
+
+.palette-item:pressed {
+    -fx-background-color: derive(-nervemind-bg-secondary, -5%);
+}
+
+.palette-item--dragging {
+    -fx-opacity: 0.7;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 8, 0, 0, 4);
+}
+
+/* ===== Palette Item Content ===== */
+.palette-item__icon {
+    -fx-min-width: 28px;
+    -fx-min-height: 28px;
+    -fx-background-radius: 4px;
+    -fx-alignment: center;
+}
+
+.palette-item__icon--trigger {
+    -fx-background-color: rgba(64, 192, 87, 0.15);
+}
+
+.palette-item__icon--action {
+    -fx-background-color: rgba(74, 158, 255, 0.15);
+}
+
+.palette-item__icon--condition {
+    -fx-background-color: rgba(252, 196, 25, 0.15);
+}
+
+.palette-item__icon--ai {
+    -fx-background-color: rgba(151, 117, 250, 0.15);
+}
+
+.palette-item__icon--data {
+    -fx-background-color: rgba(255, 146, 43, 0.15);
+}
+
+.palette-item__name {
+    -fx-text-fill: -nervemind-text-primary;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.palette-item__description {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 10px;
+}
+
+/* ===== Palette Category Colors ===== */
+.palette-category--triggers .palette-section>.title .label {
+    -fx-text-fill: -nervemind-node-trigger;
+}
+
+.palette-category--actions .palette-section>.title .label {
+    -fx-text-fill: -nervemind-node-action;
+}
+
+.palette-category--conditions .palette-section>.title .label {
+    -fx-text-fill: -nervemind-node-condition;
+}
+
+.palette-category--ai .palette-section>.title .label {
+    -fx-text-fill: -nervemind-node-ai;
+}
+
+.palette-category--data .palette-section>.title .label {
+    -fx-text-fill: -nervemind-node-data;
+}
+
+/* ===== Empty State ===== */
+.palette__empty {
+    -fx-padding: 20px;
+    -fx-alignment: center;
+}
+
+.palette__empty-text {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+    -fx-text-alignment: center;
+}

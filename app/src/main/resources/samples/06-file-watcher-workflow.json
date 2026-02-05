@@ -1,0 +1,190 @@
+{
+    "name": "File Watcher Workflow",
+    "description": "Monitors a local folder for new files and processes them automatically. Demonstrates: File Trigger, Code node, and local file system automation.",
+    "category": "Automation",
+    "difficulty": "intermediate",
+    "tags": [
+        "file-system",
+        "automation",
+        "trigger",
+        "categorization"
+    ],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "Demonstrates the **File Trigger**, which starts the workflow automatically when a file is created or modified in a folder.",
+                "highlightNodes": []
+            },
+            {
+                "title": "Configuration",
+                "content": "The File Trigger is monitoring a path (by default `Downloads\\test`).\n\nWhen you drop a file there, it fires and passes the `filePath`, `fileName`, and `eventType` to the workflow.",
+                "highlightNodes": [
+                    "trigger_file"
+                ]
+            },
+            {
+                "title": "File Analysis",
+                "content": "The Code node analyzes the file extension to categorize it (Image, Document, Video, etc.). This categorization drives the logic downstream.",
+                "highlightNodes": [
+                    "code_1"
+                ]
+            },
+            {
+                "title": "Routing Logic",
+                "content": "If the file is a Document (PDF, DOCX), it goes to the 'Process Document' node (simulating OCR).\n\nIf it's anything else, it just gets logged.",
+                "highlightNodes": [
+                    "if_1",
+                    "code_doc",
+                    "code_other"
+                ]
+            }
+        ]
+    },
+    "nodes": [
+        {
+            "id": "trigger_file",
+            "type": "fileTrigger",
+            "name": "Watch Downloads",
+            "position": {
+                "x": 100,
+                "y": 200
+            },
+            "parameters": {
+                "watchPath": "C:\\Users\\tolga\\Downloads\\test",
+                "eventTypes": "CREATE,MODIFY",
+                "filePattern": "*"
+            },
+            "disabled": false,
+            "notes": "Watches the specified folder for new or modified files. Change watchPath to your target folder."
+        },
+        {
+            "id": "code_1",
+            "type": "code",
+            "name": "Process File Info",
+            "position": {
+                "x": 300,
+                "y": 200
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Check if this is a manual execution (no file data) or actual file event\nif (input.mode === 'manual') {\n    // Manual execution - show configuration info\n    return {\n        filePath: input.watchPath,\n        fileName: '(no file - manual test)',\n        directory: input.watchPath,\n        extension: 'none',\n        category: 'test',\n        eventType: 'MANUAL_TEST',\n        processedAt: input.triggeredAt,\n        message: input.message,\n        note: input.note,\n        pathExists: input.pathExists,\n        isDirectory: input.isDirectory\n    };\n}\n\n// Real file event - extract and process file information\nconst filePath = input.filePath;\nconst fileName = input.fileName;\nconst directory = input.directory;\nconst eventType = input.eventType;\nconst triggeredAt = input.triggeredAt;\n\n// Get file extension\nconst extension = fileName && fileName.includes('.') ? fileName.split('.').pop().toLowerCase() : 'unknown';\n\n// Categorize file by type\nlet fileCategory = 'other';\nif (['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'].includes(extension)) {\n    fileCategory = 'image';\n} else if (['pdf', 'doc', 'docx', 'txt', 'rtf'].includes(extension)) {\n    fileCategory = 'document';\n} else if (['mp4', 'avi', 'mkv', 'mov', 'wmv'].includes(extension)) {\n    fileCategory = 'video';\n} else if (['mp3', 'wav', 'flac', 'aac'].includes(extension)) {\n    fileCategory = 'audio';\n} else if (['zip', 'rar', '7z', 'tar', 'gz'].includes(extension)) {\n    fileCategory = 'archive';\n}\n\nreturn {\n    filePath: filePath,\n    fileName: fileName,\n    directory: directory,\n    extension: extension,\n    category: fileCategory,\n    eventType: eventType,\n    processedAt: triggeredAt,\n    message: `File detected: ${fileName} (${fileCategory})`\n};"
+            },
+            "disabled": false,
+            "notes": "Analyzes the detected file and categorizes it by extension. Handles manual execution gracefully."
+        },
+        {
+            "id": "if_1",
+            "type": "if",
+            "name": "Is Document?",
+            "position": {
+                "x": 500,
+                "y": 200
+            },
+            "parameters": {
+                "condition": "{{ category }} === 'document'"
+            },
+            "disabled": false,
+            "notes": "Check if the file is a document type"
+        },
+        {
+            "id": "code_doc",
+            "type": "code",
+            "name": "Process Document",
+            "position": {
+                "x": 700,
+                "y": 100
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Handle document processing\nreturn {\n    action: 'DOCUMENT_PROCESSING',\n    status: 'ready',\n    message: `📄 Document ready for processing: ${input.fileName}`,\n    filePath: input.filePath,\n    category: input.category,\n    nextStep: 'OCR or content extraction'\n};"
+            },
+            "disabled": false,
+            "notes": "Prepare document for further processing (OCR, text extraction, etc.)"
+        },
+        {
+            "id": "code_other",
+            "type": "code",
+            "name": "Log Other File",
+            "position": {
+                "x": 700,
+                "y": 300
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Handle non-document files\nreturn {\n    action: 'FILE_LOGGED',\n    status: 'logged',\n    message: `📁 File logged: ${input.fileName} (${input.category})`,\n    filePath: input.filePath,\n    category: input.category,\n    nextStep: 'No action required'\n};"
+            },
+            "disabled": false,
+            "notes": "Log non-document files for record keeping"
+        },
+        {
+            "id": "set_1",
+            "type": "set",
+            "name": "Final Result",
+            "position": {
+                "x": 900,
+                "y": 200
+            },
+            "parameters": {
+                "values": {
+                    "result": "{{ message }}",
+                    "action": "{{ action }}",
+                    "status": "{{ status }}",
+                    "filePath": "{{ filePath }}"
+                }
+            },
+            "disabled": false,
+            "notes": "Consolidates the final processing result"
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_1",
+            "sourceNodeId": "trigger_file",
+            "sourceOutput": "main",
+            "targetNodeId": "code_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_2",
+            "sourceNodeId": "code_1",
+            "sourceOutput": "main",
+            "targetNodeId": "if_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_3",
+            "sourceNodeId": "if_1",
+            "sourceOutput": "true",
+            "targetNodeId": "code_doc",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_4",
+            "sourceNodeId": "if_1",
+            "sourceOutput": "false",
+            "targetNodeId": "code_other",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_5",
+            "sourceNodeId": "code_doc",
+            "sourceOutput": "main",
+            "targetNodeId": "set_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_6",
+            "sourceNodeId": "code_other",
+            "sourceOutput": "main",
+            "targetNodeId": "set_1",
+            "targetInput": "main"
+        }
+    ],
+    "settings": {
+        "description": "This workflow demonstrates the File Trigger capability. When a file is added or modified in the watched folder, the workflow automatically starts and processes the file information."
+    },
+    "isActive": true,
+    "triggerType": "FILE_EVENT",
+    "version": 1
+}

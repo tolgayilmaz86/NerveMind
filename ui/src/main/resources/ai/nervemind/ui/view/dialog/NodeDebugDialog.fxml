@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+<?import javafx.geometry.Orientation?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.NodeDebugController"
+      styleClass="node-debug-dialog" spacing="12" prefWidth="600" prefHeight="580">
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+    
+    <!-- Node Name Header -->
+    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="node-debug-dialog__header">
+        <padding>
+            <Insets top="8" right="12" bottom="8" left="12"/>
+        </padding>
+        <FontIcon iconLiteral="mdi2c-cube-outline" iconSize="24" styleClass="node-debug-dialog__header-icon"/>
+        <VBox spacing="2">
+            <Label fx:id="nodeNameLabel" text="Node Name" styleClass="node-debug-dialog__node-name"/>
+            <Label fx:id="nodeTypeLabel" text="node-type" styleClass="node-debug-dialog__node-type"/>
+        </VBox>
+    </HBox>
+    
+    <!-- Status Header -->
+    <HBox spacing="15" alignment="CENTER_LEFT" styleClass="node-debug-dialog__section">
+        <padding>
+            <Insets top="10" right="10" bottom="10" left="10"/>
+        </padding>
+        <Label fx:id="statusLabel" text="Success" styleClass="node-debug-dialog__status-success">
+            <graphic>
+                <FontIcon fx:id="statusIcon" iconLiteral="mdi2c-check-circle" iconSize="20"/>
+            </graphic>
+        </Label>
+        <Label fx:id="timestampLabel" text="Last Executed: N/A" styleClass="node-debug-dialog__text"/>
+        <Label fx:id="durationLabel" text="" styleClass="node-debug-dialog__text"/>
+    </HBox>
+    
+    <!-- Resizable Input/Output Split Pane -->
+    <SplitPane fx:id="dataSplitPane" orientation="VERTICAL" dividerPositions="0.5" 
+               styleClass="node-debug-dialog__split-pane" VBox.vgrow="ALWAYS">
+        
+        <!-- Input Data Section -->
+        <VBox spacing="8" styleClass="node-debug-dialog__data-section">
+            <padding>
+                <Insets top="5" right="0" bottom="5" left="0"/>
+            </padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="📥 INPUT DATA" styleClass="node-debug-dialog__section-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="copyInputButton" text="Copy" onAction="#handleCopyInput" 
+                        styleClass="node-debug-dialog__copy-button">
+                    <graphic>
+                        <FontIcon iconLiteral="mdi2c-content-copy" iconSize="12"/>
+                    </graphic>
+                </Button>
+            </HBox>
+            <TextArea fx:id="inputDataArea" editable="false" wrapText="true"
+                      styleClass="node-debug-dialog__code-area" VBox.vgrow="ALWAYS"/>
+        </VBox>
+        
+        <!-- Output Data Section -->
+        <VBox spacing="8" styleClass="node-debug-dialog__data-section">
+            <padding>
+                <Insets top="5" right="0" bottom="5" left="0"/>
+            </padding>
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Label text="📤 OUTPUT DATA" styleClass="node-debug-dialog__section-title"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button fx:id="copyOutputButton" text="Copy" onAction="#handleCopyOutput" 
+                        styleClass="node-debug-dialog__copy-button">
+                    <graphic>
+                        <FontIcon iconLiteral="mdi2c-content-copy" iconSize="12"/>
+                    </graphic>
+                </Button>
+            </HBox>
+            <TextArea fx:id="outputDataArea" editable="false" wrapText="true"
+                      styleClass="node-debug-dialog__code-area" VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </SplitPane>
+    
+    <!-- Error Section (conditionally visible) -->
+    <VBox fx:id="errorSection" spacing="8" styleClass="node-debug-dialog__error-section">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="📋 ERROR" styleClass="node-debug-dialog__error-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="copyErrorButton" text="Copy Error" onAction="#handleCopyError" 
+                    styleClass="node-debug-dialog__copy-button">
+                <graphic>
+                    <FontIcon iconLiteral="mdi2c-content-copy" iconSize="12"/>
+                </graphic>
+            </Button>
+        </HBox>
+        <TextArea fx:id="errorArea" editable="false" wrapText="true" prefRowCount="3"
+                  styleClass="node-debug-dialog__code-area"/>
+    </VBox>
+    
+    <!-- Close Button -->
+    <HBox alignment="CENTER_RIGHT">
+        <Button fx:id="closeButton" text="Close" onAction="#handleClose" 
+                styleClass="dialog__button-primary"/>
+    </HBox>
+</VBox>

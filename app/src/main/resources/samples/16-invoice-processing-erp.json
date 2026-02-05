@@ -1,0 +1,438 @@
+{
+    "id": "16-invoice-processing-erp",
+    "name": "Invoice Processing & ERP Sync",
+    "description": "Automated accounts payable workflow that extracts data from invoice files using AI, validates totals with Python, and syncs to an ERP system. Demonstrates file triggers, LLM data extraction, Python validation, and conditional routing.",
+    "category": "Enterprise Finance",
+    "difficulty": "advanced",
+    "language": "python",
+    "tags": [
+        "invoice",
+        "erp",
+        "ocr",
+        "ai",
+        "python",
+        "finance",
+        "automation",
+        "validation"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **Accounts Payable automation** - one of the highest-ROI enterprise automations.\n\n**What you'll learn:**\n- File watching with File Trigger nodes\n- AI-powered data extraction from unstructured text\n- Python validation for business logic\n- Conditional routing based on validation results\n- ERP system integration patterns\n\n**Real-world impact:**\n- Reduces manual data entry by 80%+\n- Eliminates transcription errors\n- Accelerates invoice processing cycle\n- Enables three-way matching automation\n\n**Prerequisites:**\n- Sample invoice JSON files (simulating OCR output)\n- Configured LLM provider for data extraction",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "File Watcher Trigger",
+                "content": "The **File Trigger** monitors a directory for new invoice files. When an invoice arrives, the workflow starts automatically.\n\n**Configuration:**\n- Watch path: `./data/invoices/*.json`\n- We use JSON format to simulate OCR output\n- In production, this could watch for PDFs\n\n**Why file watching?**\n- Invoices arrive via email, FTP, or scanner\n- Processing starts immediately on arrival\n- No manual intervention needed",
+                "highlightNodes": [
+                    "file_watch_invoices"
+                ],
+                "codeSnippet": "# Example invoice file structure:\n{\n  \"vendor\": \"ACME Corp\",\n  \"invoice_number\": \"INV-2026-001\",\n  \"date\": \"2026-02-01\",\n  \"raw_text\": \"Invoice from ACME Corp...\\nWidget A: $100.00\\nWidget B: $50.00\\nTotal: $150.00\",\n  \"total_claimed\": 150.00\n}"
+            },
+            {
+                "title": "Format Validation Filter",
+                "content": "Before AI extraction, we **Filter** out invalid files that don't have required fields.\n\n**Why pre-validate?**\n- Saves LLM API costs on garbage input\n- Catches obvious errors early\n- Provides clear error messages\n\n**Required fields:**\n- `raw_text` - The invoice content to parse\n- `vendor` - Supplier identification",
+                "highlightNodes": [
+                    "filter_valid_format"
+                ],
+                "codeSnippet": "# Filter condition:\n{{ raw_text }} is not empty AND {{ vendor }} is not empty\n\n# Invalid files are routed to error handling"
+            },
+            {
+                "title": "AI Data Extraction",
+                "content": "The **LLM Chat** node extracts structured data from unstructured invoice text.\n\n**What it extracts:**\n- Vendor name and address\n- Invoice date and number\n- Line items with descriptions and amounts\n- Tax amounts\n- Total amount due\n- Payment terms\n\n**Why AI for extraction?**\n- Handles varied invoice formats\n- Understands context and abbreviations\n- More accurate than regex patterns",
+                "highlightNodes": [
+                    "llm_extract_data"
+                ],
+                "codeSnippet": "# LLM prompt (simplified):\n\"Extract invoice data from this text.\nFormat as JSON with:\n- vendor, date, invoice_number\n- line_items: [{description, quantity, unit_price, total}]\n- subtotal, tax, grand_total\"\n\n# Example output:\n{\n  \"line_items\": [\n    {\"description\": \"Widget A\", \"quantity\": 1, \"unit_price\": 100, \"total\": 100},\n    {\"description\": \"Widget B\", \"quantity\": 1, \"unit_price\": 50, \"total\": 50}\n  ],\n  \"subtotal\": 150,\n  \"tax\": 0,\n  \"grand_total\": 150\n}"
+            },
+            {
+                "title": "Python Validation",
+                "content": "AI isn't perfect, so we use a **Python Code node** to mathematically verify the extracted data.\n\n**Validation checks:**\n1. Sum of line items = Subtotal\n2. Subtotal + Tax = Grand Total\n3. Extracted total matches claimed total\n4. Required fields present\n\n**Why Python?**\n- Precise decimal arithmetic\n- Custom business rules\n- Clear error reporting",
+                "highlightNodes": [
+                    "code_validate_totals"
+                ],
+                "codeSnippet": "from decimal import Decimal, ROUND_HALF_UP\n\ndef validate_invoice(data):\n    line_items = data.get('line_items', [])\n    \n    # Calculate sum of line items\n    calculated_total = sum(\n        Decimal(str(item.get('total', 0))) \n        for item in line_items\n    )\n    \n    claimed_total = Decimal(str(data.get('grand_total', 0)))\n    \n    # Check if totals match (within 1 cent tolerance)\n    difference = abs(calculated_total - claimed_total)\n    is_valid = difference < Decimal('0.02')\n    \n    return {\n        'is_valid': is_valid,\n        'calculated': float(calculated_total),\n        'claimed': float(claimed_total),\n        'difference': float(difference)\n    }"
+            },
+            {
+                "title": "Conditional Routing",
+                "content": "The **If node** routes invoices based on validation results:\n\n**Valid invoices:**\n- Sent to ERP for posting\n- Auto-approved for payment\n\n**Invalid invoices:**\n- Flagged for manual review\n- Finance team notified\n- Details logged for analysis\n\n**Benefits:**\n- Only clean data enters ERP\n- Discrepancies caught immediately\n- Audit trail maintained",
+                "highlightNodes": [
+                    "if_validation_pass"
+                ],
+                "codeSnippet": "# If condition:\n{{ validation.is_valid }} == true\n\n# True path: Post to ERP\n# False path: Flag for review"
+            },
+            {
+                "title": "ERP Integration",
+                "content": "Valid invoices are **POSTed to the ERP system** for accounts payable processing.\n\n**Data sent to ERP:**\n- Vendor ID (mapped from name)\n- Invoice number and date\n- Line items with GL codes\n- Total amount and currency\n- Payment terms\n\n**In production:** Replace the mock endpoint with your actual ERP API (SAP, Oracle, NetSuite, etc.)",
+                "highlightNodes": [
+                    "http_post_erp"
+                ],
+                "codeSnippet": "# ERP payload format:\n{\n  \"document_type\": \"AP_INVOICE\",\n  \"vendor_id\": \"ACME-001\",\n  \"invoice_number\": \"INV-2026-001\",\n  \"date\": \"2026-02-01\",\n  \"currency\": \"USD\",\n  \"total_amount\": 150.00,\n  \"line_items\": [...],\n  \"payment_terms\": \"NET30\"\n}"
+            },
+            {
+                "title": "Error Notification",
+                "content": "When validation fails, the **Finance team is notified** with details about the issue.\n\n**Notification includes:**\n- Invoice file name\n- Vendor name\n- Validation errors\n- Claimed vs calculated totals\n- Link to review queue\n\n**In production:** Connect to Slack, Teams, or email for notifications.",
+                "highlightNodes": [
+                    "http_notify_finance"
+                ],
+                "codeSnippet": "# Notification message:\n\"⚠️ Invoice Validation Failed\\n\\n\"\n\"Vendor: ACME Corp\\n\"\n\"Invoice: INV-2026-001\\n\"\n\"Issue: Line items sum ($145) != Total ($150)\\n\"\n\"Difference: $5.00\\n\\n\"\n\"Please review in AP queue.\""
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Testing with Manual Trigger:**\n1. Click Run (F5) to process sample invoice\n2. Watch the Console for extraction and validation\n3. Modify sample data to test validation failures\n\n**Testing with File Watcher:**\n1. Enable the File Trigger node\n2. Activate the workflow\n3. Drop a JSON file in `./data/invoices/`\n4. Watch automatic processing begin\n\n**Customizing for your business:**\n- Add GL code mapping logic\n- Implement three-way matching (PO, Receipt, Invoice)\n- Configure actual ERP API endpoints\n- Add approval workflows for high-value invoices",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Invoice Processing & ERP Sync",
+        "description": "Automated AP workflow with AI extraction and Python validation",
+        "nodes": [
+            {
+                "id": "trigger_manual",
+                "type": "manualTrigger",
+                "name": "Test Trigger",
+                "position": {
+                    "x": 100,
+                    "y": 150
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Use for testing without file watcher"
+            },
+            {
+                "id": "code_sample_invoice",
+                "type": "code",
+                "name": "Sample Invoice",
+                "position": {
+                    "x": 300,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Simulate an invoice file (OCR output)\n# Change values to test validation scenarios\n\nreturn {\n    'file_name': 'invoice_acme_001.json',\n    'vendor': 'ACME Corporation',\n    'invoice_number': 'INV-2026-0042',\n    'raw_text': '''INVOICE\n\nFrom: ACME Corporation\n123 Business Street\nNew York, NY 10001\n\nInvoice #: INV-2026-0042\nDate: February 1, 2026\nDue: March 3, 2026 (NET 30)\n\nBill To:\nYour Company Inc.\n456 Client Ave\nBoston, MA 02101\n\nDescription                    Qty    Price    Amount\n----------------------------------------------------------\nPremium Widget Model A          10   $45.00   $450.00\nStandard Widget Model B         25   $22.00   $550.00\nWidget Maintenance Plan          1  $200.00   $200.00\n----------------------------------------------------------\n                              Subtotal:      $1,200.00\n                              Tax (8%):         $96.00\n                              TOTAL:         $1,296.00\n\nPayment Terms: NET 30\nPlease remit payment to account ending in 4521.\n\nThank you for your business!\n''',\n    'total_claimed': 1296.00,\n    'received_date': '2026-02-03'\n}"
+                },
+                "disabled": false,
+                "notes": "Edit to test different invoice scenarios"
+            },
+            {
+                "id": "file_watch_invoices",
+                "type": "fileTrigger",
+                "name": "Watch Invoices Folder",
+                "position": {
+                    "x": 100,
+                    "y": 350
+                },
+                "parameters": {
+                    "path": "./data/invoices",
+                    "pattern": "*.json",
+                    "events": [
+                        "created"
+                    ]
+                },
+                "disabled": true,
+                "notes": "Enable to watch for new invoice files"
+            },
+            {
+                "id": "merge_triggers",
+                "type": "merge",
+                "name": "Merge Inputs",
+                "position": {
+                    "x": 500,
+                    "y": 250
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "waitForAll": false
+                },
+                "disabled": false,
+                "notes": "Combines manual and file trigger inputs"
+            },
+            {
+                "id": "filter_valid_format",
+                "type": "filter",
+                "name": "Check Required Fields",
+                "position": {
+                    "x": 700,
+                    "y": 250
+                },
+                "parameters": {
+                    "condition": "{{ raw_text }} != '' && {{ vendor }} != ''",
+                    "mode": "include"
+                },
+                "disabled": false,
+                "notes": "Filters out invalid files before AI processing"
+            },
+            {
+                "id": "llm_extract_data",
+                "type": "llmChat",
+                "name": "Extract Invoice Data",
+                "position": {
+                    "x": 900,
+                    "y": 250
+                },
+                "parameters": {
+                    "systemPrompt": "You are an expert invoice data extraction system. Extract structured data from invoice text with high accuracy.\n\nOutput ONLY valid JSON with this exact structure:\n{\n  \"vendor_name\": \"string\",\n  \"vendor_address\": \"string\",\n  \"invoice_number\": \"string\",\n  \"invoice_date\": \"YYYY-MM-DD\",\n  \"due_date\": \"YYYY-MM-DD\",\n  \"line_items\": [\n    {\n      \"description\": \"string\",\n      \"quantity\": number,\n      \"unit_price\": number,\n      \"line_total\": number\n    }\n  ],\n  \"subtotal\": number,\n  \"tax_amount\": number,\n  \"tax_rate\": number,\n  \"grand_total\": number,\n  \"payment_terms\": \"string\",\n  \"currency\": \"USD\"\n}\n\nBe precise with numbers. Use 2 decimal places for money.",
+                    "userPrompt": "Extract invoice data from this text:\n\n{{ raw_text }}",
+                    "model": "gpt-3.5-turbo",
+                    "temperature": 0.1,
+                    "maxTokens": 1000
+                },
+                "disabled": false,
+                "notes": "AI extracts structured data from raw invoice text"
+            },
+            {
+                "id": "code_parse_extraction",
+                "type": "code",
+                "name": "Parse AI Response",
+                "position": {
+                    "x": 1100,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import json\nimport re\n\n# Get LLM response\nresponse = input.get('response', input.get('content', '{}'))\n\n# Extract JSON from response\njson_match = re.search(r'\\{[\\s\\S]*\\}', response)\n\nif json_match:\n    try:\n        extracted = json.loads(json_match.group())\n        return {\n            **input,\n            'extracted_data': extracted,\n            'extraction_success': True\n        }\n    except json.JSONDecodeError as e:\n        return {\n            **input,\n            'extracted_data': None,\n            'extraction_success': False,\n            'extraction_error': str(e)\n        }\n\nreturn {\n    **input,\n    'extracted_data': None,\n    'extraction_success': False,\n    'extraction_error': 'No JSON found in response'\n}"
+                },
+                "disabled": false,
+                "notes": "Parses JSON from LLM response"
+            },
+            {
+                "id": "code_validate_totals",
+                "type": "code",
+                "name": "Validate Totals (Python)",
+                "position": {
+                    "x": 1300,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from decimal import Decimal, ROUND_HALF_UP\n\ndef validate_invoice(extracted, claimed_total):\n    \"\"\"Validate invoice totals with proper decimal arithmetic.\"\"\"\n    errors = []\n    \n    if not extracted:\n        return {'is_valid': False, 'errors': ['No extracted data']}\n    \n    line_items = extracted.get('line_items', [])\n    subtotal = Decimal(str(extracted.get('subtotal', 0)))\n    tax = Decimal(str(extracted.get('tax_amount', 0)))\n    grand_total = Decimal(str(extracted.get('grand_total', 0)))\n    claimed = Decimal(str(claimed_total))\n    \n    # Check 1: Line items sum to subtotal\n    line_sum = sum(\n        Decimal(str(item.get('line_total', 0)))\n        for item in line_items\n    )\n    if abs(line_sum - subtotal) > Decimal('0.02'):\n        errors.append(f'Line items sum ({line_sum}) != subtotal ({subtotal})')\n    \n    # Check 2: Subtotal + tax = grand total\n    calculated_total = subtotal + tax\n    if abs(calculated_total - grand_total) > Decimal('0.02'):\n        errors.append(f'Subtotal + tax ({calculated_total}) != grand total ({grand_total})')\n    \n    # Check 3: Grand total matches claimed total\n    if abs(grand_total - claimed) > Decimal('0.02'):\n        errors.append(f'Extracted total ({grand_total}) != claimed total ({claimed})')\n    \n    return {\n        'is_valid': len(errors) == 0,\n        'errors': errors,\n        'calculated_line_sum': float(line_sum),\n        'calculated_total': float(calculated_total),\n        'extracted_total': float(grand_total),\n        'claimed_total': float(claimed)\n    }\n\n# Run validation\nextracted = input.get('extracted_data', {})\nclaimed = input.get('total_claimed', 0)\nvalidation = validate_invoice(extracted, claimed)\n\nreturn {\n    **input,\n    'validation': validation\n}"
+                },
+                "disabled": false,
+                "notes": "Mathematical validation of extracted totals"
+            },
+            {
+                "id": "if_validation_pass",
+                "type": "if",
+                "name": "Validation Passed?",
+                "position": {
+                    "x": 1500,
+                    "y": 250
+                },
+                "parameters": {
+                    "condition": "{{ validation.is_valid }} == true"
+                },
+                "disabled": false,
+                "notes": "Routes based on validation result"
+            },
+            {
+                "id": "code_prepare_erp",
+                "type": "code",
+                "name": "Prepare ERP Payload",
+                "position": {
+                    "x": 1700,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nextracted = input.get('extracted_data', {})\n\n# Map to ERP format\nerp_payload = {\n    'document_type': 'AP_INVOICE',\n    'vendor_id': input.get('vendor', 'UNKNOWN').upper().replace(' ', '-')[:10],\n    'vendor_name': extracted.get('vendor_name', input.get('vendor')),\n    'invoice_number': extracted.get('invoice_number', 'N/A'),\n    'invoice_date': extracted.get('invoice_date'),\n    'due_date': extracted.get('due_date'),\n    'currency': extracted.get('currency', 'USD'),\n    'line_items': [\n        {\n            'description': item.get('description'),\n            'quantity': item.get('quantity'),\n            'unit_price': item.get('unit_price'),\n            'amount': item.get('line_total'),\n            'gl_account': '5000-00'  # Default expense account\n        }\n        for item in extracted.get('line_items', [])\n    ],\n    'subtotal': extracted.get('subtotal'),\n    'tax_amount': extracted.get('tax_amount'),\n    'total_amount': extracted.get('grand_total'),\n    'payment_terms': extracted.get('payment_terms', 'NET30'),\n    'created_by': 'NerveMind_Automation',\n    'created_at': datetime.now().isoformat()\n}\n\nreturn {\n    **input,\n    'erp_payload': erp_payload\n}"
+                },
+                "disabled": false,
+                "notes": "Transforms extracted data to ERP format"
+            },
+            {
+                "id": "http_post_erp",
+                "type": "httpRequest",
+                "name": "Post to ERP",
+                "position": {
+                    "x": 1900,
+                    "y": 150
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/post",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json",
+                        "X-API-Key": "{{ env.ERP_API_KEY }}"
+                    },
+                    "body": "{{ erp_payload | json }}",
+                    "timeout": 15000
+                },
+                "disabled": false,
+                "notes": "Replace with actual ERP API endpoint"
+            },
+            {
+                "id": "code_success",
+                "type": "code",
+                "name": "Success Handler",
+                "position": {
+                    "x": 2100,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nprint('✅ Invoice successfully posted to ERP!')\n\nreturn {\n    'status': 'success',\n    'message': 'Invoice processed and posted to ERP',\n    'invoice_number': input.get('extracted_data', {}).get('invoice_number'),\n    'vendor': input.get('vendor'),\n    'amount': input.get('extracted_data', {}).get('grand_total'),\n    'erp_document_id': f\"AP-{datetime.now().strftime('%Y%m%d%H%M%S')}\",\n    'processed_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Handles successful ERP posting"
+            },
+            {
+                "id": "code_prepare_error",
+                "type": "code",
+                "name": "Prepare Error Report",
+                "position": {
+                    "x": 1700,
+                    "y": 350
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nvalidation = input.get('validation', {})\nextracted = input.get('extracted_data', {})\n\nerror_report = {\n    'status': 'validation_failed',\n    'file_name': input.get('file_name', 'unknown'),\n    'vendor': input.get('vendor'),\n    'invoice_number': extracted.get('invoice_number', 'N/A') if extracted else 'N/A',\n    'errors': validation.get('errors', ['Unknown validation error']),\n    'totals_comparison': {\n        'claimed': validation.get('claimed_total'),\n        'extracted': validation.get('extracted_total'),\n        'calculated_line_sum': validation.get('calculated_line_sum')\n    },\n    'requires_action': 'Manual review required',\n    'flagged_at': datetime.now().isoformat()\n}\n\nprint(f\"⚠️ Validation failed for {input.get('vendor')}\")\nprint(f\"   Errors: {validation.get('errors', [])}\")\n\nreturn {\n    **input,\n    'error_report': error_report\n}"
+                },
+                "disabled": false,
+                "notes": "Prepares detailed error report for review"
+            },
+            {
+                "id": "http_notify_finance",
+                "type": "httpRequest",
+                "name": "Notify Finance Team",
+                "position": {
+                    "x": 1900,
+                    "y": 350
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/post",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "{\"channel\": \"#accounts-payable\", \"text\": \"⚠️ *Invoice Validation Failed*\\n\\nVendor: {{ vendor }}\\nInvoice: {{ error_report.invoice_number }}\\nErrors: {{ error_report.errors }}\\n\\nPlease review in AP queue.\", \"priority\": \"high\"}",
+                    "timeout": 5000
+                },
+                "disabled": false,
+                "notes": "Replace with actual Slack/Teams webhook"
+            },
+            {
+                "id": "code_error_handler",
+                "type": "code",
+                "name": "Error Handler",
+                "position": {
+                    "x": 2100,
+                    "y": 350
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nprint('❌ Invoice flagged for manual review')\n\nreturn {\n    'status': 'flagged_for_review',\n    'message': 'Invoice validation failed - manual review required',\n    'error_report': input.get('error_report'),\n    'action_required': 'Review and correct in AP queue',\n    'notification_sent': True,\n    'flagged_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Final handler for failed validations"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_manual",
+                "sourceOutput": "main",
+                "targetNodeId": "code_sample_invoice",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_sample_invoice",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "file_watch_invoices",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "merge_triggers",
+                "sourceOutput": "main",
+                "targetNodeId": "filter_valid_format",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "filter_valid_format",
+                "sourceOutput": "main",
+                "targetNodeId": "llm_extract_data",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "llm_extract_data",
+                "sourceOutput": "main",
+                "targetNodeId": "code_parse_extraction",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "code_parse_extraction",
+                "sourceOutput": "main",
+                "targetNodeId": "code_validate_totals",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "code_validate_totals",
+                "sourceOutput": "main",
+                "targetNodeId": "if_validation_pass",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "if_validation_pass",
+                "sourceOutput": "true",
+                "targetNodeId": "code_prepare_erp",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_10",
+                "sourceNodeId": "code_prepare_erp",
+                "sourceOutput": "main",
+                "targetNodeId": "http_post_erp",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_11",
+                "sourceNodeId": "http_post_erp",
+                "sourceOutput": "main",
+                "targetNodeId": "code_success",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_12",
+                "sourceNodeId": "if_validation_pass",
+                "sourceOutput": "false",
+                "targetNodeId": "code_prepare_error",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_13",
+                "sourceNodeId": "code_prepare_error",
+                "sourceOutput": "main",
+                "targetNodeId": "http_notify_finance",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_14",
+                "sourceNodeId": "http_notify_finance",
+                "sourceOutput": "main",
+                "targetNodeId": "code_error_handler",
+                "targetInput": "main"
+            }
+        ]
+    }
+}

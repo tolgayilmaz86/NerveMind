@@ -1,0 +1,56 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = 'ai.nervemind'
+version = project.pluginApiVersion
+
+description = 'NerveMind Plugin API - Interfaces for extending NerveMind with custom nodes'
+
+dependencies {
+    // Minimal dependencies - this module should be lightweight
+    // Plugins only need to depend on this module
+}
+
+// This module is published for plugin developers
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+// Publishing configuration for third-party developers
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            
+            pom {
+                name = 'NerveMind Plugin API'
+                description = 'API for developing plugins for NerveMind workflow automation'
+                url = 'https://github.com/nervemind/nervemind'
+                
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://opensource.org/licenses/MIT'
+                    }
+                }
+                
+                developers {
+                    developer {
+                        id = 'nervemind'
+                        name = 'NerveMind Team'
+                    }
+                }
+            }
+        }
+    }
+    
+    repositories {
+        maven {
+            name = "local"
+            url = layout.buildDirectory.dir("repo")
+        }
+    }
+}

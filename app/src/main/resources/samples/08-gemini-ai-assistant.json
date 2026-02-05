@@ -1,0 +1,216 @@
+{
+    "id": "sample-gemini-assistant",
+    "name": "Gemini AI Assistant",
+    "description": "Uses Google Gemini to create an AI-powered content assistant that can summarize text, answer questions, and generate creative content. Demonstrates: LLM Chat with Gemini, prompt engineering, and output formatting.",
+    "category": "AI/ML",
+    "difficulty": "beginner",
+    "language": "javascript",
+    "tags": [
+        "ai",
+        "gemini",
+        "google",
+        "llm",
+        "text-generation",
+        "summarization"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [
+        "GOOGLE_API_KEY"
+    ],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates how to use Google's Gemini AI models for various text processing tasks.\n\n**What you'll learn:**\n- Configuring the LLM Chat node for Google Gemini\n- Writing effective system prompts\n- Chaining AI tasks (summarize → analyze → generate)\n- Formatting AI-generated output\n\n**Prerequisites:**\n- A Google AI API key from makersuite.google.com\n- Configure your API key in Settings → AI Providers → Google Gemini",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Manual Trigger with Input",
+                "content": "The Manual Trigger starts the workflow and provides sample text to process.\n\nIn a real scenario, this input could come from:\n- A Webhook receiving user requests\n- A File Watcher reading documents\n- Another workflow via Subworkflow node\n\n**Tip:** The input text can be modified in the trigger's parameters to test with different content.",
+                "highlightNodes": [
+                    "trigger_1"
+                ],
+                "codeSnippet": "// Sample input data from trigger:\n{\n  \"text\": \"[Your text to analyze]\",\n  \"task\": \"summarize\"  // or \"analyze\", \"generate\"\n}"
+            },
+            {
+                "title": "LLM Chat Node - Gemini Setup",
+                "content": "The LLM Chat node is configured to use Google Gemini.\n\n**Key Settings:**\n- **Provider**: `google` (or `gemini`)\n- **Model**: `gemini-1.5-pro` (powerful) or `gemini-1.5-flash` (faster/cheaper)\n- **API Key**: Uses settings if not specified in node\n\n**Gemini Models:**\n| Model | Best For |\n|-------|----------|\n| gemini-1.5-pro | Complex reasoning, long context |\n| gemini-1.5-flash | Fast responses, simple tasks |\n| gemini-1.0-pro | Basic text generation |",
+                "highlightNodes": [
+                    "llm_summarize"
+                ],
+                "codeSnippet": "// LLM Chat node parameters:\n{\n  \"provider\": \"google\",\n  \"model\": \"gemini-1.5-flash\",\n  \"systemPrompt\": \"You are a helpful assistant...\",\n  \"prompt\": \"{{ text }}\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 1024\n}"
+            },
+            {
+                "title": "System Prompts for Gemini",
+                "content": "System prompts define the AI's behavior and expertise.\n\n**Best Practices:**\n- Be specific about the role and task\n- Define output format expectations\n- Include examples when helpful\n- Set constraints (length, style, etc.)\n\n**Gemini-specific tips:**\n- Gemini handles long context well (up to 1M tokens)\n- Supports structured output requests\n- Works great with step-by-step instructions",
+                "highlightNodes": [
+                    "llm_summarize"
+                ],
+                "codeSnippet": "// Example system prompt for summarization:\nYou are a professional summarizer. Create concise, \naccurate summaries that capture key points.\n\nGuidelines:\n- Keep summaries under 100 words\n- Use bullet points for clarity\n- Preserve important numbers and names\n- Maintain neutral tone"
+            },
+            {
+                "title": "Chaining AI Tasks",
+                "content": "Multiple LLM nodes can be chained for complex workflows.\n\nIn this example:\n1. **Summarize** - Condenses the input text\n2. **Analyze** - Extracts key insights and sentiment\n3. **Generate** - Creates action items or recommendations\n\n**Data Flow:**\nEach node receives the output from the previous node via `{{ response }}` template.",
+                "highlightNodes": [
+                    "llm_summarize",
+                    "llm_analyze"
+                ],
+                "codeSnippet": "// Accessing previous AI response:\n{\n  \"prompt\": \"Based on this summary:\\n{{ response }}\\n\\nProvide key insights.\"\n}"
+            },
+            {
+                "title": "Temperature and Creativity",
+                "content": "The `temperature` parameter controls response randomness.\n\n**Temperature Guide:**\n| Value | Use Case |\n|-------|----------|\n| 0.0-0.3 | Factual, consistent answers |\n| 0.4-0.7 | Balanced (default) |\n| 0.8-1.0 | Creative, varied outputs |\n\n**In this workflow:**\n- Summarization uses low temperature (0.3) for accuracy\n- Creative generation uses higher temperature (0.8)",
+                "highlightNodes": [
+                    "llm_summarize",
+                    "llm_analyze"
+                ],
+                "codeSnippet": "// For factual tasks:\n{ \"temperature\": 0.3 }\n\n// For creative tasks:\n{ \"temperature\": 0.8 }"
+            },
+            {
+                "title": "Formatting Output",
+                "content": "The final Code node formats the AI responses into a structured result.\n\n**Why format output?**\n- Consistent structure for downstream systems\n- Easier to log and debug\n- Clean display in UI\n\n**Output includes:**\n- Original text length and word count\n- Summary from first LLM node\n- Analysis from second LLM node\n- Timestamps and metadata",
+                "highlightNodes": [
+                    "code_format"
+                ],
+                "codeSnippet": "// Format final output\nreturn {\n  result: {\n    summary: input.summary,\n    analysis: input.analysis,\n    wordCount: input.originalText.split(' ').length,\n    processedAt: new Date().toISOString()\n  },\n  success: true\n};"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Setup Steps:**\n\n1. **Get a Google AI API Key:**\n   - Visit makersuite.google.com\n   - Create a new API key\n   - Copy the key\n\n2. **Configure in NerveMind:**\n   - Go to Settings → AI Providers\n   - Find \"Google Gemini\" section\n   - Paste your API key\n   - Click Save\n\n3. **Run the workflow:**\n   - Click Run (or press F5)\n   - Watch the Execution Console for progress\n   - Check node outputs via right-click → Debug View\n\n**Tip:** Gemini 1.5 Flash is faster and cheaper for testing!",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Start",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {
+                    "inputData": {
+                        "text": "Artificial intelligence (AI) has rapidly evolved from a niche research field into a transformative technology affecting nearly every industry. In healthcare, AI assists with diagnosis, drug discovery, and personalized treatment plans. Financial services use AI for fraud detection, algorithmic trading, and customer service automation. Manufacturing has embraced AI for predictive maintenance, quality control, and supply chain optimization. The transportation sector is developing autonomous vehicles and optimizing logistics through AI. Education is being revolutionized with personalized learning paths and automated grading systems. Even creative industries are exploring AI for content generation, design assistance, and music composition. However, this rapid adoption raises important questions about job displacement, algorithmic bias, data privacy, and the need for robust AI governance frameworks.",
+                        "task": "summarize"
+                    }
+                },
+                "disabled": false,
+                "notes": "Provides sample text about AI for processing"
+            },
+            {
+                "id": "llm_summarize",
+                "type": "llmChat",
+                "name": "Summarize Text",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "provider": "google",
+                    "model": "gemini-1.5-flash",
+                    "systemPrompt": "You are a professional summarizer. Create concise, accurate summaries that capture the key points. Keep summaries under 100 words. Use clear, professional language.",
+                    "prompt": "Please summarize the following text:\n\n{{ text }}",
+                    "temperature": 0.3,
+                    "maxTokens": 256
+                },
+                "disabled": false,
+                "notes": "Uses Gemini Flash for fast summarization"
+            },
+            {
+                "id": "llm_analyze",
+                "type": "llmChat",
+                "name": "Analyze Content",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "provider": "google",
+                    "model": "gemini-1.5-flash",
+                    "systemPrompt": "You are an analytical assistant. Provide structured analysis including:\n1. Main topics identified\n2. Overall sentiment (positive/neutral/negative)\n3. Key entities mentioned\n4. Potential action items or recommendations\n\nBe concise and use bullet points.",
+                    "prompt": "Analyze the following text and the summary:\n\nOriginal Text: {{ text }}\n\nSummary: {{ response }}\n\nProvide your analysis:",
+                    "temperature": 0.5,
+                    "maxTokens": 512
+                },
+                "disabled": false,
+                "notes": "Analyzes text for insights and recommendations"
+            },
+            {
+                "id": "code_format",
+                "type": "code",
+                "name": "Format Output",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Format the final output with all AI-generated content\nconst originalText = input.text || '';\nconst wordCount = originalText.split(/\\s+/).filter(w => w.length > 0).length;\n\nreturn {\n  originalWordCount: wordCount,\n  summary: input.summary || input.response,\n  analysis: input.response,\n  provider: 'Google Gemini',\n  model: 'gemini-1.5-flash',\n  processedAt: new Date().toISOString(),\n  success: true\n};"
+                },
+                "disabled": false,
+                "notes": "Formats all responses into structured output"
+            },
+            {
+                "id": "set_1",
+                "type": "set",
+                "name": "Final Result",
+                "position": {
+                    "x": 900,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "status": "completed",
+                        "wordCount": "{{ originalWordCount }}",
+                        "summary": "{{ summary }}",
+                        "analysis": "{{ analysis }}",
+                        "timestamp": "{{ processedAt }}"
+                    }
+                },
+                "disabled": false,
+                "notes": "Sets the final workflow output"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceHandle": "output",
+                "targetNodeId": "llm_summarize",
+                "targetHandle": "input"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "llm_summarize",
+                "sourceHandle": "output",
+                "targetNodeId": "llm_analyze",
+                "targetHandle": "input"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "llm_analyze",
+                "sourceHandle": "output",
+                "targetNodeId": "code_format",
+                "targetHandle": "input"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "code_format",
+                "sourceHandle": "output",
+                "targetNodeId": "set_1",
+                "targetHandle": "input"
+            }
+        ],
+        "settings": {
+            "description": "AI Assistant powered by Google Gemini",
+            "version": "1.0.0"
+        }
+    }
+}

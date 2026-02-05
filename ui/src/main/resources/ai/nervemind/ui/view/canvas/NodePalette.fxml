@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Accordion?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.TitledPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    NodePalette Component
+    
+    Displays available node types organized by category.
+    Supports:
+    - Search/filter functionality
+    - Collapsible category sections
+    - Drag-drop to canvas
+    - Double-click to add at center
+    
+    Uses fx:root pattern for custom component.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/21"
+         xmlns:fx="http://javafx.com/fxml/1"
+         styleClass="node-palette"
+         stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/palette.css">
+
+    <!-- Header -->
+    <HBox styleClass="palette__header" alignment="CENTER_LEFT" spacing="8">
+        <Label text="Nodes" styleClass="palette__title"/>
+    </HBox>
+
+    <!-- Search Box -->
+    <VBox styleClass="palette__search-container">
+        <padding>
+            <Insets top="10" right="10" bottom="5" left="10"/>
+        </padding>
+        <TextField fx:id="searchField"
+                   promptText="Search nodes..."
+                   styleClass="palette__search">
+            <graphic>
+                <FontIcon iconLiteral="mdmz-search" iconSize="14"/>
+            </graphic>
+        </TextField>
+    </VBox>
+
+    <!-- Categories (Accordion) -->
+    <ScrollPane fx:id="scrollPane"
+                fitToWidth="true"
+                hbarPolicy="NEVER"
+                styleClass="palette-scroll"
+                VBox.vgrow="ALWAYS">
+        <VBox fx:id="categoriesContainer" spacing="0">
+            <!-- Categories are added programmatically -->
+        </VBox>
+    </ScrollPane>
+
+    <!-- Filtered Results (shown when searching) -->
+    <ScrollPane fx:id="filteredScrollPane"
+                fitToWidth="true"
+                hbarPolicy="NEVER"
+                styleClass="palette-scroll"
+                visible="false"
+                managed="false"
+                VBox.vgrow="ALWAYS">
+        <VBox fx:id="filteredContainer" spacing="2">
+            <padding>
+                <Insets top="5" right="5" bottom="5" left="5"/>
+            </padding>
+            <!-- Filtered items are added programmatically -->
+        </VBox>
+    </ScrollPane>
+
+    <!-- Empty State -->
+    <VBox fx:id="emptyState"
+          styleClass="palette__empty"
+          alignment="CENTER"
+          visible="false"
+          managed="false"
+          VBox.vgrow="ALWAYS">
+        <FontIcon iconLiteral="mdmz-search_off" iconSize="32" styleClass="palette__empty-icon"/>
+        <Label text="No nodes found" styleClass="palette__empty-text"/>
+    </VBox>
+
+</fx:root>

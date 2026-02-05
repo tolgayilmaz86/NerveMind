@@ -1,0 +1,577 @@
+{
+    "name": "iRacing Setup Advisor",
+    "description": "Connect handling issue nodes that match your car's behavior, then get AI-powered setup recommendations. Demonstrates: Selective node connection, issue aggregation, exclusive branch merge (waitForAll: false), LLM advice generation.",
+    "category": "Interactive",
+    "difficulty": "intermediate",
+    "tags": [
+        "interactive",
+        "selective-connection",
+        "diagnosis",
+        "car-setup",
+        "gaming"
+    ],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "An interactive advisor that helps sim racers fix handling issues using AI.\n\nThis workflow demonstrates several key patterns:\n\n- **Selective Connection**: User manually connects only relevant issue nodes\n- **Data Aggregation**: Merge node collects multiple inputs into a list\n- **Conditional Routing**: IF node routes to different paths based on data\n- **Exclusive Branch Merge**: Uses `waitForAll: false` for conditional branches\n- **LLM Integration**: AI analyzes issues and provides expert advice",
+                "highlightNodes": []
+            },
+            {
+                "title": "The Trigger",
+                "content": "Every workflow starts with a **trigger node**.\n\nThis workflow uses a **Manual Trigger** - the user clicks 'Run' to start the analysis.\n\n| Property | Value |\n|----------|-------|\n| Type | `manualTrigger` |\n| Purpose | User-initiated execution |\n| Output | Empty object `{}` |\n\nThe trigger fires data to multiple nodes in parallel - the car info node and the connected issue nodes.",
+                "highlightNodes": [
+                    "trigger_1"
+                ]
+            },
+            {
+                "title": "Car & Track Context",
+                "content": "The **Set** node stores static data that describes the racing context.\n\nThis data is always included in the analysis:\n\n| Field | Example Value |\n|-------|---------------|\n| `car` | Porsche 911 GT3 R |\n| `track` | Spa-Francorchamps |\n| `conditions` | Dry, 25°C track temp |\n| `tireCompound` | Medium |\n| `sessionType` | Race |\n\nEdit these values to match YOUR setup before running!",
+                "highlightNodes": [
+                    "set_car_info"
+                ],
+                "codeSnippet": "{\n  \"car\": \"Porsche 911 GT3 R\",\n  \"track\": \"Spa-Francorchamps\",\n  \"conditions\": \"Dry, 25°C track temp\",\n  \"tireCompound\": \"Medium\"\n}"
+            },
+            {
+                "title": "Issue Node Library",
+                "content": "The column of **Set** nodes represents handling issues you might experience:\n\n**🔵 Blue Nodes - Understeer Issues:**\n- Slow Entry: Pushes wide at hairpins\n- Fast Entry: Won't rotate at high speed\n- Mid-Corner: Runs wide at apex\n\n**🔴 Red Nodes - Oversteer Issues:**\n- Slow Entry: Rear snaps on turn-in\n- Fast Entry: Rear nervous at speed\n- Mid-Corner: Too much rotation\n- Exit/Power: Wheel spin on throttle\n\n**⚠️ Yellow Nodes - Special Issues:**\n- Braking instability\n- Low overall traction\n- Curb/kerb instability\n\nBy default, most are **disconnected**. You drag connections to describe YOUR car's behavior!",
+                "highlightNodes": [
+                    "issue_understeer_slow_entry",
+                    "issue_oversteer_exit",
+                    "issue_unstable_braking"
+                ]
+            },
+            {
+                "title": "The Merge Collector",
+                "content": "The **Merge** node in `append` mode collects all connected inputs into a list.\n\nThis is the key to the selective connection pattern:\n\n| Property | Value |\n|----------|-------|\n| `mode` | `append` |\n| Behavior | Waits for ALL inputs, combines into array |\n\nIf you connect 3 issue nodes + the car info, the merge outputs an array of 4 objects.\n\nThe more issues you connect, the more context the AI receives!",
+                "highlightNodes": [
+                    "merge_issues"
+                ],
+                "codeSnippet": "// Merge output with 2 issues connected:\n{\n  \"merged\": [\n    { \"car\": \"Porsche...\", \"track\": \"Spa...\" },\n    { \"issueType\": \"understeer\", \"cornerPhase\": \"entry\"... },\n    { \"issueType\": \"oversteer\", \"cornerPhase\": \"exit\"... }\n  ]\n}"
+            },
+            {
+                "title": "Building the Prompt",
+                "content": "The **Code** node processes the merged data and builds a structured prompt.\n\nKey operations:\n1. Separate car info from issues\n2. Count the issues\n3. Format a human-readable summary\n4. Create context for the AI\n\nThis node uses **JavaScript** to transform data between nodes.",
+                "highlightNodes": [
+                    "code_build_prompt"
+                ],
+                "codeSnippet": "// Extract and separate data\nconst data = input.merged || [input];\n\nlet carInfo = null;\nconst issues = [];\n\ndata.forEach(item => {\n    if (item.car && item.track) {\n        carInfo = item;\n    } else if (item.issueType) {\n        issues.push(item);\n    }\n});\n\n// Build summary for AI\nreturn {\n    car: carInfo.car,\n    issueCount: issues.length,\n    issuesSummary: formatIssues(issues)\n};"
+            },
+            {
+                "title": "Conditional Branching",
+                "content": "The **IF** node routes execution based on a condition.\n\n| Condition | Output Port |\n|-----------|-------------|\n| `issueCount > 0` | `true` → AI Advisor |\n| `issueCount == 0` | `false` → No Issues message |\n\nThis creates **exclusive branches** - only ONE path will execute.\n\nExpression syntax uses `{{ variable }}` to reference input data.",
+                "highlightNodes": [
+                    "if_has_issues"
+                ],
+                "codeSnippet": "// IF node condition expression:\n{{ issueCount }} > 0\n\n// Evaluates to:\ntrue  → Route to LLM Advisor\nfalse → Route to \"No Issues\" message"
+            },
+            {
+                "title": "The AI Advisor",
+                "content": "The **LLM Chat** node sends data to an AI model (GPT-4 by default).\n\n**System Prompt** defines the AI's role:\n- Expert iRacing setup engineer\n- Provides specific, actionable advice\n- Structures response with DIAGNOSIS, SETUP CHANGES, TIPS, WARNINGS\n\n**User Prompt** includes template variables:\n- `{{ car }}` - The car being set up\n- `{{ issuesSummary }}` - Formatted list of handling issues\n\nRequires an OpenAI API key in Credentials Manager!",
+                "highlightNodes": [
+                    "llm_advisor"
+                ],
+                "codeSnippet": "// LLM Node Configuration:\n{\n  \"provider\": \"openai\",\n  \"model\": \"gpt-4\",\n  \"temperature\": 0.7,\n  \"maxTokens\": 1500,\n  \"systemPrompt\": \"You are an expert iRacing setup engineer...\",\n  \"userPrompt\": \"I need setup advice for my {{ car }}...\"\n}"
+            },
+            {
+                "title": "Exclusive Branch Merge",
+                "content": "The **Final Output** merge node uses a critical pattern for exclusive branches.\n\n**The Problem:** Standard merge waits for ALL inputs. But with an IF node, only ONE branch fires - the other never sends data!\n\n**The Solution:** Set `waitForAll: false` to proceed immediately when the first input arrives.\n\n| Parameter | Value | Purpose |\n|-----------|-------|----------|\n| `mode` | `passthrough` | Pass data through unchanged |\n| `waitForAll` | `false` | Don't wait for other branches |",
+                "highlightNodes": [
+                    "merge_output"
+                ],
+                "codeSnippet": "// Merge node parameters for exclusive branches:\n{\n  \"mode\": \"passthrough\",\n  \"waitForAll\": false\n}\n\n// Without waitForAll: false, workflow hangs!\n// The merge would wait forever for the\n// branch that never executed."
+            },
+            {
+                "title": "How To Use This Workflow",
+                "content": "**Step 1: Configure Your Car**\nEdit the 'Car & Track Info' node with your actual car, track, and conditions.\n\n**Step 2: Connect Your Issues**\n1. Look at the issue nodes (blue/red/yellow)\n2. Find the ones matching your car's behavior\n3. Drag connections from those nodes to 'Collect Issues'\n4. Delete connections for issues you don't have\n\n**Step 3: Add API Key**\nOpen Tools → Credentials Manager and add your OpenAI API key.\n\n**Step 4: Run!**\nClick the Run button on the trigger node and get your personalized setup advice!",
+                "highlightNodes": [
+                    "trigger_1",
+                    "set_car_info",
+                    "merge_issues"
+                ]
+            }
+        ]
+    },
+    "nodes": [
+        {
+            "id": "trigger_1",
+            "type": "manualTrigger",
+            "name": "Analyze My Setup",
+            "position": {
+                "x": 100,
+                "y": 350
+            },
+            "parameters": {},
+            "disabled": false,
+            "notes": "Click Run to start the setup analysis"
+        },
+        {
+            "id": "set_car_info",
+            "type": "set",
+            "name": "Car & Track Info",
+            "position": {
+                "x": 300,
+                "y": 350
+            },
+            "parameters": {
+                "values": {
+                    "car": "Porsche 911 GT3 R",
+                    "track": "Spa-Francorchamps",
+                    "conditions": "Dry, 25°C track temp",
+                    "currentSetup": "Baseline setup with minor adjustments",
+                    "sessionType": "Race",
+                    "tireCompound": "Medium",
+                    "fuelLoad": "Half tank"
+                }
+            },
+            "disabled": false,
+            "notes": "Configure your car, track, and current conditions here"
+        },
+        {
+            "id": "issue_understeer_slow_entry",
+            "type": "set",
+            "name": "🔵 Understeer: Slow Entry",
+            "position": {
+                "x": 550,
+                "y": 50
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "understeer",
+                    "cornerPhase": "entry",
+                    "cornerSpeed": "slow",
+                    "severity": "moderate",
+                    "description": "Car pushes wide on turn-in at slow speed corners (hairpins, tight chicanes)",
+                    "symptoms": "Front tires scrubbing, need to reduce speed more than expected, missing apex"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have understeer entering slow corners (hairpins, chicanes)"
+        },
+        {
+            "id": "issue_understeer_fast_entry",
+            "type": "set",
+            "name": "🔵 Understeer: Fast Entry",
+            "position": {
+                "x": 550,
+                "y": 150
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "understeer",
+                    "cornerPhase": "entry",
+                    "cornerSpeed": "high",
+                    "severity": "moderate",
+                    "description": "Car doesn't want to rotate on initial turn-in at high speed corners",
+                    "symptoms": "Washing out at high speed entries, front feels light, car wants to go straight"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have understeer entering fast corners (sweepers, fast chicanes)"
+        },
+        {
+            "id": "issue_understeer_mid",
+            "type": "set",
+            "name": "🔵 Understeer: Mid-Corner",
+            "position": {
+                "x": 550,
+                "y": 250
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "understeer",
+                    "cornerPhase": "mid",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "Car pushes wide through the middle of corners while maintaining throttle",
+                    "symptoms": "Running wide at apex, having to wait longer before applying throttle"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have understeer through the middle of corners"
+        },
+        {
+            "id": "issue_oversteer_slow_entry",
+            "type": "set",
+            "name": "🔴 Oversteer: Slow Entry",
+            "position": {
+                "x": 550,
+                "y": 350
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "oversteer",
+                    "cornerPhase": "entry",
+                    "cornerSpeed": "slow",
+                    "severity": "moderate",
+                    "description": "Rear wants to come around on turn-in at slow corners under braking",
+                    "symptoms": "Snap oversteer on turn-in, rear stepping out under trail braking"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have oversteer entering slow corners"
+        },
+        {
+            "id": "issue_oversteer_fast_entry",
+            "type": "set",
+            "name": "🔴 Oversteer: Fast Entry",
+            "position": {
+                "x": 550,
+                "y": 450
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "oversteer",
+                    "cornerPhase": "entry",
+                    "cornerSpeed": "high",
+                    "severity": "moderate",
+                    "description": "Rear becomes unstable at high speed corner entries",
+                    "symptoms": "Rear feels nervous, snappy rotation, need to catch slides on fast entries"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have oversteer entering fast corners"
+        },
+        {
+            "id": "issue_oversteer_mid",
+            "type": "set",
+            "name": "🔴 Oversteer: Mid-Corner",
+            "position": {
+                "x": 550,
+                "y": 550
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "oversteer",
+                    "cornerPhase": "mid",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "Rear slides out through the middle of corners while coasting",
+                    "symptoms": "Car rotates too much mid-corner, need constant steering corrections"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have oversteer through the middle of corners"
+        },
+        {
+            "id": "issue_oversteer_exit",
+            "type": "set",
+            "name": "🔴 Oversteer: Exit/Power",
+            "position": {
+                "x": 550,
+                "y": 650
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "oversteer",
+                    "cornerPhase": "exit",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "Rear breaks loose when applying throttle on corner exit",
+                    "symptoms": "Wheel spin, rear stepping out on power, tank slappers on exit"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have oversteer on corner exit when applying power"
+        },
+        {
+            "id": "issue_unstable_braking",
+            "type": "set",
+            "name": "⚠️ Unstable Under Braking",
+            "position": {
+                "x": 550,
+                "y": 750
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "instability",
+                    "cornerPhase": "braking",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "Car feels unstable during heavy braking zones",
+                    "symptoms": "Rear wants to swap ends, lockups, unpredictable behavior under brakes"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if the car feels unstable during braking"
+        },
+        {
+            "id": "issue_low_traction",
+            "type": "set",
+            "name": "⚠️ Low Overall Traction",
+            "position": {
+                "x": 550,
+                "y": 850
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "traction",
+                    "cornerPhase": "all",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "General lack of mechanical grip throughout corners",
+                    "symptoms": "Sliding in all phases, tires overheating quickly, poor tire wear"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if you have low overall grip/traction"
+        },
+        {
+            "id": "issue_curb_instability",
+            "type": "set",
+            "name": "⚠️ Curb Instability",
+            "position": {
+                "x": 550,
+                "y": 950
+            },
+            "parameters": {
+                "values": {
+                    "issueType": "instability",
+                    "cornerPhase": "curbs",
+                    "cornerSpeed": "any",
+                    "severity": "moderate",
+                    "description": "Car becomes unsettled when riding curbs",
+                    "symptoms": "Bouncing off curbs, losing grip over bumps, car upset by kerbs"
+                }
+            },
+            "disabled": false,
+            "notes": "CONNECT THIS if the car is unstable over curbs/kerbs"
+        },
+        {
+            "id": "merge_issues",
+            "type": "merge",
+            "name": "Collect Issues",
+            "position": {
+                "x": 800,
+                "y": 350
+            },
+            "parameters": {
+                "mode": "append"
+            },
+            "disabled": false,
+            "notes": "Collects all connected handling issues"
+        },
+        {
+            "id": "code_build_prompt",
+            "type": "code",
+            "name": "Build Analysis Request",
+            "position": {
+                "x": 1000,
+                "y": 350
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Aggregate all connected issues - handle merge node output\nconst mergedData = input.merged || input;\nconst data = Array.isArray(mergedData) ? mergedData : [mergedData];\n\n// Separate car info from issues\nlet carInfo = null;\nconst issues = [];\n\ndata.forEach(item => {\n    if (item.car && item.track) {\n        carInfo = item;\n    } else if (item.issueType) {\n        issues.push(item);\n    }\n});\n\n// Build structured issue summary\nconst issuesSummary = issues.map((issue, idx) => {\n    return `${idx + 1}. ${issue.issueType.toUpperCase()} - ${issue.cornerPhase} phase (${issue.cornerSpeed} speed corners)\n   Description: ${issue.description}\n   Symptoms: ${issue.symptoms}`;\n}).join('\\n\\n');\n\n// Create the analysis context\nconst analysisContext = {\n    car: carInfo?.car || 'Unknown Car',\n    track: carInfo?.track || 'Unknown Track',\n    conditions: carInfo?.conditions || 'Unknown',\n    currentSetup: carInfo?.currentSetup || 'Baseline',\n    sessionType: carInfo?.sessionType || 'Practice',\n    tireCompound: carInfo?.tireCompound || 'Unknown',\n    fuelLoad: carInfo?.fuelLoad || 'Unknown',\n    issueCount: issues.length,\n    issues: issues,\n    issuesSummary: issuesSummary\n};\n\nreturn analysisContext;"
+            },
+            "disabled": false,
+            "notes": "Aggregates car info and all handling issues into a structured format"
+        },
+        {
+            "id": "if_has_issues",
+            "type": "if",
+            "name": "Has Issues?",
+            "position": {
+                "x": 1200,
+                "y": 350
+            },
+            "parameters": {
+                "condition": "{{ issueCount }} > 0"
+            },
+            "disabled": false,
+            "notes": "Checks if any issues were connected"
+        },
+        {
+            "id": "llm_advisor",
+            "type": "llmChat",
+            "name": "Setup Advisor AI",
+            "position": {
+                "x": 1400,
+                "y": 250
+            },
+            "parameters": {
+                "provider": "openai",
+                "model": "gpt-4",
+                "apiKey": "${credential.OPENAI_API_KEY}",
+                "systemPrompt": "You are an expert iRacing setup engineer and driving coach with deep knowledge of car dynamics, suspension geometry, aerodynamics, and tire behavior. You provide specific, actionable setup advice based on reported handling issues.\n\nWhen giving advice:\n1. Explain WHY each adjustment helps the specific issue\n2. Provide specific adjustment directions (increase/decrease, soften/stiffen)\n3. Prioritize adjustments by impact (most effective first)\n4. Consider how changes might affect other aspects of handling\n5. Include driving technique tips that complement setup changes\n\nFormat your response with clear sections:\n- DIAGNOSIS: Brief analysis of the handling balance\n- SETUP CHANGES: Prioritized list of recommended adjustments\n- DRIVING TIPS: Technique adjustments to complement setup changes\n- WARNINGS: Potential trade-offs to watch for",
+                "userPrompt": "I need setup advice for my {{ car }} at {{ track }}.\n\nCONDITIONS:\n- Weather: {{ conditions }}\n- Session: {{ sessionType }}\n- Tires: {{ tireCompound }}\n- Fuel: {{ fuelLoad }}\n- Current Setup: {{ currentSetup }}\n\nHANDLING ISSUES ({{ issueCount }} reported):\n{{ issuesSummary }}\n\nPlease analyze these issues and provide specific setup recommendations to improve the car's balance. Focus on the most impactful changes first.",
+                "temperature": 0.7,
+                "maxTokens": 1500
+            },
+            "disabled": false,
+            "notes": "AI analyzes handling issues and provides setup recommendations"
+        },
+        {
+            "id": "code_no_issues",
+            "type": "code",
+            "name": "No Issues Selected",
+            "position": {
+                "x": 1400,
+                "y": 450
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Return message when no issues are connected\nreturn {\n    status: 'NO_ISSUES',\n    message: '⚠️ No handling issues were connected!\\n\\nTo use this workflow:\\n1. Look at the issue nodes (blue 🔵 for understeer, red 🔴 for oversteer)\\n2. Connect the nodes that match your car\\'s behavior to the \"Collect Issues\" merge node\\n3. Run the workflow again\\n\\nExample: If your car understeers on slow corner entry and oversteers on exit, connect those two issue nodes.',\n    car: input.car,\n    track: input.track\n};"
+            },
+            "disabled": false,
+            "notes": "Provides instructions if no issue nodes are connected"
+        },
+        {
+            "id": "code_format_advice",
+            "type": "code",
+            "name": "Format Recommendations",
+            "position": {
+                "x": 1600,
+                "y": 250
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Format the AI advice into a structured output\n// The LLM node outputs: { response: '...', success: true/false, ... }\nconst advice = input.response || input.content || input.text || input.message || '';\nconst carInfo = input;\n\n// Check if we actually got advice\nif (!advice || advice.trim() === '') {\n    return {\n        status: 'ERROR',\n        message: input.error || 'No response received from AI. Check your API key and try again.',\n        car: input.car || 'Unknown',\n        track: input.track || 'Unknown',\n        recommendations: {},\n        fullAdvice: ''\n    };\n}\n\n// Parse sections from AI response\nconst sections = {\n    diagnosis: '',\n    setupChanges: '',\n    drivingTips: '',\n    warnings: ''\n};\n\n// Simple section extraction\nconst diagnosisMatch = advice.match(/DIAGNOSIS[:\\s]*([\\s\\S]*?)(?=SETUP CHANGES|DRIVING TIPS|WARNINGS|$)/i);\nconst setupMatch = advice.match(/SETUP CHANGES[:\\s]*([\\s\\S]*?)(?=DRIVING TIPS|WARNINGS|$)/i);\nconst tipsMatch = advice.match(/DRIVING TIPS[:\\s]*([\\s\\S]*?)(?=WARNINGS|$)/i);\nconst warningsMatch = advice.match(/WARNINGS[:\\s]*([\\s\\S]*?)$/i);\n\nif (diagnosisMatch) sections.diagnosis = diagnosisMatch[1].trim();\nif (setupMatch) sections.setupChanges = setupMatch[1].trim();\nif (tipsMatch) sections.drivingTips = tipsMatch[1].trim();\nif (warningsMatch) sections.warnings = warningsMatch[1].trim();\n\nreturn {\n    status: 'SUCCESS',\n    car: carInfo.car,\n    track: carInfo.track,\n    issuesAnalyzed: carInfo.issueCount,\n    recommendations: {\n        diagnosis: sections.diagnosis || 'See full advice below',\n        setupChanges: sections.setupChanges || advice,\n        drivingTips: sections.drivingTips || 'N/A',\n        warnings: sections.warnings || 'Monitor overall balance after changes'\n    },\n    fullAdvice: advice,\n    generatedAt: new Date().toISOString()\n};"
+            },
+            "disabled": false,
+            "notes": "Parses and formats the AI recommendations"
+        },
+        {
+            "id": "merge_output",
+            "type": "merge",
+            "name": "Final Output",
+            "position": {
+                "x": 1800,
+                "y": 350
+            },
+            "parameters": {
+                "mode": "passthrough",
+                "waitForAll": false
+            },
+            "disabled": false,
+            "notes": "Combines successful advice or no-issues message (exclusive branches - only one will fire)"
+        },
+        {
+            "id": "set_result",
+            "type": "set",
+            "name": "Setup Advice Result",
+            "position": {
+                "x": 2000,
+                "y": 350
+            },
+            "parameters": {
+                "values": {
+                    "title": "🏎️ iRacing Setup Advisor Results",
+                    "status": "{{ status }}",
+                    "car": "{{ car }}",
+                    "track": "{{ track }}",
+                    "advice": "{{ recommendations }}",
+                    "fullResponse": "{{ fullAdvice }}",
+                    "message": "{{ message }}"
+                }
+            },
+            "disabled": false,
+            "notes": "Final formatted output"
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_trigger_car",
+            "sourceNodeId": "trigger_1",
+            "sourceOutput": "main",
+            "targetNodeId": "set_car_info",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_trigger_understeer",
+            "sourceNodeId": "trigger_1",
+            "sourceOutput": "main",
+            "targetNodeId": "issue_understeer_slow_entry",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_trigger_oversteer",
+            "sourceNodeId": "trigger_1",
+            "sourceOutput": "main",
+            "targetNodeId": "issue_oversteer_exit",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_car_merge",
+            "sourceNodeId": "set_car_info",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_issues",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_understeer_slow_entry",
+            "sourceNodeId": "issue_understeer_slow_entry",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_issues",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_oversteer_exit",
+            "sourceNodeId": "issue_oversteer_exit",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_issues",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_merge_build",
+            "sourceNodeId": "merge_issues",
+            "sourceOutput": "main",
+            "targetNodeId": "code_build_prompt",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_build_if",
+            "sourceNodeId": "code_build_prompt",
+            "sourceOutput": "main",
+            "targetNodeId": "if_has_issues",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_if_llm",
+            "sourceNodeId": "if_has_issues",
+            "sourceOutput": "true",
+            "targetNodeId": "llm_advisor",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_if_noissues",
+            "sourceNodeId": "if_has_issues",
+            "sourceOutput": "false",
+            "targetNodeId": "code_no_issues",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_llm_format",
+            "sourceNodeId": "llm_advisor",
+            "sourceOutput": "main",
+            "targetNodeId": "code_format_advice",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_format_merge",
+            "sourceNodeId": "code_format_advice",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_output",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_noissues_merge",
+            "sourceNodeId": "code_no_issues",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_output",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_merge_result",
+            "sourceNodeId": "merge_output",
+            "sourceOutput": "main",
+            "targetNodeId": "set_result",
+            "targetInput": "main"
+        }
+    ],
+    "settings": {
+        "description": "Connect handling issue nodes to describe your car's behavior, then get AI-powered setup recommendations. Default setup includes understeer on slow entry and oversteer on exit - modify connections to match your issues."
+    },
+    "isActive": true,
+    "triggerType": "MANUAL",
+    "version": 1
+}

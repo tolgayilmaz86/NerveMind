@@ -1,0 +1,340 @@
+{
+    "id": "18-research-paper-summarizer",
+    "name": "Research Paper Summarizer",
+    "description": "Multi-stage academic paper analysis workflow that chunks long documents, processes sections in parallel using LLMs, and synthesizes a comprehensive summary. Demonstrates text chunking, parallel processing, merge synchronization, and progressive summarization.",
+    "category": "Education",
+    "difficulty": "advanced",
+    "language": "python",
+    "tags": [
+        "education",
+        "research",
+        "summarization",
+        "academic",
+        "python",
+        "parallel",
+        "nlp",
+        "ai"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **Parallel Document Processing** - splitting a long document into chunks, processing each in parallel, and synthesizing results.\n\n**What you'll learn:**\n- Text chunking strategies for long documents\n- Parallel node execution (fan-out pattern)\n- Merge synchronization (fan-in pattern)\n- Multi-stage LLM summarization\n- Academic paper analysis\n\n**Real-world applications:**\n- Literature review assistants\n- Academic research tools\n- Legal document analysis\n- Medical paper digests\n- Patent analysis\n\n**Why parallel processing?**\n- LLMs have context limits (4K-128K tokens)\n- Parallel = faster for long documents\n- Better summaries from section-specific analysis",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Input Document",
+                "content": "The workflow accepts research paper text via **Manual Input** or **File Trigger**.\n\n**Supported formats:**\n- Plain text (pre-extracted from PDF)\n- Markdown formatted text\n- Structured text with sections\n\n**Best practices:**\n- Extract text from PDF using external tools\n- Preserve section headers if possible\n- Remove figures/tables or mark their locations",
+                "highlightNodes": [
+                    "manual_input_text"
+                ],
+                "codeSnippet": "# Sample paper input format:\npaper = {\n    'title': 'Attention Is All You Need',\n    'authors': ['Vaswani et al.'],\n    'year': 2017,\n    'abstract': '...',\n    'content': '...',  # Full paper text\n    'sections': ['Introduction', 'Background', ...]\n}"
+            },
+            {
+                "title": "Smart Chunking",
+                "content": "The **Code node** splits the document into semantic chunks that preserve context.\n\n**Chunking strategies:**\n- **Sliding window:** Fixed size with overlap\n- **Section-based:** Split at headers\n- **Paragraph-based:** Respect paragraph boundaries\n- **Semantic:** Use sentence embeddings\n\n**Why overlap?**\n- Prevents information loss at boundaries\n- Maintains context across chunks\n- Improves summary coherence",
+                "highlightNodes": [
+                    "code_chunker"
+                ],
+                "codeSnippet": "def chunk_text(text, chunk_size=2000, overlap=200):\n    \"\"\"Split text into overlapping chunks.\"\"\"\n    chunks = []\n    start = 0\n    \n    while start < len(text):\n        end = start + chunk_size\n        \n        # Find natural break point\n        if end < len(text):\n            # Look for paragraph break\n            para_break = text.rfind('\\n\\n', start, end)\n            if para_break > start + chunk_size // 2:\n                end = para_break\n            else:\n                # Fall back to sentence break\n                sent_break = text.rfind('. ', start, end)\n                if sent_break > start:\n                    end = sent_break + 1\n        \n        chunks.append({\n            'index': len(chunks),\n            'text': text[start:end],\n            'start_char': start,\n            'end_char': end\n        })\n        \n        start = end - overlap\n    \n    return chunks"
+            },
+            {
+                "title": "Parallel Processing",
+                "content": "The **Parallel node** fans out to process all chunks simultaneously.\n\n**Fan-out pattern:**\n- Input: Array of chunks\n- Output: N parallel executions\n- Each branch processes one chunk\n\n**Benefits:**\n- Faster than sequential processing\n- Scales with number of chunks\n- Independent processing per chunk\n\n**Note:** Each LLM call runs in parallel, so a 10-chunk paper = 10 simultaneous API calls.",
+                "highlightNodes": [
+                    "parallel_processors"
+                ],
+                "codeSnippet": "# Parallel node configuration:\n{\n    'mode': 'fan-out',\n    'branches': '{{chunks.length}}',  // Dynamic count\n    'distribution': 'round-robin'\n}\n\n# Each branch receives:\n{\n    'chunk': chunks[i],\n    'index': i,\n    'total_chunks': chunks.length\n}"
+            },
+            {
+                "title": "Section Summarization",
+                "content": "Each parallel branch uses an **LLM Chat node** to summarize its chunk.\n\n**Prompt engineering tips:**\n- Tell the LLM it's analyzing a *section* of a larger paper\n- Ask for structured output (key points, findings)\n- Request consistent formatting across chunks\n- Specify target length for summaries\n\n**Model selection:**\n- GPT-3.5: Fast, economical, good for simple summaries\n- GPT-4: Better comprehension, handles technical content\n- Claude: Strong for long context, nuanced analysis",
+                "highlightNodes": [
+                    "llm_sum_section"
+                ],
+                "codeSnippet": "# Section summary prompt:\nprompt = f'''\nYou are analyzing section {chunk_index + 1} of {total_chunks}\nof an academic paper.\n\nText:\n{chunk_text}\n\nProvide a structured summary:\n1. KEY POINTS (2-3 bullet points)\n2. MAIN FINDINGS (if any)\n3. IMPORTANT TERMS (technical vocabulary)\n4. SECTION ROLE (intro/methods/results/etc)\n\nKeep summary under 150 words.\n'''"
+            },
+            {
+                "title": "Merge & Synchronize",
+                "content": "The **Merge node** waits for all parallel branches to complete, then combines results.\n\n**Merge modes:**\n- **waitAll:** Wait for all branches (default)\n- **append:** Combine all results into array\n- **merge:** Deep merge objects\n\n**Why synchronization matters:**\n- Ensures all sections are processed\n- Combines results in correct order\n- Handles varying completion times",
+                "highlightNodes": [
+                    "merge_results"
+                ],
+                "codeSnippet": "# Merge node output:\n{\n    'summaries': [\n        { 'index': 0, 'summary': '...', 'key_points': [...] },\n        { 'index': 1, 'summary': '...', 'key_points': [...] },\n        ...\n    ],\n    'total_processed': 5,\n    'all_key_points': [...],  // Flattened\n    'all_terms': [...]        // Deduplicated\n}"
+            },
+            {
+                "title": "Final Synthesis",
+                "content": "A final **LLM Chat node** synthesizes all section summaries into a cohesive paper summary.\n\n**Synthesis tasks:**\n- Identify overall thesis/contribution\n- Connect findings across sections\n- Highlight methodology and results\n- Assess significance and limitations\n\n**Output structure:**\n- Executive summary (1 paragraph)\n- Key contributions (bullet points)\n- Methodology overview\n- Main findings\n- Implications and future work",
+                "highlightNodes": [
+                    "llm_final_synthesis"
+                ],
+                "codeSnippet": "# Final synthesis prompt:\nprompt = f'''\nYou have section summaries from an academic paper:\n{all_summaries}\n\nSynthesize a comprehensive summary:\n\n## Executive Summary\n(One paragraph capturing the paper's essence)\n\n## Key Contributions\n- Contribution 1\n- Contribution 2\n\n## Methodology\n(Brief description)\n\n## Main Findings\n(Key results and discoveries)\n\n## Significance\n(Why this paper matters)\n\nTarget: 400-500 words total.\n'''"
+            },
+            {
+                "title": "Save Results",
+                "content": "The **Code node** formats and saves the final summary.\n\n**Output formats:**\n- Markdown (for reading/sharing)\n- JSON (for database storage)\n- BibTeX entry (for citations)\n\n**Additional features:**\n- Include processing metadata\n- Add timestamp and model info\n- Calculate processing statistics",
+                "highlightNodes": [
+                    "file_save_summary"
+                ],
+                "codeSnippet": "# Output format:\noutput = {\n    'title': paper_title,\n    'summary': final_summary,\n    'key_points': all_key_points,\n    'methodology': methodology,\n    'findings': findings,\n    'terms_glossary': technical_terms,\n    'metadata': {\n        'processed_at': timestamp,\n        'chunks_processed': num_chunks,\n        'model_used': 'gpt-4',\n        'total_tokens': token_count\n    }\n}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Quick test:**\n1. Click Run (F5) with the sample paper\n2. Watch parallel processing in the Console\n3. Review the synthesized summary\n\n**With your own papers:**\n1. Replace sample text with your paper\n2. Adjust chunk size for paper length\n3. Run and review results\n\n**Optimization tips:**\n- Larger chunks = fewer API calls, but may hit token limits\n- Smaller chunks = more parallelism, better coverage\n- Adjust overlap based on document structure\n- Use caching to avoid re-processing",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Research Paper Summarizer",
+        "description": "Multi-stage academic paper summarization with parallel processing",
+        "nodes": [
+            {
+                "id": "manual_input_text",
+                "type": "manualTrigger",
+                "name": "Start",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Trigger to start the workflow"
+            },
+            {
+                "id": "code_sample_paper",
+                "type": "code",
+                "name": "Sample Paper",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Sample academic paper text for demonstration\n# In production, this would come from a file or API\n\npaper_text = '''\nATTENTION MECHANISMS IN NEURAL NETWORKS: A COMPREHENSIVE SURVEY\n\nABSTRACT\n\nAttention mechanisms have become a fundamental component in modern deep learning architectures, enabling models to focus on relevant parts of the input when making predictions. This survey provides a comprehensive overview of attention mechanisms, tracing their evolution from early sequence-to-sequence models to the transformer architecture that has revolutionized natural language processing and beyond. We examine the mathematical foundations, explore various attention variants, and discuss their applications across domains including machine translation, image recognition, and speech processing.\n\n1. INTRODUCTION\n\nThe human visual system does not process an entire scene uniformly. Instead, it selectively focuses on salient regions while suppressing irrelevant information. This biological mechanism inspired the development of computational attention in neural networks. The attention mechanism allows models to dynamically weight the importance of different parts of the input, leading to significant improvements in tasks requiring sequential or spatial reasoning.\n\nThe breakthrough came with the work of Bahdanau et al. (2015), who introduced attention in the context of neural machine translation. Their approach allowed the decoder to attend to different parts of the source sentence when generating each target word, dramatically improving translation quality for long sentences. This work sparked a revolution in sequence modeling that continues to this day.\n\n2. MATHEMATICAL FOUNDATIONS\n\nAt its core, attention can be formulated as a weighted sum of values, where the weights are determined by the compatibility between a query and a set of keys:\n\nAttention(Q, K, V) = softmax(QK^T / sqrt(d_k)) V\n\nwhere Q represents queries, K represents keys, V represents values, and d_k is the dimension of the keys. This formulation, known as scaled dot-product attention, forms the basis of the transformer architecture.\n\nThe softmax function ensures that attention weights sum to one, creating a probability distribution over the input elements. The scaling factor 1/sqrt(d_k) prevents the dot products from growing too large, which would push the softmax into regions with extremely small gradients.\n\n3. ATTENTION VARIANTS\n\n3.1 Self-Attention\n\nSelf-attention, also known as intra-attention, allows each position in a sequence to attend to all positions in the same sequence. This enables the model to capture long-range dependencies without the limitations of recurrent architectures. In self-attention, the queries, keys, and values all come from the same source.\n\n3.2 Multi-Head Attention\n\nMulti-head attention extends the basic attention mechanism by running multiple attention operations in parallel. Each attention head can learn to focus on different aspects of the input, and their outputs are concatenated and linearly transformed:\n\nMultiHead(Q, K, V) = Concat(head_1, ..., head_h) W^O\n\nwhere each head_i = Attention(QW_i^Q, KW_i^K, VW_i^V)\n\nThis allows the model to jointly attend to information from different representation subspaces at different positions.\n\n3.3 Cross-Attention\n\nCross-attention allows one sequence to attend to another, which is essential for tasks like machine translation where the decoder must attend to the encoder outputs. In cross-attention, the queries come from one source (e.g., decoder) while the keys and values come from another (e.g., encoder).\n\n4. THE TRANSFORMER ARCHITECTURE\n\nThe transformer, introduced by Vaswani et al. (2017) in the seminal paper \"Attention Is All You Need,\" demonstrated that attention mechanisms alone, without recurrence or convolution, could achieve state-of-the-art results in sequence transduction tasks.\n\nThe transformer consists of an encoder and decoder, each composed of stacked layers. Each encoder layer contains two sub-layers: a multi-head self-attention mechanism and a position-wise feed-forward network. Each decoder layer adds a third sub-layer that performs multi-head attention over the encoder output.\n\nPositional encodings are added to the input embeddings to inject information about the position of tokens in the sequence, since attention itself is permutation-invariant.\n\n5. APPLICATIONS AND IMPACT\n\n5.1 Natural Language Processing\n\nTransformer-based models have dominated NLP since their introduction. BERT (Bidirectional Encoder Representations from Transformers) and GPT (Generative Pre-trained Transformer) have achieved unprecedented results on a wide range of language understanding and generation tasks.\n\n5.2 Computer Vision\n\nVision Transformers (ViT) have shown that pure transformer architectures can match or exceed CNN performance on image classification when trained on sufficient data. Attention mechanisms are now widely used in object detection, image segmentation, and image generation.\n\n5.3 Multimodal Learning\n\nModels like CLIP and DALL-E demonstrate the power of attention mechanisms in connecting vision and language, enabling zero-shot image classification and text-to-image generation.\n\n6. CHALLENGES AND FUTURE DIRECTIONS\n\nDespite their success, attention mechanisms face challenges including quadratic computational complexity with sequence length, difficulty in capturing certain types of structural information, and the need for large amounts of training data.\n\nActive research areas include efficient attention variants (sparse attention, linear attention), combining attention with other architectural elements, and improving interpretability of attention patterns.\n\n7. CONCLUSION\n\nAttention mechanisms have fundamentally transformed deep learning, enabling models to selectively focus on relevant information and capture complex dependencies. From machine translation to protein structure prediction, attention-based models continue to push the boundaries of what is possible with artificial intelligence. As research progresses, we expect attention mechanisms to become even more efficient, interpretable, and powerful.\n\nREFERENCES\n\nBahdanau, D., Cho, K., & Bengio, Y. (2015). Neural Machine Translation by Jointly Learning to Align and Translate.\n\nVaswani, A., et al. (2017). Attention Is All You Need.\n\nDevlin, J., et al. (2019). BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding.\n\nDosovitskiy, A., et al. (2021). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale.\n'''\n\nreturn {\n    'title': 'Attention Mechanisms in Neural Networks: A Comprehensive Survey',\n    'authors': ['Research Team'],\n    'year': 2024,\n    'paper_text': paper_text,\n    'source': 'sample'\n}"
+                },
+                "disabled": false,
+                "notes": "Sample paper for demonstration - replace with your own"
+            },
+            {
+                "id": "code_chunker",
+                "type": "code",
+                "name": "Chunk Document",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import re\n\ndef smart_chunk_text(text, max_chunk_size=2500, overlap=300):\n    \"\"\"\n    Split text into chunks at natural boundaries.\n    Tries to split at section headers, then paragraphs, then sentences.\n    \"\"\"\n    chunks = []\n    \n    # First, try to split by section headers (numbered sections)\n    section_pattern = r'\\n(?=\\d+\\.\\s+[A-Z])'\n    sections = re.split(section_pattern, text)\n    \n    current_chunk = ''\n    current_start = 0\n    char_position = 0\n    \n    for section in sections:\n        # If adding this section would exceed max size, save current and start new\n        if len(current_chunk) + len(section) > max_chunk_size and current_chunk:\n            chunks.append({\n                'index': len(chunks),\n                'text': current_chunk.strip(),\n                'start_char': current_start,\n                'end_char': char_position,\n                'word_count': len(current_chunk.split())\n            })\n            # Start new chunk with overlap\n            overlap_text = current_chunk[-overlap:] if len(current_chunk) > overlap else current_chunk\n            current_chunk = overlap_text\n            current_start = char_position - len(overlap_text)\n        \n        current_chunk += section\n        char_position += len(section)\n        \n        # If single section is too large, split it further\n        while len(current_chunk) > max_chunk_size:\n            # Find a good split point (paragraph or sentence)\n            split_point = max_chunk_size - 100\n            \n            # Try paragraph break\n            para_break = current_chunk.rfind('\\n\\n', 0, split_point)\n            if para_break > split_point // 2:\n                split_point = para_break + 2\n            else:\n                # Try sentence break\n                sent_break = current_chunk.rfind('. ', 0, split_point)\n                if sent_break > split_point // 2:\n                    split_point = sent_break + 2\n            \n            chunks.append({\n                'index': len(chunks),\n                'text': current_chunk[:split_point].strip(),\n                'start_char': current_start,\n                'end_char': current_start + split_point,\n                'word_count': len(current_chunk[:split_point].split())\n            })\n            \n            # Overlap for continuity\n            overlap_start = max(0, split_point - overlap)\n            current_start = current_start + overlap_start\n            current_chunk = current_chunk[overlap_start:]\n    \n    # Don't forget the last chunk\n    if current_chunk.strip():\n        chunks.append({\n            'index': len(chunks),\n            'text': current_chunk.strip(),\n            'start_char': current_start,\n            'end_char': char_position,\n            'word_count': len(current_chunk.split())\n        })\n    \n    return chunks\n\n# Process the paper\npaper_text = input.get('paper_text', '')\nchunks = smart_chunk_text(paper_text)\n\nprint(f\"📄 Document chunked into {len(chunks)} sections\")\nfor i, chunk in enumerate(chunks):\n    preview = chunk['text'][:80].replace('\\n', ' ')\n    print(f\"  Chunk {i+1}: {chunk['word_count']} words - '{preview}...'\")\n\nreturn {\n    **input,\n    'chunks': chunks,\n    'total_chunks': len(chunks),\n    'total_words': sum(c['word_count'] for c in chunks)\n}"
+                },
+                "disabled": false,
+                "notes": "Splits document into semantic chunks with overlap"
+            },
+            {
+                "id": "parallel_processors",
+                "type": "parallel",
+                "name": "Process Chunks",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "branches": "{{ total_chunks }}",
+                    "mode": "fan-out"
+                },
+                "disabled": false,
+                "notes": "Fan out to process each chunk in parallel"
+            },
+            {
+                "id": "code_prepare_chunk",
+                "type": "code",
+                "name": "Prepare Chunk",
+                "position": {
+                    "x": 900,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Get the current chunk based on parallel branch index\nchunks = input.get('chunks', [])\nbranch_index = input.get('__branch_index', 0)\ntotal_chunks = input.get('total_chunks', len(chunks))\n\n# Handle case where we have fewer chunks than branches\nif branch_index >= len(chunks):\n    return {\n        'skip': True,\n        'reason': 'No chunk for this branch'\n    }\n\nchunk = chunks[branch_index]\n\nprint(f\"📝 Processing chunk {branch_index + 1}/{total_chunks}\")\n\nreturn {\n    'chunk_index': branch_index,\n    'chunk_text': chunk['text'],\n    'chunk_word_count': chunk['word_count'],\n    'total_chunks': total_chunks,\n    'paper_title': input.get('title', 'Unknown'),\n    'skip': False\n}"
+                },
+                "disabled": false,
+                "notes": "Extracts the correct chunk for this parallel branch"
+            },
+            {
+                "id": "llm_sum_section",
+                "type": "llmChat",
+                "name": "Summarize Section",
+                "position": {
+                    "x": 1100,
+                    "y": 200
+                },
+                "parameters": {
+                    "systemPrompt": "You are an expert academic research assistant specializing in summarizing scientific papers. Your summaries are accurate, well-structured, and capture the essential information.",
+                    "userPrompt": "You are analyzing section {{ chunk_index + 1 }} of {{ total_chunks }} from the paper \"{{ paper_title }}\".\n\nTEXT:\n{{ chunk_text }}\n\n---\n\nProvide a structured analysis:\n\n**SECTION TYPE:** (Abstract/Introduction/Methods/Results/Discussion/Conclusion/References)\n\n**KEY POINTS:**\n- Point 1\n- Point 2\n- Point 3\n\n**MAIN CONCEPTS:** (List key terms and concepts introduced)\n\n**SUMMARY:** (2-3 sentence summary of this section)\n\nKeep your response under 200 words.",
+                    "model": "gpt-3.5-turbo",
+                    "temperature": 0.3,
+                    "maxTokens": 400
+                },
+                "disabled": false,
+                "notes": "LLM summarizes each chunk independently"
+            },
+            {
+                "id": "code_format_summary",
+                "type": "code",
+                "name": "Format Summary",
+                "position": {
+                    "x": 1300,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import re\n\ndef parse_llm_response(response_text):\n    \"\"\"Extract structured data from LLM response.\"\"\"\n    result = {\n        'section_type': 'Unknown',\n        'key_points': [],\n        'main_concepts': [],\n        'summary': ''\n    }\n    \n    # Extract section type\n    section_match = re.search(r'\\*\\*SECTION TYPE:\\*\\*\\s*(.+?)(?:\\n|$)', response_text)\n    if section_match:\n        result['section_type'] = section_match.group(1).strip()\n    \n    # Extract key points\n    points_section = re.search(r'\\*\\*KEY POINTS:\\*\\*(.+?)(?:\\*\\*|$)', response_text, re.DOTALL)\n    if points_section:\n        points = re.findall(r'-\\s*(.+?)(?:\\n|$)', points_section.group(1))\n        result['key_points'] = [p.strip() for p in points if p.strip()]\n    \n    # Extract main concepts\n    concepts_section = re.search(r'\\*\\*MAIN CONCEPTS:\\*\\*(.+?)(?:\\*\\*|$)', response_text, re.DOTALL)\n    if concepts_section:\n        # Could be comma-separated or bullet points\n        concepts_text = concepts_section.group(1).strip()\n        if '-' in concepts_text:\n            concepts = re.findall(r'-\\s*(.+?)(?:\\n|$)', concepts_text)\n        else:\n            concepts = [c.strip() for c in concepts_text.split(',')]\n        result['main_concepts'] = [c.strip() for c in concepts if c.strip()]\n    \n    # Extract summary\n    summary_match = re.search(r'\\*\\*SUMMARY:\\*\\*\\s*(.+?)(?:\\*\\*|$)', response_text, re.DOTALL)\n    if summary_match:\n        result['summary'] = summary_match.group(1).strip()\n    \n    return result\n\n# Skip if this branch has no chunk\nif input.get('skip'):\n    return {\n        'chunk_index': input.get('chunk_index', -1),\n        'skipped': True\n    }\n\n# Parse the LLM response\nresponse_text = input.get('response', input.get('content', ''))\nparsed = parse_llm_response(response_text)\n\nchunk_index = input.get('chunk_index', 0)\nprint(f\"✅ Chunk {chunk_index + 1} summarized: {parsed['section_type']}\")\n\nreturn {\n    'chunk_index': chunk_index,\n    'section_type': parsed['section_type'],\n    'key_points': parsed['key_points'],\n    'main_concepts': parsed['main_concepts'],\n    'summary': parsed['summary'],\n    'raw_response': response_text,\n    'skipped': False\n}"
+                },
+                "disabled": false,
+                "notes": "Parses and structures the LLM summary"
+            },
+            {
+                "id": "merge_results",
+                "type": "merge",
+                "name": "Merge Summaries",
+                "position": {
+                    "x": 1500,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "waitAll",
+                    "inputCount": "{{ total_chunks }}"
+                },
+                "disabled": false,
+                "notes": "Wait for all parallel branches to complete"
+            },
+            {
+                "id": "code_combine_summaries",
+                "type": "code",
+                "name": "Combine Results",
+                "position": {
+                    "x": 1700,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "def combine_parallel_results(input_data):\n    \"\"\"\n    Combine results from parallel processing.\n    Input may be a list of results or a dict with indexed results.\n    \"\"\"\n    results = []\n    \n    # Handle different input formats from parallel/merge\n    if isinstance(input_data, list):\n        results = [r for r in input_data if not r.get('skipped')]\n    elif isinstance(input_data, dict):\n        # Check for indexed results (0, 1, 2, ...)\n        for key in sorted(input_data.keys()):\n            if str(key).isdigit() or isinstance(key, int):\n                item = input_data[key]\n                if isinstance(item, dict) and not item.get('skipped'):\n                    results.append(item)\n        \n        # If no indexed results, check for 'results' array\n        if not results and 'results' in input_data:\n            results = [r for r in input_data['results'] if not r.get('skipped')]\n    \n    return results\n\n# Combine results from parallel branches\nresults = combine_parallel_results(input)\n\n# Sort by chunk index\nresults.sort(key=lambda x: x.get('chunk_index', 0))\n\n# Aggregate data\nall_key_points = []\nall_concepts = set()\nall_summaries = []\nsection_types = []\n\nfor result in results:\n    all_key_points.extend(result.get('key_points', []))\n    all_concepts.update(result.get('main_concepts', []))\n    all_summaries.append({\n        'index': result.get('chunk_index', 0),\n        'type': result.get('section_type', 'Unknown'),\n        'summary': result.get('summary', '')\n    })\n    section_types.append(result.get('section_type', 'Unknown'))\n\nprint(f\"\\n📊 Combined {len(results)} section summaries\")\nprint(f\"   Total key points: {len(all_key_points)}\")\nprint(f\"   Unique concepts: {len(all_concepts)}\")\n\n# Build combined text for final synthesis\ncombined_text = '\\n\\n'.join([\n    f\"SECTION {s['index']+1} ({s['type']}):\\n{s['summary']}\"\n    for s in all_summaries\n])\n\nreturn {\n    'section_summaries': all_summaries,\n    'all_key_points': all_key_points,\n    'all_concepts': list(all_concepts),\n    'section_types': section_types,\n    'combined_summaries_text': combined_text,\n    'sections_processed': len(results)\n}"
+                },
+                "disabled": false,
+                "notes": "Aggregates all section summaries"
+            },
+            {
+                "id": "llm_final_synthesis",
+                "type": "llmChat",
+                "name": "Final Synthesis",
+                "position": {
+                    "x": 1900,
+                    "y": 200
+                },
+                "parameters": {
+                    "systemPrompt": "You are an expert academic research assistant. Your task is to synthesize section summaries into a comprehensive, coherent paper summary that captures the essence of the research.",
+                    "userPrompt": "Here are summaries of each section from an academic paper:\n\n{{ combined_summaries_text }}\n\n---\n\nSynthesize these into a comprehensive paper summary with the following structure:\n\n## Executive Summary\n(One paragraph, 3-4 sentences capturing the paper's main contribution)\n\n## Key Contributions\n- Contribution 1\n- Contribution 2\n- Contribution 3\n\n## Methodology Overview\n(Brief description of approach/methods if applicable)\n\n## Main Findings\n- Finding 1\n- Finding 2\n- Finding 3\n\n## Significance and Impact\n(Why this work matters, potential applications)\n\n## Limitations and Future Work\n(Any mentioned limitations or future directions)\n\nTarget length: 400-500 words total.",
+                    "model": "gpt-4",
+                    "temperature": 0.4,
+                    "maxTokens": 800
+                },
+                "disabled": false,
+                "notes": "Creates final comprehensive summary"
+            },
+            {
+                "id": "file_save_summary",
+                "type": "code",
+                "name": "Generate Output",
+                "position": {
+                    "x": 2100,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\ndef format_final_output(input_data):\n    \"\"\"Format the final summary output.\"\"\"\n    \n    final_summary = input_data.get('response', input_data.get('content', ''))\n    section_summaries = input_data.get('section_summaries', [])\n    key_points = input_data.get('all_key_points', [])\n    concepts = input_data.get('all_concepts', [])\n    \n    # Build the complete report\n    report = f'''\n╔══════════════════════════════════════════════════════════════════════════════╗\n║                    RESEARCH PAPER SUMMARY REPORT                              ║\n╚══════════════════════════════════════════════════════════════════════════════╝\n\nGenerated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\nSections Analyzed: {len(section_summaries)}\n\n================================================================================\n                              COMPREHENSIVE SUMMARY\n================================================================================\n\n{final_summary}\n\n================================================================================\n                              KEY CONCEPTS GLOSSARY\n================================================================================\n\n'''\n    \n    # Add concepts\n    for i, concept in enumerate(concepts[:15], 1):  # Limit to top 15\n        report += f\"  {i}. {concept}\\n\"\n    \n    report += f'''\n\n================================================================================\n                              ALL KEY POINTS\n================================================================================\n\n'''\n    \n    # Add all key points\n    for i, point in enumerate(key_points, 1):\n        report += f\"  {i}. {point}\\n\"\n    \n    report += f'''\n\n================================================================================\n                              SECTION BREAKDOWN\n================================================================================\n\n'''\n    \n    # Add section-by-section summaries\n    for section in section_summaries:\n        report += f\"\\n--- Section {section['index']+1}: {section['type']} ---\\n\"\n        report += f\"{section['summary']}\\n\"\n    \n    report += '''\n\n================================================================================\n                              PROCESSING METADATA\n================================================================================\n\n'''\n    \n    report += f\"  Total Sections: {len(section_summaries)}\\n\"\n    report += f\"  Key Points Extracted: {len(key_points)}\\n\"\n    report += f\"  Concepts Identified: {len(concepts)}\\n\"\n    report += f\"  Processing Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\\n\"\n    \n    report += '''\n\n================================================================================\n                     Thank you for using Research Paper Summarizer!\n================================================================================\n'''\n    \n    return report\n\n# Generate the final report\nreport = format_final_output(input)\nprint(report)\n\n# In production, save to file:\n# filename = f\"summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md\"\n# with open(f'./data/summaries/{filename}', 'w') as f:\n#     f.write(report)\n\nreturn {\n    'status': 'completed',\n    'report': report,\n    'summary': input.get('response', input.get('content', '')),\n    'key_points': input.get('all_key_points', []),\n    'concepts': input.get('all_concepts', []),\n    'sections_processed': input.get('sections_processed', 0),\n    'generated_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Formats and outputs the final summary report"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "manual_input_text",
+                "sourceOutput": "main",
+                "targetNodeId": "code_sample_paper",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_sample_paper",
+                "sourceOutput": "main",
+                "targetNodeId": "code_chunker",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "code_chunker",
+                "sourceOutput": "main",
+                "targetNodeId": "parallel_processors",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "parallel_processors",
+                "sourceOutput": "main",
+                "targetNodeId": "code_prepare_chunk",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "code_prepare_chunk",
+                "sourceOutput": "main",
+                "targetNodeId": "llm_sum_section",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "llm_sum_section",
+                "sourceOutput": "main",
+                "targetNodeId": "code_format_summary",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "code_format_summary",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "merge_results",
+                "sourceOutput": "main",
+                "targetNodeId": "code_combine_summaries",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "code_combine_summaries",
+                "sourceOutput": "main",
+                "targetNodeId": "llm_final_synthesis",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_10",
+                "sourceNodeId": "llm_final_synthesis",
+                "sourceOutput": "main",
+                "targetNodeId": "file_save_summary",
+                "targetInput": "main"
+            }
+        ]
+    }
+}

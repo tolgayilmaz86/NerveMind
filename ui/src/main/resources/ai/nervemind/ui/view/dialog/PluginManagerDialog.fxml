@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonType?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.PluginManagerController"
+      spacing="5"
+      prefWidth="700"
+      prefHeight="600"
+      styleClass="plugin-manager-dialog"
+      stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/dialog.css">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <!-- Header -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <FontIcon iconLiteral="mdi2p-puzzle" iconSize="28" styleClass="plugin-manager-dialog__header-icon"/>
+        <Label text="Plugin Manager" styleClass="plugin-manager-dialog__header-title"/>
+    </HBox>
+
+    <Label text="Manage your plugins. Enable or disable plugins to customize your workflow nodes. External plugins are loaded from the 'plugins' folder."
+           wrapText="true"
+           styleClass="plugin-manager-dialog__header-description">
+        <padding>
+            <Insets bottom="10"/>
+        </padding>
+    </Label>
+
+    <!-- Toolbar -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="5" bottom="10"/>
+        </padding>
+        
+        <TextField fx:id="searchField"
+                   promptText="🔍 Search plugins..."
+                   prefWidth="250"
+                   styleClass="plugin-manager-dialog__search-field"/>
+        
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button fx:id="reloadButton"
+                text="Reload"
+                onAction="#onReload"
+                styleClass="plugin-manager-dialog__tool-button">
+            <graphic>
+                <FontIcon iconLiteral="mdi2r-refresh" iconSize="16" styleClass="plugin-manager-dialog__tool-button-icon"/>
+            </graphic>
+        </Button>
+        
+        <Button fx:id="openFolderButton"
+                text="Open Folder"
+                onAction="#onOpenFolder"
+                styleClass="plugin-manager-dialog__tool-button">
+            <graphic>
+                <FontIcon iconLiteral="mdi2f-folder-open" iconSize="16" styleClass="plugin-manager-dialog__tool-button-icon"/>
+            </graphic>
+        </Button>
+    </HBox>
+
+    <!-- Scrollable Plugin Content -->
+    <ScrollPane fx:id="scrollPane"
+                VBox.vgrow="ALWAYS"
+                fitToWidth="true"
+                styleClass="plugin-manager-dialog__scroll-pane">
+        <VBox spacing="15">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+
+            <!-- Triggers Section Header -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <FontIcon iconLiteral="mdi2p-play-circle" iconSize="20" styleClass="plugin-manager-dialog__section-icon"/>
+                <VBox spacing="2">
+                    <Label text="Triggers" styleClass="plugin-manager-dialog__section-title"/>
+                    <Label text="Trigger nodes start workflow execution" styleClass="plugin-manager-dialog__section-description"/>
+                </VBox>
+            </HBox>
+
+            <!-- Trigger Plugins Container -->
+            <VBox fx:id="triggerSection" spacing="8"/>
+
+            <Separator/>
+
+            <!-- Actions Section Header -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <FontIcon iconLiteral="mdi2c-cog" iconSize="20" styleClass="plugin-manager-dialog__section-icon"/>
+                <VBox spacing="2">
+                    <Label text="Actions" styleClass="plugin-manager-dialog__section-title"/>
+                    <Label text="Action nodes perform operations in your workflow" styleClass="plugin-manager-dialog__section-description"/>
+                </VBox>
+            </HBox>
+
+            <!-- Action Plugins Container -->
+            <VBox fx:id="actionSection" spacing="8"/>
+        </VBox>
+    </ScrollPane>
+
+    <!-- Status Bar -->
+    <Label fx:id="statusLabel" styleClass="plugin-manager-dialog__status-label"/>
+
+    <!-- Footer with Close Button -->
+    <HBox alignment="CENTER_RIGHT">
+        <padding>
+            <Insets top="10"/>
+        </padding>
+        <Button text="Close" onAction="#onClose" styleClass="dialog__button-secondary" cancelButton="true"/>
+    </HBox>
+</VBox>

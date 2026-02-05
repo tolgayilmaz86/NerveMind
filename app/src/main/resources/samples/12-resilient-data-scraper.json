@@ -1,0 +1,357 @@
+{
+    "id": "sample-resilient-data-scraper",
+    "name": "Resilient Data Scraper",
+    "description": "Bulletproof data fetching with retry logic, rate limiting, and error recovery. Demonstrates enterprise-grade patterns for reliable API integrations and web scraping.",
+    "category": "Data Processing",
+    "difficulty": "advanced",
+    "language": "javascript",
+    "tags": [
+        "retry",
+        "rate-limit",
+        "loop",
+        "sort",
+        "try-catch",
+        "scraping",
+        "reliability",
+        "enterprise"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **enterprise-grade reliability patterns** for data fetching operations.\n\n**What you'll learn:**\n- Loop node for iterating over URLs\n- Retry node for automatic failure recovery\n- Rate Limit node to avoid API throttling\n- Try/Catch for graceful error handling\n- Sort node for ordering results\n\n**Why these patterns matter:**\n- APIs fail randomly (network issues, rate limits)\n- Many APIs enforce request limits\n- Graceful degradation improves user experience\n- Sorted results are easier to analyze",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Loop Node",
+                "content": "The Loop node iterates over a list of URLs to fetch.\n\n**Configuration:**\n- `items`: The array to iterate over\n- `batchSize`: How many items to process in parallel\n\n**Loop behavior:**\n- Processes items one at a time (or in batches)\n- Passes each item to connected nodes\n- Collects all results when complete",
+                "highlightNodes": [
+                    "loop_1"
+                ],
+                "codeSnippet": "// Input: Array of URLs\n[\n  \"https://api.example.com/item/1\",\n  \"https://api.example.com/item/2\",\n  \"https://api.example.com/item/3\"\n]\n\n// Loop processes each URL individually"
+            },
+            {
+                "title": "Retry Node",
+                "content": "The Retry node wraps operations that might fail temporarily.\n\n**Configuration:**\n- `maxAttempts`: Maximum retry count (default: 3)\n- `delayMs`: Wait time between retries\n- `backoffMultiplier`: Exponential backoff factor\n\n**Retry strategy:**\n1. Attempt the operation\n2. On failure, wait and retry\n3. Each retry waits longer (exponential backoff)\n4. Give up after max attempts",
+                "highlightNodes": [
+                    "retry_1"
+                ],
+                "codeSnippet": "// Retry timing with backoff:\n// Attempt 1: Immediate\n// Attempt 2: Wait 1000ms\n// Attempt 3: Wait 2000ms\n// Attempt 4: Wait 4000ms (exponential)"
+            },
+            {
+                "title": "Rate Limit Node",
+                "content": "The Rate Limit node enforces a maximum request rate to avoid overwhelming APIs.\n\n**Configuration:**\n- `requestsPerSecond`: Max requests per second\n- `requestsPerMinute`: Max requests per minute\n- `mode`: How to handle excess requests\n\n**Common limits:**\n- Free APIs: 1-10 req/sec\n- Paid APIs: 100+ req/sec\n- Internal APIs: Often unlimited",
+                "highlightNodes": [
+                    "rate_limit_1"
+                ],
+                "codeSnippet": "// Rate limit: 2 requests per second\n// \n// Request 1: Immediate\n// Request 2: Immediate (within 1 sec)\n// Request 3: Queued, waits for next second\n// Request 4: Queued..."
+            },
+            {
+                "title": "Try/Catch Error Handling",
+                "content": "The Try/Catch node provides graceful error handling when retries are exhausted.\n\n**How it works:**\n- **Try branch**: Normal execution path\n- **Catch branch**: Handles errors gracefully\n\n**Benefits:**\n- Workflow continues despite errors\n- Failed items are logged, not lost\n- Partial results are still valuable",
+                "highlightNodes": [
+                    "trycatch_1"
+                ],
+                "codeSnippet": "// Try/Catch flow:\n//\n// ┌─── Try ───────────────────┐\n// │ Fetch → Process → Output │\n// └────────────┬──────────────┘\n//              │ on error\n//              ▼\n// ┌─── Catch ─────────────────┐\n// │ Log error → Return null  │\n// └───────────────────────────┘"
+            },
+            {
+                "title": "Sort Results",
+                "content": "The Sort node orders the collected data for easier analysis.\n\n**Configuration:**\n- `field`: The field to sort by\n- `order`: 'asc' or 'desc'\n\n**Why sort?**\n- Consistent output ordering\n- Easier to find specific items\n- Better for reports and displays",
+                "highlightNodes": [
+                    "sort_1"
+                ],
+                "codeSnippet": "// Before sort:\n[\n  { id: 3, name: \"Charlie\" },\n  { id: 1, name: \"Alice\" },\n  { id: 2, name: \"Bob\" }\n]\n\n// After sort (by id, asc):\n[\n  { id: 1, name: \"Alice\" },\n  { id: 2, name: \"Bob\" },\n  { id: 3, name: \"Charlie\" }\n]"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**To test this workflow:**\n\n1. **Run with test data:**\n   - Click Run (F5)\n   - Watch the Console for progress\n   - Note retry attempts and rate limiting\n\n2. **Test error handling:**\n   - Edit the URL list to include bad URLs\n   - Watch how Try/Catch handles failures\n\n3. **Customize:**\n   - Replace test URLs with your target APIs\n   - Adjust retry count and backoff\n   - Set rate limits based on API requirements\n   - Change sort field and order\n\n**Pro tips:**\n- Start with conservative rate limits\n- Log all errors for debugging\n- Use exponential backoff to avoid thundering herd",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Resilient Data Scraper",
+        "description": "Bulletproof data fetching with retry, rate limiting, and error handling",
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Start Scraper",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Click to start data collection"
+            },
+            {
+                "id": "code_urls",
+                "type": "code",
+                "name": "Define URLs",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Define the URLs to fetch\n// These use httpbin.org to simulate various API behaviors\n\nconst urls = [\n  { id: 1, url: 'https://httpbin.org/get', name: 'Success 1' },\n  { id: 2, url: 'https://httpbin.org/delay/1', name: 'Slow Response' },\n  { id: 3, url: 'https://httpbin.org/get', name: 'Success 2' },\n  { id: 4, url: 'https://httpbin.org/status/503', name: 'May Fail (503)' },\n  { id: 5, url: 'https://httpbin.org/get', name: 'Success 3' }\n];\n\nreturn {\n  urls: urls,\n  startTime: new Date().toISOString(),\n  totalUrls: urls.length\n};"
+                },
+                "disabled": false,
+                "notes": "Edit this to change target URLs"
+            },
+            {
+                "id": "loop_1",
+                "type": "loop",
+                "name": "Loop URLs",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "items": "{{ urls }}",
+                    "batchSize": 1
+                },
+                "disabled": false,
+                "notes": "Iterates over each URL"
+            },
+            {
+                "id": "trycatch_1",
+                "type": "tryCatch",
+                "name": "Error Handler",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Catches errors to prevent workflow failure"
+            },
+            {
+                "id": "retry_1",
+                "type": "retry",
+                "name": "Retry on Fail",
+                "position": {
+                    "x": 900,
+                    "y": 150
+                },
+                "parameters": {
+                    "maxAttempts": 3,
+                    "delayMs": 1000,
+                    "backoffMultiplier": 2,
+                    "retryOn": [
+                        "5xx",
+                        "timeout",
+                        "network"
+                    ]
+                },
+                "disabled": false,
+                "notes": "Retries failed requests up to 3 times"
+            },
+            {
+                "id": "rate_limit_1",
+                "type": "rate_limit",
+                "name": "Rate Limit",
+                "position": {
+                    "x": 1100,
+                    "y": 150
+                },
+                "parameters": {
+                    "requestsPerSecond": 2,
+                    "mode": "queue"
+                },
+                "disabled": false,
+                "notes": "Limits to 2 requests per second"
+            },
+            {
+                "id": "http_fetch",
+                "type": "httpRequest",
+                "name": "Fetch Data",
+                "position": {
+                    "x": 1300,
+                    "y": 150
+                },
+                "parameters": {
+                    "url": "{{url}}",
+                    "method": "GET",
+                    "timeout": 10,
+                    "headers": {
+                        "Accept": "application/json"
+                    }
+                },
+                "disabled": false,
+                "notes": "Fetches data from the current URL"
+            },
+            {
+                "id": "code_process",
+                "type": "code",
+                "name": "Process Response",
+                "position": {
+                    "x": 1500,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Process the successful response\nconst item = {\n  id: input.id,\n  name: input.name,\n  url: input.url,\n  statusCode: input.statusCode,\n  success: true,\n  fetchedAt: new Date().toISOString(),\n  responseSize: input.body ? input.body.length : 0\n};\n\nconsole.log(`✅ Fetched: ${input.name} (${input.statusCode})`);\n\nreturn item;"
+                },
+                "disabled": false,
+                "notes": "Extracts and formats successful response data"
+            },
+            {
+                "id": "code_error",
+                "type": "code",
+                "name": "Handle Error",
+                "position": {
+                    "x": 900,
+                    "y": 300
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Handle failed requests gracefully\nconsole.log(`❌ Failed: ${input.name || 'Unknown'} - ${input.error || 'Unknown error'}`);\n\nreturn {\n  id: input.id || 0,\n  name: input.name || 'Unknown',\n  url: input.url || '',\n  success: false,\n  error: input.error || 'Request failed after retries',\n  fetchedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Creates error record for failed requests"
+            },
+            {
+                "id": "merge_1",
+                "type": "merge",
+                "name": "Collect Results",
+                "position": {
+                    "x": 1700,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "append"
+                },
+                "disabled": false,
+                "notes": "Collects all results (success and failure)"
+            },
+            {
+                "id": "sort_1",
+                "type": "sort",
+                "name": "Sort by ID",
+                "position": {
+                    "x": 1900,
+                    "y": 200
+                },
+                "parameters": {
+                    "field": "id",
+                    "order": "asc"
+                },
+                "disabled": false,
+                "notes": "Sorts results by ID for consistent ordering"
+            },
+            {
+                "id": "code_summary",
+                "type": "code",
+                "name": "Generate Summary",
+                "position": {
+                    "x": 2100,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Generate final summary\nconst results = Array.isArray(input) ? input : [input];\nconst successful = results.filter(r => r.success);\nconst failed = results.filter(r => !r.success);\n\nconsole.log('\\n========== SCRAPE SUMMARY ==========');\nconsole.log(`Total URLs: ${results.length}`);\nconsole.log(`Successful: ${successful.length}`);\nconsole.log(`Failed: ${failed.length}`);\nconsole.log(`Success Rate: ${((successful.length / results.length) * 100).toFixed(1)}%`);\nconsole.log('=====================================\\n');\n\nreturn {\n  summary: {\n    totalUrls: results.length,\n    successful: successful.length,\n    failed: failed.length,\n    successRate: `${((successful.length / results.length) * 100).toFixed(1)}%`\n  },\n  results: results,\n  completedAt: new Date().toISOString()\n};"
+                },
+                "disabled": false,
+                "notes": "Creates final summary with statistics"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceOutput": "main",
+                "targetNodeId": "code_urls",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_urls",
+                "sourceOutput": "main",
+                "targetNodeId": "loop_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "loop_1",
+                "sourceOutput": "loop",
+                "targetNodeId": "trycatch_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "trycatch_1",
+                "sourceOutput": "try",
+                "targetNodeId": "retry_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "trycatch_1",
+                "sourceOutput": "catch",
+                "targetNodeId": "code_error",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "retry_1",
+                "sourceOutput": "main",
+                "targetNodeId": "rate_limit_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "rate_limit_1",
+                "sourceOutput": "main",
+                "targetNodeId": "http_fetch",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "http_fetch",
+                "sourceOutput": "main",
+                "targetNodeId": "code_process",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "code_process",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_10",
+                "sourceNodeId": "code_error",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_11",
+                "sourceNodeId": "merge_1",
+                "sourceOutput": "main",
+                "targetNodeId": "sort_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_12",
+                "sourceNodeId": "sort_1",
+                "sourceOutput": "main",
+                "targetNodeId": "code_summary",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {},
+        "isActive": false,
+        "triggerType": "MANUAL",
+        "version": 1
+    }
+}

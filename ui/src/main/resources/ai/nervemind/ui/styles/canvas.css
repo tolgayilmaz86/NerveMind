@@ -1,0 +1,197 @@
+/*
+ * NerveMind - Canvas Styles
+ * 
+ * Styles for the workflow canvas and related components.
+ * Replaces inline setStyle() calls in canvas classes.
+ */
+
+/* ===== Canvas Container ===== */
+.canvas-pane {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+.canvas-scroll {
+    -fx-background-color: -nervemind-bg-primary;
+    -fx-background: -nervemind-bg-primary;
+}
+
+.canvas-scroll>.viewport {
+    -fx-background-color: -nervemind-bg-primary;
+}
+
+/* ===== Grid Layer ===== */
+.canvas__grid {
+    -fx-stroke: #3b4252;
+    -fx-stroke-width: 1;
+}
+
+.canvas__grid--major {
+    -fx-stroke: #434c5e;
+    -fx-stroke-width: 1;
+}
+
+/* ===== Selection Rectangle ===== */
+.canvas__selection-rect {
+    -fx-fill: rgba(94, 129, 172, 0.1);
+    -fx-stroke: -nervemind-accent-blue;
+    -fx-stroke-width: 1;
+    -fx-stroke-dash-array: 5 5;
+}
+
+/* ===== Connection Lines ===== */
+.connection-line {
+    -fx-stroke: -nervemind-accent-blue-light;
+    -fx-stroke-width: 2;
+    -fx-fill: transparent;
+}
+
+.connection-line:hover {
+    -fx-stroke: -nervemind-accent-cyan;
+    -fx-stroke-width: 3;
+}
+
+.connection-line--selected {
+    -fx-stroke: -nervemind-accent-yellow;
+    -fx-stroke-width: 3;
+}
+
+.connection-line--dragging {
+    -fx-stroke: -nervemind-accent-yellow;
+    -fx-stroke-width: 2;
+    -fx-stroke-dash-array: 10 5;
+}
+
+.connection-line--error {
+    -fx-stroke: -nervemind-danger;
+    -fx-stroke-width: 2;
+}
+
+/* ===== Temporary Connection (while dragging) ===== */
+.canvas__temp-connection {
+    -fx-stroke: -nervemind-accent-yellow;
+    -fx-stroke-width: 2;
+    -fx-stroke-dash-array: 5 5;
+    -fx-fill: transparent;
+}
+
+/* ===== Canvas Status ===== */
+.canvas-status {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+    -fx-padding: 5px 10px;
+}
+
+/* ===== Minimap ===== */
+.canvas-minimap {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6px;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6px;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 10, 0, 0, 3);
+}
+
+.canvas-minimap__background {
+    -fx-fill: #1a1a1a;
+    -fx-stroke: #404040;
+    -fx-stroke-width: 1;
+}
+
+.canvas-minimap__viewport {
+    -fx-stroke: -nervemind-accent-blue;
+    -fx-stroke-width: 1.5;
+    -fx-fill: rgba(74, 158, 255, 0.2);
+}
+
+.canvas-minimap__node {
+    -fx-fill: -nervemind-accent-blue-light;
+}
+
+/* Minimap Node State Colors */
+.canvas-minimap__node--default {
+    -fx-fill: #4a9eff;
+}
+
+.canvas-minimap__node--trigger {
+    -fx-fill: #f59e0b;
+}
+
+.canvas-minimap__node--ai {
+    -fx-fill: #ec4899;
+}
+
+.canvas-minimap__node--control {
+    -fx-fill: #10b981;
+}
+
+.canvas-minimap__node--running {
+    -fx-fill: #3b82f6;
+}
+
+.canvas-minimap__node--success {
+    -fx-fill: #10b981;
+}
+
+.canvas-minimap__node--error {
+    -fx-fill: #ef4444;
+}
+
+.canvas-minimap__node--queued {
+    -fx-fill: #6b7280;
+}
+
+.canvas-minimap__node--skipped {
+    -fx-fill: #737373;
+}
+
+/* ===== Canvas Context Menu ===== */
+.canvas-context-menu {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6px;
+    -fx-border-color: -nervemind-border;
+    -fx-border-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.canvas-context-menu .menu-item {
+    -fx-background-color: transparent;
+    -fx-padding: 8px 12px;
+}
+
+.canvas-context-menu .menu-item:hover,
+.canvas-context-menu .menu-item:focused {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.canvas-context-menu .menu-item .label {
+    -fx-text-fill: -nervemind-text-primary;
+}
+
+.canvas-context-menu .separator {
+    -fx-background-color: -nervemind-border;
+    -fx-padding: 5px 0;
+}
+
+/* ===== Zoom Controls ===== */
+.canvas__zoom-controls {
+    -fx-background-color: -nervemind-bg-secondary;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px;
+}
+
+.canvas__zoom-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 4px;
+    -fx-padding: 5px 8px;
+    -fx-cursor: hand;
+}
+
+.canvas__zoom-button:hover {
+    -fx-background-color: -nervemind-bg-tertiary;
+}
+
+.canvas__zoom-label {
+    -fx-text-fill: -nervemind-text-muted;
+    -fx-font-size: 11px;
+    -fx-padding: 0 8px;
+}

@@ -1,0 +1,177 @@
+/*
+ * Floating Control Bar Styles
+ * Sleek pill-shaped workflow control overlay
+ */
+
+/* ========== Main Control Bar Container ========== */
+.floating-control-bar {
+    -fx-background-color: linear-gradient(to bottom,
+            rgba(60, 66, 78, 0.95),
+            rgba(46, 52, 64, 0.98));
+    -fx-background-radius: 50;
+    -fx-padding: 8 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 20, 0.4, 0, 6),
+        innershadow(gaussian, rgba(255, 255, 255, 0.05), 1, 0, 0, 1);
+    -fx-border-color: rgba(136, 192, 208, 0.3);
+    -fx-border-width: 1;
+    -fx-border-radius: 50;
+    -fx-cursor: move;
+}
+
+/* ========== Control Buttons - Base ========== */
+.control-button {
+    -fx-background-radius: 50;
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+    -fx-max-width: 44;
+    -fx-max-height: 44;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
+}
+
+.control-button .ikonli-font-icon {
+    -fx-icon-color: #d8dee9;
+    -fx-fill: #d8dee9;
+}
+
+/* ========== Secondary Buttons (Restart, Undo, Redo, Debug) ========== */
+.control-secondary {
+    -fx-background-color: rgba(76, 86, 106, 0.8);
+}
+
+.control-secondary:hover {
+    -fx-background-color: rgba(94, 129, 172, 0.9);
+}
+
+.control-secondary:hover .ikonli-font-icon {
+    -fx-icon-color: #eceff4;
+    -fx-fill: #eceff4;
+}
+
+.control-secondary:pressed {
+    -fx-background-color: rgba(129, 161, 193, 0.9);
+}
+
+.control-secondary:disabled {
+    -fx-background-color: rgba(59, 66, 82, 0.5);
+    -fx-opacity: 0.5;
+}
+
+.control-secondary:disabled .ikonli-font-icon {
+    -fx-icon-color: #4c566a;
+    -fx-fill: #4c566a;
+}
+
+/* ========== Play Button (Central, Green) ========== */
+.control-play {
+    -fx-background-color: linear-gradient(to bottom, #5fb97c, #4caf50);
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-max-width: 56;
+    -fx-max-height: 56;
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.4), 10, 0.3, 0, 2);
+}
+
+.control-play .ikonli-font-icon {
+    -fx-icon-color: #ffffff;
+    -fx-fill: #ffffff;
+}
+
+.control-play:hover {
+    -fx-background-color: linear-gradient(to bottom, #6fcf8c, #5cbc60);
+    -fx-effect: dropshadow(gaussian, rgba(76, 175, 80, 0.6), 15, 0.4, 0, 3);
+}
+
+.control-play:pressed {
+    -fx-background-color: linear-gradient(to bottom, #4caf50, #43a047);
+}
+
+/* ========== Stop Button (Red) ========== */
+.control-stop {
+    -fx-background-color: linear-gradient(to bottom, #e57373, #d32f2f);
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-max-width: 56;
+    -fx-max-height: 56;
+    -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.4), 10, 0.3, 0, 2);
+}
+
+.control-stop .ikonli-font-icon {
+    -fx-icon-color: #ffffff;
+    -fx-fill: #ffffff;
+}
+
+.control-stop:hover {
+    -fx-background-color: linear-gradient(to bottom, #ef9a9a, #e53935);
+    -fx-effect: dropshadow(gaussian, rgba(211, 47, 47, 0.6), 15, 0.4, 0, 3);
+}
+
+.control-stop:pressed {
+    -fx-background-color: linear-gradient(to bottom, #d32f2f, #c62828);
+}
+
+/* ========== Paused State (Yellow/Amber) ========== */
+.control-paused {
+    -fx-background-color: linear-gradient(to bottom, #ffca28, #ffc107);
+    -fx-min-width: 56;
+    -fx-min-height: 56;
+    -fx-max-width: 56;
+    -fx-max-height: 56;
+    -fx-effect: dropshadow(gaussian, rgba(255, 193, 7, 0.5), 12, 0.4, 0, 2);
+}
+
+.control-paused .ikonli-font-icon {
+    -fx-icon-color: #2e3440;
+    -fx-fill: #2e3440;
+}
+
+.control-paused:hover {
+    -fx-background-color: linear-gradient(to bottom, #ffd54f, #ffca28);
+    -fx-effect: dropshadow(gaussian, rgba(255, 193, 7, 0.7), 15, 0.5, 0, 3);
+}
+
+.control-paused:pressed {
+    -fx-background-color: linear-gradient(to bottom, #ffc107, #ffb300);
+}
+
+/* ========== Debug Button Special State ========== */
+.control-secondary.debug-active {
+    -fx-background-color: rgba(136, 192, 208, 0.9);
+}
+
+.control-secondary.debug-active .ikonli-font-icon {
+    -fx-icon-color: #2e3440;
+    -fx-fill: #2e3440;
+}
+
+/* ========== Node Highlighting ========== */
+/* Applied to NodeView when paused at that node */
+.node-paused {
+    -fx-effect: dropshadow(gaussian, #ffc107, 10, 0.3, 0, 0);
+}
+
+.node-paused .node-box {
+    -fx-border-color: #ffc107;
+    -fx-border-width: 2;
+}
+
+/* Applied to NodeView when highlighted via guide */
+.node-guide-highlight {
+    -fx-effect: dropshadow(gaussian, #8b5cf6, 15, 0.5, 0, 0);
+}
+
+.node-guide-highlight .node-box {
+    -fx-border-color: #8b5cf6;
+    -fx-border-width: 3;
+}
+
+/* ========== Tooltip Styling ========== */
+.floating-control-bar .tooltip {
+    -fx-background-color: rgba(46, 52, 64, 0.95);
+    -fx-text-fill: #eceff4;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10;
+    -fx-background-radius: 4;
+}

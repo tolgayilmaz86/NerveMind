@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.VariableEditController"
+      styleClass="edit-dialog" spacing="15" prefWidth="450">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    
+    <!-- Title -->
+    <Label fx:id="titleLabel" text="Add Variable" styleClass="edit-dialog__title"/>
+    
+    <!-- Form Grid -->
+    <GridPane hgap="15" vgap="15" styleClass="edit-dialog__grid">
+        <columnConstraints>
+            <ColumnConstraints minWidth="100" halignment="RIGHT"/>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="250"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+            <RowConstraints/>
+        </rowConstraints>
+        
+        <!-- Name -->
+        <Label text="Name:" styleClass="edit-dialog__label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" promptText="myVariable (letters, numbers, underscores)" 
+                   styleClass="edit-dialog__input" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        
+        <!-- Type -->
+        <Label text="Type:" styleClass="edit-dialog__label" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="typeCombo" maxWidth="Infinity" 
+                  styleClass="edit-dialog__combobox" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        
+        <!-- Scope -->
+        <Label text="Scope:" styleClass="edit-dialog__label" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+        <ComboBox fx:id="scopeCombo" maxWidth="Infinity" 
+                  styleClass="edit-dialog__combobox" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        
+        <!-- Value -->
+        <Label fx:id="valueLabel" text="Value:" styleClass="edit-dialog__label" 
+               GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+        <TextArea fx:id="valueArea" promptText="Enter value..." prefRowCount="3" wrapText="true"
+                  styleClass="edit-dialog__textarea" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        
+        <!-- Description -->
+        <Label text="Description:" styleClass="edit-dialog__label" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+        <TextField fx:id="descriptionField" promptText="Optional description" 
+                   styleClass="edit-dialog__input" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    </GridPane>
+    
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" 
+                styleClass="edit-dialog__button-secondary"/>
+        <Button fx:id="saveButton" text="Create" onAction="#handleSave" 
+                styleClass="edit-dialog__button-primary--purple"/>
+    </HBox>
+</VBox>

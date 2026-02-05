@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  Copyright (c) 2026 NerveMind
+  Licensed under the MIT License
+
+  ExecutionHistoryPanel FXML - Displays execution history and details.
+  Uses fx:root pattern with ExecutionHistoryPanelComponent as controller.
+-->
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<fx:root type="VBox"
+         xmlns:fx="http://javafx.com/fxml/1"
+         spacing="0"
+         prefWidth="450" minWidth="350" maxWidth="600"
+         styleClass="execution-history-panel">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="10" styleClass="execution-history-header">
+        <padding><Insets top="12" right="16" bottom="12" left="16"/></padding>
+
+        <FontIcon fx:id="headerIcon" iconLiteral="mdi2h-history" iconSize="18"
+                  styleClass="header-icon"/>
+
+        <Label text="Execution History" styleClass="title-label"/>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Button fx:id="closeButton" styleClass="flat-button" onAction="#onClose">
+            <graphic>
+                <FontIcon iconLiteral="mdi2c-close" iconSize="16"/>
+            </graphic>
+            <tooltip><Tooltip text="Close"/></tooltip>
+        </Button>
+    </HBox>
+
+    <!-- Toolbar -->
+    <HBox alignment="CENTER_LEFT" spacing="8" styleClass="execution-history-toolbar">
+        <padding><Insets top="8" right="16" bottom="8" left="16"/></padding>
+
+        <Button fx:id="refreshButton" text="Refresh" styleClass="flat-button"
+                onAction="#onRefresh">
+            <graphic>
+                <FontIcon iconLiteral="mdi2r-refresh" iconSize="14"/>
+            </graphic>
+        </Button>
+
+        <Button fx:id="clearButton" text="Clear All" styleClass="flat-button"
+                onAction="#onClearAll">
+            <graphic>
+                <FontIcon iconLiteral="mdi2d-delete-outline" iconSize="14"/>
+            </graphic>
+        </Button>
+
+        <Region HBox.hgrow="ALWAYS"/>
+
+        <Label fx:id="countLabel" styleClass="count-label"/>
+    </HBox>
+
+    <!-- Execution Table -->
+    <TableView fx:id="executionTable" VBox.vgrow="ALWAYS"
+               styleClass="execution-table">
+        <placeholder>
+            <Label text="No executions yet. Run a workflow to see its history."/>
+        </placeholder>
+        <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+        </columnResizePolicy>
+        <columns>
+            <!-- Status Column -->
+            <TableColumn fx:id="statusColumn" text="" prefWidth="32" maxWidth="40"/>
+
+            <!-- Time Column -->
+            <TableColumn fx:id="timeColumn" text="Time" prefWidth="120"/>
+
+            <!-- Duration Column -->
+            <TableColumn fx:id="durationColumn" text="Duration" prefWidth="80"/>
+
+            <!-- Trigger Column -->
+            <TableColumn fx:id="triggerColumn" text="Trigger" prefWidth="90"/>
+        </columns>
+    </TableView>
+
+    <!-- Details Pane -->
+    <VBox fx:id="detailsPane" VBox.vgrow="ALWAYS"
+          styleClass="execution-details-pane"
+          visible="false" managed="false">
+
+        <TabPane fx:id="detailsTabPane" styleClass="details-tab-pane"
+                 VBox.vgrow="ALWAYS">
+
+            <!-- Summary Tab -->
+            <Tab text="Summary" closable="false">
+                <ScrollPane fitToWidth="true" styleClass="details-scroll">
+                    <GridPane fx:id="summaryGrid" hgap="10" vgap="8"
+                              styleClass="summary-grid">
+                        <padding><Insets topRightBottomLeft="16"/></padding>
+
+                        <Label text="Status:" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                               styleClass="summary-label"/>
+                        <HBox fx:id="statusBadge" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                              alignment="CENTER_LEFT" spacing="5" styleClass="status-badge">
+                            <FontIcon fx:id="summaryStatusIcon" iconSize="16"/>
+                            <Label fx:id="summaryStatusLabel"/>
+                        </HBox>
+
+                        <Label text="Workflow:" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryWorkflowLabel" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                        <Label text="Trigger:" GridPane.columnIndex="0" GridPane.rowIndex="2"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryTriggerLabel" GridPane.columnIndex="1" GridPane.rowIndex="2"/>
+
+                        <Label text="Started:" GridPane.columnIndex="0" GridPane.rowIndex="3"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryStartedLabel" GridPane.columnIndex="1" GridPane.rowIndex="3"/>
+
+                        <Label text="Finished:" GridPane.columnIndex="0" GridPane.rowIndex="4"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryFinishedLabel" GridPane.columnIndex="1" GridPane.rowIndex="4"/>
+
+                        <Label text="Duration:" GridPane.columnIndex="0" GridPane.rowIndex="5"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryDurationLabel" GridPane.columnIndex="1" GridPane.rowIndex="5"/>
+
+                        <Label text="Execution ID:" GridPane.columnIndex="0" GridPane.rowIndex="6"
+                               styleClass="summary-label"/>
+                        <Label fx:id="summaryIdLabel" GridPane.columnIndex="1" GridPane.rowIndex="6"
+                               styleClass="code"/>
+                    </GridPane>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Nodes Tab -->
+            <Tab text="Nodes" closable="false">
+                <ScrollPane fx:id="nodesScrollPane" fitToWidth="true" styleClass="details-scroll">
+                    <VBox fx:id="nodesContainer" spacing="5" styleClass="nodes-view">
+                        <padding><Insets topRightBottomLeft="10"/></padding>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Error Tab (conditionally visible) -->
+            <Tab fx:id="errorTab" text="Error" closable="false">
+                <VBox spacing="5" styleClass="error-view">
+                    <padding><Insets topRightBottomLeft="10"/></padding>
+                    <Label text="Execution Failed" styleClass="error-title"/>
+                    <TextArea fx:id="errorTextArea" VBox.vgrow="ALWAYS"
+                              wrapText="true" editable="false"
+                              styleClass="error-textarea"/>
+                </VBox>
+            </Tab>
+
+            <!-- Timeline Tab -->
+            <Tab text="Timeline" closable="false">
+                <ScrollPane fitToWidth="true" styleClass="details-scroll">
+                    <VBox fx:id="timelineContainer" spacing="10" styleClass="timeline-view">
+                        <padding><Insets topRightBottomLeft="10"/></padding>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Variables Tab -->
+            <Tab text="Variables" closable="false">
+                <TableView fx:id="variablesTable" styleClass="variables-table">
+                    <placeholder>
+                        <Label text="No output variables."/>
+                    </placeholder>
+                    <columnResizePolicy>
+                        <TableView fx:constant="CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN"/>
+                    </columnResizePolicy>
+                    <columns>
+                        <TableColumn fx:id="variableNameColumn" text="Variable" prefWidth="120"/>
+                        <TableColumn fx:id="variableValueColumn" text="Value" prefWidth="280"/>
+                    </columns>
+                </TableView>
+            </Tab>
+        </TabPane>
+    </VBox>
+
+</fx:root>

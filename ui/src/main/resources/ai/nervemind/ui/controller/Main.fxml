@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:id="rootPane"
+            fx:controller="ai.nervemind.ui.view.MainViewController"
+            styleClass="root-pane">
+
+    <!-- Top Menu Bar -->
+    <top>
+        <VBox>
+            <MenuBar>
+                <Menu fx:id="menuFile" text="File">
+                    <MenuItem text="New Workflow" onAction="#onNewWorkflow" accelerator="Ctrl+N"/>
+                    <MenuItem text="Open Workflow..." onAction="#onOpenWorkflow" accelerator="Ctrl+O"/>
+                    <MenuItem text="Delete Workflow..." onAction="#onDeleteWorkflow"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Save" onAction="#onSaveWorkflow" accelerator="Ctrl+S"/>
+                    <MenuItem text="Save As..." onAction="#onSaveAs" accelerator="Ctrl+Shift+S"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Import..." onAction="#onImportWorkflow"/>
+                    <MenuItem text="Export..." onAction="#onExportWorkflow"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Exit" onAction="#onExit" accelerator="Alt+F4"/>
+                </Menu>
+                <Menu fx:id="menuEdit" text="Edit">
+                    <MenuItem text="Undo" onAction="#onUndo" accelerator="Ctrl+Z"/>
+                    <MenuItem text="Redo" onAction="#onRedo" accelerator="Ctrl+Y"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Cut" onAction="#onCut" accelerator="Ctrl+X"/>
+                    <MenuItem text="Copy" onAction="#onCopy" accelerator="Ctrl+C"/>
+                    <MenuItem text="Paste" onAction="#onPaste" accelerator="Ctrl+V"/>
+                    <MenuItem text="Delete" onAction="#onDelete" accelerator="Delete"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Select All" onAction="#onSelectAll" accelerator="Ctrl+A"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Expression Editor..." onAction="#onShowExpressionEditor" accelerator="Ctrl+E"/>
+                </Menu>
+                <Menu fx:id="menuView" text="View">
+                    <MenuItem text="Zoom In" onAction="#onZoomIn" accelerator="Ctrl+Plus"/>
+                    <MenuItem text="Zoom Out" onAction="#onZoomOut" accelerator="Ctrl+Minus"/>
+                    <MenuItem text="Reset Zoom" onAction="#onResetZoom" accelerator="Ctrl+0"/>
+                    <SeparatorMenuItem/>
+                    <CheckMenuItem fx:id="menuShowGrid" text="Show Grid" onAction="#onToggleShowGrid" selected="true"/>
+                    <CheckMenuItem fx:id="menuSnapToGrid" text="Snap to Grid" onAction="#onToggleSnapToGrid" selected="true"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Fit to Window" onAction="#onFitToWindow" accelerator="Ctrl+1"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Execution Console" onAction="#onShowExecutionConsole" accelerator="Ctrl+`"/>
+                    <MenuItem text="Execution History" onAction="#onShowExecutionHistory" accelerator="Ctrl+H"/>
+                </Menu>
+                <Menu fx:id="menuWorkflow" text="Workflow">
+                    <MenuItem text="Run" onAction="#onRunWorkflow" accelerator="F5"/>
+                    <MenuItem text="Stop" onAction="#onStopWorkflow" accelerator="Shift+F5"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Validate" onAction="#onValidateWorkflow"/>
+                    <MenuItem text="Clear Execution Data" onAction="#onClearExecutionData"/>
+                </Menu>
+                <Menu fx:id="menuTools" text="Tools">
+                    <MenuItem text="Plugin Manager..." onAction="#onShowPluginManager"/>
+                </Menu>
+                <Menu fx:id="menuDeveloper" text="Developer" visible="false">
+                    <MenuItem text="Copy Node JSON" onAction="#onCopyNodeJson" accelerator="Ctrl+Shift+J"/>
+                    <MenuItem text="Inspect Expression Context" onAction="#onInspectExpressionContext"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Show Timing Summary" onAction="#onShowTimingSummary"/>
+                    <MenuItem text="Show HTTP Logs" onAction="#onShowHttpLogs"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Export Debug Bundle..." onAction="#onExportDebugBundle"/>
+                </Menu>
+                <Menu fx:id="menuHelp" text="Help">
+                    <MenuItem text="Sample Workflows..." onAction="#onShowSamples"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="Documentation" onAction="#onShowDocumentation"/>
+                    <MenuItem text="Keyboard Shortcuts" onAction="#onShowKeyboardShortcuts"/>
+                    <SeparatorMenuItem/>
+                    <MenuItem text="About NerveMind" onAction="#onShowAbout"/>
+                </Menu>
+            </MenuBar>
+
+            <!-- Toolbar -->
+            <ToolBar styleClass="main-toolbar">
+                <Button fx:id="btnNewWorkflow" text="New" onAction="#onNewWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnOpenWorkflow" text="Open" onAction="#onOpenWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnSaveWorkflow" text="Save" onAction="#onSaveWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnRunWorkflow" text="Run" onAction="#onRunWorkflow" styleClass="toolbar-button, run-button"/>
+                <Region HBox.hgrow="ALWAYS"/>
+                <TextField promptText="Search nodes..." prefWidth="200"/>
+            </ToolBar>
+        </VBox>
+    </top>
+
+    <!-- Left Sidebar Navigation -->
+    <left>
+        <VBox fx:id="sidebarNav" styleClass="sidebar" spacing="5" prefWidth="60">
+            <padding>
+                <Insets top="10" right="5" bottom="10" left="5"/>
+            </padding>
+            <Button fx:id="btnWorkflows" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Workflows"/></tooltip>
+            </Button>
+            <Button fx:id="btnExecutions" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Executions"/></tooltip>
+            </Button>
+            <Button fx:id="btnExecutionConsole" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Execution Console"/></tooltip>
+            </Button>
+            <Button fx:id="btnCredentials" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Credentials"/></tooltip>
+            </Button>
+            <Button fx:id="btnPlugins" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Plugins"/></tooltip>
+            </Button>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button fx:id="btnSettings" styleClass="sidebar-button">
+                <tooltip><Tooltip text="Settings"/></tooltip>
+            </Button>
+        </VBox>
+    </left>
+
+    <!-- Main Content Area -->
+    <center>
+        <StackPane fx:id="contentArea" styleClass="content-area">
+            <!-- Content loaded dynamically -->
+        </StackPane>
+    </center>
+
+    <!-- Bottom Status Bar -->
+    <bottom>
+        <HBox styleClass="status-bar" spacing="10" alignment="CENTER_LEFT">
+            <padding>
+                <Insets top="5" right="10" bottom="5" left="10"/>
+            </padding>
+            <Label fx:id="statusLabel" text="Ready"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="pythonStatusLabel" text="🐍 Python" styleClass="python-status"/>
+            <Label styleClass="status-separator" text="|"/>
+            <Label text="NerveMind v0.1.0"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

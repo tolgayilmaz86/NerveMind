@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.WorkflowSettingsController"
+      styleClass="workflow-settings-dialog" spacing="15" prefWidth="450" prefHeight="350">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    
+    <!-- Header -->
+    <VBox spacing="5">
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <FontIcon iconLiteral="mdi2c-cog" iconSize="24" styleClass="workflow-settings-dialog__header-icon"/>
+            <Label text="Workflow Settings" styleClass="workflow-settings-dialog__header-label"/>
+        </HBox>
+        <Label text="Configure your workflow properties" styleClass="workflow-settings-dialog__description"/>
+    </VBox>
+    
+    <!-- Form Grid -->
+    <GridPane hgap="10" vgap="15" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="10" bottom="10"/>
+        </padding>
+        <columnConstraints>
+            <ColumnConstraints minWidth="90" halignment="RIGHT"/>
+            <ColumnConstraints hgrow="ALWAYS" minWidth="250"/>
+        </columnConstraints>
+        <rowConstraints>
+            <RowConstraints/>
+            <RowConstraints vgrow="ALWAYS"/>
+            <RowConstraints/>
+        </rowConstraints>
+        
+        <!-- Name -->
+        <Label text="Name:" styleClass="workflow-settings-dialog__label" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+        <TextField fx:id="nameField" promptText="Enter workflow name" 
+                   styleClass="workflow-settings-dialog__input" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        
+        <!-- Description -->
+        <Label text="Description:" styleClass="workflow-settings-dialog__label" 
+               GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.valignment="TOP"/>
+        <TextArea fx:id="descriptionArea" promptText="Optional description of what this workflow does" 
+                  prefRowCount="3" wrapText="true"
+                  styleClass="workflow-settings-dialog__textarea" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        
+        <!-- Active -->
+        <VBox spacing="5" GridPane.rowIndex="2" GridPane.columnIndex="1">
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <FontIcon iconLiteral="mdi2p-play-circle" iconSize="18" styleClass="workflow-settings-dialog__active-icon"/>
+                <CheckBox fx:id="activeCheckbox" text="Active" styleClass="workflow-settings-dialog__checkbox"/>
+            </HBox>
+            <Label text="When active, background triggers (File, Schedule, Webhook) will automatically start the workflow when their conditions are met."
+                   styleClass="workflow-settings-dialog__hint" wrapText="true" maxWidth="300"/>
+        </VBox>
+    </GridPane>
+    
+    <!-- Buttons -->
+    <HBox spacing="10" alignment="CENTER_RIGHT">
+        <Button fx:id="cancelButton" text="Cancel" onAction="#handleCancel" 
+                styleClass="dialog__button-secondary"/>
+        <Button fx:id="saveButton" text="Save" onAction="#handleSave" 
+                styleClass="dialog__button-primary"/>
+    </HBox>
+</VBox>

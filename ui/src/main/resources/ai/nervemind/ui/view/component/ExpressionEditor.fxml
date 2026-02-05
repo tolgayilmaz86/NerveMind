@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<!--
+    ExpressionEditor Component
+    
+    A rich expression editor with:
+    - Toolbar with Variable, Function, and Help buttons
+    - TextArea for expression input with Ctrl+Space suggestions
+    - Validation label showing errors or success
+    
+    The suggestions popup is created programmatically (not in FXML)
+    because Popup cannot be declared in FXML.
+-->
+<fx:root type="javafx.scene.layout.VBox"
+         xmlns="http://javafx.com/javafx/21"
+         xmlns:fx="http://javafx.com/fxml/1"
+         styleClass="expression-editor"
+         stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/components/expression-editor.css"
+         spacing="8">
+
+    <!-- Toolbar -->
+    <HBox styleClass="expression-editor__toolbar" alignment="CENTER_LEFT" spacing="8">
+        <Label text="Expression:" styleClass="expression-editor__label"/>
+        
+        <Region HBox.hgrow="ALWAYS"/>
+        
+        <Button fx:id="variableButton" 
+                styleClass="expression-editor__button"
+                onAction="#onInsertVariable">
+            <graphic>
+                <FontIcon iconLiteral="mdi2v-variable" iconSize="14"/>
+            </graphic>
+            <text>Variable</text>
+            <tooltip>
+                <Tooltip text="Insert a variable reference"/>
+            </tooltip>
+        </Button>
+        
+        <Button fx:id="functionButton" 
+                styleClass="expression-editor__button"
+                onAction="#onInsertFunction">
+            <graphic>
+                <FontIcon iconLiteral="mdi2f-function" iconSize="14"/>
+            </graphic>
+            <text>Function</text>
+            <tooltip>
+                <Tooltip text="Insert a function"/>
+            </tooltip>
+        </Button>
+        
+        <Button fx:id="helpButton" 
+                styleClass="expression-editor__help-button"
+                onAction="#onShowHelp">
+            <graphic>
+                <FontIcon iconLiteral="mdi2h-help-circle-outline" iconSize="18"/>
+            </graphic>
+            <tooltip>
+                <Tooltip text="Expression help"/>
+            </tooltip>
+        </Button>
+    </HBox>
+
+    <!-- Expression Input -->
+    <TextArea fx:id="expressionArea"
+              styleClass="expression-editor__input"
+              VBox.vgrow="ALWAYS"
+              wrapText="true"
+              onKeyPressed="#onKeyPressed"/>
+
+    <!-- Validation Label -->
+    <Label fx:id="validationLabel"
+           styleClass="expression-editor__validation"
+           managed="false"
+           visible="false"/>
+
+</fx:root>

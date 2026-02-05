@@ -1,0 +1,423 @@
+{
+    "id": "15-security-incident-responder",
+    "name": "Security Incident Responder",
+    "description": "Automated SOC triage workflow that ingests security alerts, enriches them with threat intelligence, and uses AI to determine severity. Demonstrates Python scripting, webhook triggers, HTTP requests, switch routing, and automated incident response.",
+    "category": "Enterprise Security",
+    "difficulty": "advanced",
+    "language": "python",
+    "tags": [
+        "security",
+        "soc",
+        "triage",
+        "webhook",
+        "ai",
+        "python",
+        "threat-intel",
+        "incident-response"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates a vital **Security Operations Center (SOC) automation**: Alert Triage.\n\n**What you'll learn:**\n- Ingesting alerts via Webhook Trigger\n- Enriching data with external threat intelligence APIs\n- Using AI (LLM) for intelligent severity classification\n- Python scripting for data parsing and logging\n- Multi-path routing based on severity\n\n**Real-world use cases:**\n- SIEM alert processing (Splunk, Datadog, Azure Sentinel)\n- Threat hunting automation\n- Incident ticket creation\n- Security team notification\n\n**Why automate triage?**\n- SOC analysts face alert fatigue (1000s of alerts/day)\n- AI can handle routine classification\n- Reduces mean time to response (MTTR)",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "The Alert Trigger",
+                "content": "We simulate a SIEM alert using a **Webhook Trigger**. In production, this would receive alerts from Splunk, Datadog, Azure Sentinel, or your SIEM of choice.\n\n**Expected payload:**\n```json\n{\n  \"ip\": \"192.168.1.100\",\n  \"type\": \"brute_force\",\n  \"timestamp\": \"2026-02-03T10:30:00Z\",\n  \"source\": \"auth_server\",\n  \"attempts\": 150\n}\n```\n\n**For testing:** Use the Manual Trigger with sample alert data.",
+                "highlightNodes": [
+                    "webhook_alert"
+                ],
+                "codeSnippet": "# Test with curl:\ncurl -X POST http://localhost:8080/webhook/security-alert \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"ip\":\"203.0.113.42\",\"type\":\"brute_force\",\"attempts\":500}'"
+            },
+            {
+                "title": "Threat Intelligence Enrichment",
+                "content": "Before making a decision, we need more context. This node queries a **threat intelligence API** to check if the IP is a known malicious actor.\n\n**What we check:**\n- Is this IP on known blocklists?\n- Has it been associated with malware?\n- What's its reputation score?\n- Geolocation and ASN info\n\n**In production:** Use services like VirusTotal, AbuseIPDB, Shodan, or GreyNoise.",
+                "highlightNodes": [
+                    "http_threat_intel"
+                ],
+                "codeSnippet": "# Example threat intel response:\n{\n  \"ip\": \"203.0.113.42\",\n  \"is_malicious\": true,\n  \"threat_score\": 85,\n  \"categories\": [\"botnet\", \"brute_force\"],\n  \"country\": \"RU\",\n  \"last_seen\": \"2026-02-02\"\n}"
+            },
+            {
+                "title": "AI-Powered Analysis",
+                "content": "Instead of static rules, we use an **LLM** to analyze the *combination* of:\n- Original alert context\n- Threat intelligence data\n- Attack type and frequency\n\nThe AI interprets the real risk level and outputs a structured severity assessment.\n\n**Why AI for triage?**\n- Handles edge cases better than rigid rules\n- Can reason about context\n- Adapts to new threat patterns\n- Explains its reasoning",
+                "highlightNodes": [
+                    "llm_triage"
+                ],
+                "codeSnippet": "# LLM prompt (simplified):\n\"Analyze this security alert and threat data.\nAssign severity: HIGH, MEDIUM, or LOW.\nOutput JSON with severity and reasoning.\"\n\n# Example output:\n{\n  \"severity\": \"HIGH\",\n  \"reasoning\": \"Known botnet IP with 500 brute force attempts\",\n  \"recommended_action\": \"Block IP, investigate target system\"\n}"
+            },
+            {
+                "title": "Parse AI Response (Python)",
+                "content": "This **Python Code node** parses the LLM's JSON output and extracts the severity field for routing.\n\n**Why Python?**\n- Robust JSON parsing with error handling\n- Easy string manipulation\n- Familiar to security analysts\n- Can add custom validation logic",
+                "highlightNodes": [
+                    "code_parse_severity"
+                ],
+                "codeSnippet": "import json\nimport re\n\n# Extract JSON from LLM response (may have markdown)\nresponse = input.get('response', '{}')\njson_match = re.search(r'\\{[^{}]*\\}', response, re.DOTALL)\n\nif json_match:\n    data = json.loads(json_match.group())\n    return {\n        'severity': data.get('severity', 'UNKNOWN'),\n        'reasoning': data.get('reasoning', ''),\n        'action': data.get('recommended_action', '')\n    }\nreturn {'severity': 'UNKNOWN', 'error': 'Failed to parse'}"
+            },
+            {
+                "title": "Severity-Based Routing",
+                "content": "The **Switch node** routes incidents to different handlers based on severity.\n\n**Routes:**\n- **HIGH** → Create Jira ticket + Page on-call + Slack alert\n- **MEDIUM** → Create Jira ticket + Slack notification\n- **LOW** → Log only (archive for analysis)\n\n**Benefits:**\n- HIGH severity wakes up the on-call team\n- MEDIUM gets queued for business hours\n- LOW reduces alert fatigue",
+                "highlightNodes": [
+                    "switch_severity"
+                ],
+                "codeSnippet": "# Switch configuration:\n{\n  \"value\": \"{{ severity }}\",\n  \"rules\": [\n    { \"value\": \"HIGH\", \"output\": 0 },\n    { \"value\": \"MEDIUM\", \"output\": 1 }\n  ],\n  \"fallbackOutput\": 2  // LOW and UNKNOWN\n}"
+            },
+            {
+                "title": "Incident Response Actions",
+                "content": "Each severity level triggers appropriate response actions:\n\n**HIGH Severity:**\n- Create P1 Jira ticket\n- Send PagerDuty alert\n- Post to #security-critical Slack channel\n\n**MEDIUM Severity:**\n- Create P2 Jira ticket\n- Post to #security-alerts Slack channel\n\n**LOW Severity:**\n- Archive to incident log for trending analysis\n\n**The Python archive node** writes all incidents to a local JSON log file for compliance and analysis.",
+                "highlightNodes": [
+                    "http_jira",
+                    "slack_notification",
+                    "archive_log"
+                ],
+                "codeSnippet": "# Archive log entry (Python):\nimport json\nfrom datetime import datetime\n\nincident = {\n    'timestamp': datetime.now().isoformat(),\n    'ip': input.get('ip'),\n    'type': input.get('type'),\n    'severity': input.get('severity'),\n    'threat_score': input.get('threat_score'),\n    'action_taken': input.get('action', 'archived')\n}\n\n# In production: Write to file or send to SIEM\nreturn {'archived': incident}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Testing with Manual Trigger:**\n1. Click Run (F5) to process the sample alert\n2. Watch the Console for triage results\n3. Modify the sample data to test different severities\n\n**Testing with Webhook:**\n1. Enable the Webhook Trigger node\n2. Activate the workflow (toolbar toggle)\n3. Send POST requests to `/webhook/security-alert`\n\n**Customizing for your SOC:**\n- Replace mock APIs with real threat intel services\n- Configure actual Jira/Slack integrations\n- Add more severity levels (CRITICAL, INFO)\n- Integrate with your SIEM for real alerts",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Security Incident Responder",
+        "description": "Automated SOC triage with AI-powered severity classification",
+        "nodes": [
+            {
+                "id": "trigger_manual",
+                "type": "manualTrigger",
+                "name": "Test Trigger",
+                "position": {
+                    "x": 100,
+                    "y": 150
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Use for testing without webhook"
+            },
+            {
+                "id": "code_sample_alert",
+                "type": "code",
+                "name": "Sample Alert",
+                "position": {
+                    "x": 300,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Simulate an incoming security alert from SIEM\n# Change these values to test different scenarios\n\nfrom datetime import datetime\n\nreturn {\n    'ip': '203.0.113.42',\n    'type': 'brute_force',\n    'timestamp': datetime.now().isoformat(),\n    'source': 'auth_server_prod',\n    'attempts': 500,\n    'target_user': 'admin',\n    'geo_hint': 'Unknown location'\n}"
+                },
+                "disabled": false,
+                "notes": "Edit to test different alert types"
+            },
+            {
+                "id": "webhook_alert",
+                "type": "webhookTrigger",
+                "name": "Security Alert Webhook",
+                "position": {
+                    "x": 100,
+                    "y": 350
+                },
+                "parameters": {
+                    "path": "/security-alert",
+                    "method": "POST",
+                    "responseMode": "onReceived"
+                },
+                "disabled": true,
+                "notes": "Enable for production use with SIEM integration"
+            },
+            {
+                "id": "merge_triggers",
+                "type": "merge",
+                "name": "Merge Triggers",
+                "position": {
+                    "x": 500,
+                    "y": 250
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "waitForAll": false
+                },
+                "disabled": false,
+                "notes": "Combines manual test and webhook inputs"
+            },
+            {
+                "id": "http_threat_intel",
+                "type": "httpRequest",
+                "name": "Threat Intel Lookup",
+                "position": {
+                    "x": 700,
+                    "y": 250
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/post",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "{\"ip\": \"{{ ip }}\", \"check\": \"reputation\"}",
+                    "timeout": 10000
+                },
+                "disabled": false,
+                "notes": "Replace with real threat intel API (VirusTotal, AbuseIPDB)"
+            },
+            {
+                "id": "code_enrich",
+                "type": "code",
+                "name": "Simulate Threat Intel",
+                "position": {
+                    "x": 900,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Simulate threat intelligence response\n# In production, parse real API response\n\nimport random\n\nip = input.get('ip', 'unknown')\nattempts = input.get('attempts', 0)\n\n# Simulate threat scoring based on attempts\nthreat_score = min(100, attempts // 5)\nis_malicious = threat_score > 50 or random.random() > 0.7\n\nreturn {\n    **input,  # Keep original alert data\n    'threat_intel': {\n        'ip': ip,\n        'is_malicious': is_malicious,\n        'threat_score': threat_score,\n        'categories': ['brute_force', 'botnet'] if is_malicious else [],\n        'country': 'RU' if is_malicious else 'US',\n        'reputation': 'bad' if is_malicious else 'neutral',\n        'last_seen_malicious': '2026-02-01' if is_malicious else None\n    }\n}"
+                },
+                "disabled": false,
+                "notes": "Simulates threat intel - replace with real API parsing"
+            },
+            {
+                "id": "llm_triage",
+                "type": "llmChat",
+                "name": "AI Triage Analysis",
+                "position": {
+                    "x": 1100,
+                    "y": 250
+                },
+                "parameters": {
+                    "systemPrompt": "You are a Security Operations Center (SOC) analyst AI. Analyze security alerts and assign severity levels.\n\nSeverity Definitions:\n- HIGH: Active attack, known malicious actor, high threat score, critical systems targeted\n- MEDIUM: Suspicious activity, moderate threat score, needs investigation\n- LOW: Likely false positive, low threat score, routine scanning\n\nOutput ONLY valid JSON with these fields:\n{\n  \"severity\": \"HIGH|MEDIUM|LOW\",\n  \"reasoning\": \"Brief explanation\",\n  \"recommended_action\": \"What to do next\"\n}",
+                    "userPrompt": "Analyze this security alert:\n\nAlert Type: {{ type }}\nSource IP: {{ ip }}\nAttempts: {{ attempts }}\nTarget: {{ target_user }}\nSource System: {{ source }}\n\nThreat Intelligence:\n- Malicious: {{ threat_intel.is_malicious }}\n- Threat Score: {{ threat_intel.threat_score }}/100\n- Categories: {{ threat_intel.categories }}\n- Country: {{ threat_intel.country }}\n- Reputation: {{ threat_intel.reputation }}\n\nProvide your severity assessment as JSON.",
+                    "model": "gpt-3.5-turbo",
+                    "temperature": 0.3,
+                    "maxTokens": 500
+                },
+                "disabled": false,
+                "notes": "Uses AI to classify severity - configure your LLM provider"
+            },
+            {
+                "id": "code_parse_severity",
+                "type": "code",
+                "name": "Parse AI Response",
+                "position": {
+                    "x": 1300,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import json\nimport re\n\n# Get LLM response\nresponse = input.get('response', input.get('content', '{}'))\n\n# Extract JSON from response (LLM may include markdown)\njson_match = re.search(r'\\{[^{}]*\"severity\"[^{}]*\\}', response, re.DOTALL | re.IGNORECASE)\n\nif json_match:\n    try:\n        data = json.loads(json_match.group())\n        severity = data.get('severity', 'UNKNOWN').upper()\n        # Validate severity level\n        if severity not in ['HIGH', 'MEDIUM', 'LOW']:\n            severity = 'UNKNOWN'\n        return {\n            **input,\n            'severity': severity,\n            'reasoning': data.get('reasoning', 'No reasoning provided'),\n            'recommended_action': data.get('recommended_action', 'Manual review required')\n        }\n    except json.JSONDecodeError:\n        pass\n\n# Fallback: assign based on threat score\nthreat_score = input.get('threat_intel', {}).get('threat_score', 0)\nif threat_score > 70:\n    fallback_severity = 'HIGH'\nelif threat_score > 40:\n    fallback_severity = 'MEDIUM'\nelse:\n    fallback_severity = 'LOW'\n\nreturn {\n    **input,\n    'severity': fallback_severity,\n    'reasoning': f'Fallback classification based on threat score {threat_score}',\n    'recommended_action': 'AI parsing failed - manual review recommended'\n}"
+                },
+                "disabled": false,
+                "notes": "Extracts severity from AI response with fallback logic"
+            },
+            {
+                "id": "switch_severity",
+                "type": "switch",
+                "name": "Route by Severity",
+                "position": {
+                    "x": 1500,
+                    "y": 250
+                },
+                "parameters": {
+                    "value": "{{ severity }}",
+                    "rules": [
+                        {
+                            "value": "HIGH",
+                            "output": 0
+                        },
+                        {
+                            "value": "MEDIUM",
+                            "output": 1
+                        }
+                    ],
+                    "fallbackOutput": 2
+                },
+                "disabled": false,
+                "notes": "Routes incidents based on AI-determined severity"
+            },
+            {
+                "id": "http_jira",
+                "type": "httpRequest",
+                "name": "Create Jira Ticket",
+                "position": {
+                    "x": 1700,
+                    "y": 100
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/post",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "{\"project\": \"SEC\", \"type\": \"Incident\", \"priority\": \"{{ severity }}\", \"summary\": \"Security Alert: {{ type }} from {{ ip }}\", \"description\": \"{{ reasoning }}\"}",
+                    "timeout": 10000
+                },
+                "disabled": false,
+                "notes": "Replace with actual Jira API endpoint"
+            },
+            {
+                "id": "slack_notification",
+                "type": "httpRequest",
+                "name": "Slack Alert",
+                "position": {
+                    "x": 1900,
+                    "y": 100
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/post",
+                    "method": "POST",
+                    "headers": {
+                        "Content-Type": "application/json"
+                    },
+                    "body": "{\"channel\": \"#security-critical\", \"text\": \"🚨 *{{ severity }} SECURITY ALERT*\\n\\nIP: {{ ip }}\\nType: {{ type }}\\nReason: {{ reasoning }}\\nAction: {{ recommended_action }}\"}",
+                    "timeout": 5000
+                },
+                "disabled": false,
+                "notes": "Replace with actual Slack webhook URL"
+            },
+            {
+                "id": "code_high_handler",
+                "type": "code",
+                "name": "HIGH: Page On-Call",
+                "position": {
+                    "x": 2100,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nprint('🚨 HIGH SEVERITY INCIDENT - Paging on-call team!')\n\nreturn {\n    'incident_id': f\"INC-{datetime.now().strftime('%Y%m%d%H%M%S')}\",\n    'severity': 'HIGH',\n    'status': 'escalated',\n    'actions_taken': [\n        'Jira ticket created (P1)',\n        'Slack alert sent to #security-critical',\n        'PagerDuty notification triggered',\n        'On-call team paged'\n    ],\n    'sla': '15 minutes response',\n    'original_alert': {\n        'ip': input.get('ip'),\n        'type': input.get('type'),\n        'attempts': input.get('attempts')\n    },\n    'ai_analysis': {\n        'reasoning': input.get('reasoning'),\n        'recommended_action': input.get('recommended_action')\n    },\n    'processed_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Handles HIGH severity incidents"
+            },
+            {
+                "id": "code_medium_handler",
+                "type": "code",
+                "name": "MEDIUM: Queue Ticket",
+                "position": {
+                    "x": 1700,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\nprint('⚠️ MEDIUM SEVERITY - Ticket queued for review')\n\nreturn {\n    'incident_id': f\"INC-{datetime.now().strftime('%Y%m%d%H%M%S')}\",\n    'severity': 'MEDIUM',\n    'status': 'queued',\n    'actions_taken': [\n        'Jira ticket created (P2)',\n        'Added to security review queue',\n        'Slack notification sent'\n    ],\n    'sla': '4 hours response',\n    'original_alert': {\n        'ip': input.get('ip'),\n        'type': input.get('type')\n    },\n    'processed_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Handles MEDIUM severity incidents"
+            },
+            {
+                "id": "archive_log",
+                "type": "code",
+                "name": "Archive to Log",
+                "position": {
+                    "x": 1700,
+                    "y": 400
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import json\nfrom datetime import datetime\n\nprint('📋 LOW SEVERITY - Archiving for analysis')\n\n# Create structured log entry\nlog_entry = {\n    'timestamp': datetime.now().isoformat(),\n    'incident_id': f\"LOG-{datetime.now().strftime('%Y%m%d%H%M%S')}\",\n    'severity': input.get('severity', 'LOW'),\n    'alert': {\n        'ip': input.get('ip'),\n        'type': input.get('type'),\n        'attempts': input.get('attempts'),\n        'source': input.get('source')\n    },\n    'threat_intel': input.get('threat_intel', {}),\n    'ai_analysis': {\n        'reasoning': input.get('reasoning', 'N/A'),\n        'recommended_action': input.get('recommended_action', 'N/A')\n    },\n    'disposition': 'archived_for_trending'\n}\n\n# In production: Write to file or send to SIEM\n# with open('security_incidents.json', 'a') as f:\n#     f.write(json.dumps(log_entry) + '\\n')\n\nreturn {\n    'status': 'archived',\n    'log_entry': log_entry,\n    'message': 'Incident logged for trending analysis'\n}"
+                },
+                "disabled": false,
+                "notes": "Archives LOW severity incidents for trending analysis"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_manual",
+                "sourceOutput": "main",
+                "targetNodeId": "code_sample_alert",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_sample_alert",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "webhook_alert",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "merge_triggers",
+                "sourceOutput": "main",
+                "targetNodeId": "http_threat_intel",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "http_threat_intel",
+                "sourceOutput": "main",
+                "targetNodeId": "code_enrich",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "code_enrich",
+                "sourceOutput": "main",
+                "targetNodeId": "llm_triage",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "llm_triage",
+                "sourceOutput": "main",
+                "targetNodeId": "code_parse_severity",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "code_parse_severity",
+                "sourceOutput": "main",
+                "targetNodeId": "switch_severity",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "switch_severity",
+                "sourceOutput": "output_0",
+                "targetNodeId": "http_jira",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_10",
+                "sourceNodeId": "http_jira",
+                "sourceOutput": "main",
+                "targetNodeId": "slack_notification",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_11",
+                "sourceNodeId": "slack_notification",
+                "sourceOutput": "main",
+                "targetNodeId": "code_high_handler",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_12",
+                "sourceNodeId": "switch_severity",
+                "sourceOutput": "output_1",
+                "targetNodeId": "code_medium_handler",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_13",
+                "sourceNodeId": "switch_severity",
+                "sourceOutput": "output_2",
+                "targetNodeId": "archive_log",
+                "targetInput": "main"
+            }
+        ]
+    }
+}

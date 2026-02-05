@@ -1,0 +1,148 @@
+/*
+ * NerveMind - Expression Editor Styles
+ * 
+ * Styles for the ExpressionEditor component.
+ * Replaces inline setStyle() calls in ExpressionEditor.java.
+ */
+
+/* ===== Expression Editor Container ===== */
+.expression-editor {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #404040;
+    -fx-border-radius: 5px;
+    -fx-background-radius: 5px;
+    -fx-padding: 10px;
+    -fx-spacing: 8px;
+}
+
+/* ===== Toolbar ===== */
+.expression-editor__toolbar {
+    -fx-alignment: center-left;
+    -fx-spacing: 8px;
+    -fx-padding: 0 0 5px 0;
+}
+
+.expression-editor__label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #e5e5e5;
+}
+
+/* ===== Toolbar Buttons ===== */
+.expression-editor__button {
+    -fx-background-color: #3b3b3b;
+    -fx-text-fill: #e5e5e5;
+    -fx-font-size: 11px;
+    -fx-background-radius: 4px;
+    -fx-padding: 4px 8px;
+    -fx-cursor: hand;
+}
+
+.expression-editor__button:hover {
+    -fx-background-color: #4b4b4b;
+}
+
+.expression-editor__button:pressed {
+    -fx-background-color: #2b2b2b;
+}
+
+.expression-editor__help-button {
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+}
+
+.expression-editor__help-button:hover {
+    -fx-background-color: #3b3b3b;
+    -fx-background-radius: 4px;
+}
+
+/* ===== Expression Input ===== */
+.expression-editor__input {
+    -fx-font-family: 'Consolas', 'Courier New', monospace;
+    -fx-font-size: 13px;
+    -fx-control-inner-background: #252525;
+    -fx-text-fill: #d4d4d4;
+    -fx-prompt-text-fill: #6b6b6b;
+    -fx-background-radius: 4px;
+}
+
+.expression-editor__input:focused {
+    -fx-border-color: -nervemind-accent-blue;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+.expression-editor__input--invalid {
+    -fx-border-color: #ef4444;
+    -fx-border-width: 1px;
+}
+
+/* ===== Validation Label ===== */
+.expression-editor__validation {
+    -fx-font-size: 11px;
+}
+
+.expression-editor__validation--valid {
+    -fx-text-fill: #22c55e;
+}
+
+.expression-editor__validation--invalid {
+    -fx-text-fill: #ef4444;
+}
+
+/* ===== Suggestions Popup ===== */
+.expression-editor__suggestions {
+    -fx-background-color: #2a2a2a;
+    -fx-border-color: #404040;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.3), 10, 0, 0, 4);
+}
+
+.expression-editor__suggestions .list-view {
+    -fx-background-color: #2a2a2a;
+}
+
+.expression-editor__suggestions .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #e5e5e5;
+    -fx-padding: 6px 10px;
+}
+
+.expression-editor__suggestions .list-cell:hover {
+    -fx-background-color: #3b3b3b;
+}
+
+.expression-editor__suggestions .list-cell:selected {
+    -fx-background-color: -nervemind-accent-blue;
+    -fx-text-fill: white;
+}
+
+/* ===== Suggestion Items ===== */
+.expression-editor__suggestion--variable {
+    -fx-text-fill: #a855f7;
+}
+
+.expression-editor__suggestion--function {
+    -fx-text-fill: #3b82f6;
+}
+
+/* ===== Syntax Highlighting (for future use) ===== */
+.expression-syntax--variable {
+    -fx-fill: #a855f7;
+}
+
+.expression-syntax--function {
+    -fx-fill: #3b82f6;
+}
+
+.expression-syntax--string {
+    -fx-fill: #22c55e;
+}
+
+.expression-syntax--number {
+    -fx-fill: #f97316;
+}
+
+.expression-syntax--operator {
+    -fx-fill: #94a3b8;
+}

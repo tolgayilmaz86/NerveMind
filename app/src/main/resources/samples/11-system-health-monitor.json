@@ -1,0 +1,450 @@
+{
+    "id": "sample-system-health-monitor",
+    "name": "System Health Monitor",
+    "description": "Automated DevOps workflow that runs daily health checks on your system. Demonstrates scheduled triggers, parallel execution, shell commands, filtering, and conditional alerting.",
+    "category": "DevOps",
+    "difficulty": "advanced",
+    "language": "javascript",
+    "tags": [
+        "schedule",
+        "parallel",
+        "execute-command",
+        "filter",
+        "devops",
+        "monitoring",
+        "automation"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates a **DevOps automation pattern** - running scheduled health checks and alerting on failures.\n\n**What you'll learn:**\n- Using Schedule Triggers with cron expressions\n- Parallel node for concurrent execution\n- Execute Command for shell operations\n- Filter node for data processing\n- If node for conditional alerting\n\n**Use cases:**\n- Morning system health checks\n- Infrastructure monitoring\n- Automated reporting\n- Incident detection",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Schedule Trigger",
+                "content": "The Schedule Trigger runs the workflow automatically based on a cron expression.\n\n**Configuration:**\n- `0 8 * * *` = Every day at 8:00 AM\n- `*/5 * * * *` = Every 5 minutes\n- `0 0 * * 0` = Every Sunday at midnight\n\n**For testing:** A Manual Trigger is also included so you can run checks on-demand.",
+                "highlightNodes": [
+                    "schedule_1"
+                ],
+                "codeSnippet": "// Cron expression format:\n// ┌───────────── minute (0-59)\n// │ ┌───────────── hour (0-23)\n// │ │ ┌───────────── day of month (1-31)\n// │ │ │ ┌───────────── month (1-12)\n// │ │ │ │ ┌───────────── day of week (0-6)\n// │ │ │ │ │\n// * * * * *\n\n\"0 8 * * *\"  // Every day at 8 AM"
+            },
+            {
+                "title": "Parallel Health Checks",
+                "content": "The Parallel node executes multiple checks **simultaneously**, reducing total execution time.\n\n**Why parallel?**\n- Network checks may take 5+ seconds each\n- Running 3 checks sequentially = 15+ seconds\n- Running 3 checks in parallel = ~5 seconds\n\n**Checks configured:**\n1. Internet connectivity (ping)\n2. Disk space usage\n3. Internal API health",
+                "highlightNodes": [
+                    "parallel_1"
+                ],
+                "codeSnippet": "// Parallel execution flow:\n//\n//     ┌── Check 1 (ping) ──┐\n// ──▶ ├── Check 2 (disk)  ──├──▶ Merge Results\n//     └── Check 3 (api)  ───┘\n//\n// Total time = max(check1, check2, check3)"
+            },
+            {
+                "title": "Execute Command Nodes",
+                "content": "Execute Command nodes run shell commands on the host system.\n\n**Security note:** Be careful with user input - never pass untrusted data to shell commands.\n\n**Commands used:**\n- **Ping**: Tests internet connectivity\n- **Disk**: Checks available disk space\n- **API**: Uses curl to check an endpoint",
+                "highlightNodes": [
+                    "cmd_ping",
+                    "cmd_disk",
+                    "cmd_api"
+                ],
+                "codeSnippet": "// Windows disk check:\nwmic logicaldisk get size,freespace,caption\n\n// Linux disk check:\ndf -h /\n\n// The Code node after parses the output"
+            },
+            {
+                "id": "step_filter",
+                "title": "Filter Failed Checks",
+                "content": "The Filter node removes successful checks, keeping only failures for alerting.\n\n**Configuration:**\n- Condition: `{{ status }} != 'OK'`\n- Only items where status is NOT 'OK' pass through\n\n**Why filter?**\n- Reduces noise - only alert on problems\n- Makes reports more actionable\n- Simplifies downstream logic",
+                "highlightNodes": [
+                    "filter_1"
+                ],
+                "codeSnippet": "// Input (all checks):\n[\n  { \"check\": \"ping\", \"status\": \"OK\" },\n  { \"check\": \"disk\", \"status\": \"WARNING\" },\n  { \"check\": \"api\", \"status\": \"OK\" }\n]\n\n// Output (after filter):\n[\n  { \"check\": \"disk\", \"status\": \"WARNING\" }\n]"
+            },
+            {
+                "title": "Conditional Alerting",
+                "content": "The If node checks if any failures exist before sending alerts.\n\n**Logic:**\n- If failures exist → Send alert notification\n- If all OK → Log success, no alert needed\n\n**In production, you might:**\n- Send Slack/Teams notifications\n- Create PagerDuty incidents\n- Send email reports\n- Update a dashboard",
+                "highlightNodes": [
+                    "if_alert"
+                ],
+                "codeSnippet": "// Condition:\n{{ failureCount }} > 0\n\n// True path: Send alerts\n// False path: Log success"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Testing manually:**\n1. Click Run (or press F5)\n2. Watch the parallel checks execute\n3. Check the Console for results\n\n**Enabling scheduled runs:**\n1. The Schedule Trigger is disabled by default\n2. Enable it by editing the node (disabled: false)\n3. Activate the workflow (toggle in toolbar)\n4. The workflow will run at the scheduled time\n\n**Customizing:**\n- Add more checks in the Parallel node\n- Adjust the cron schedule\n- Replace mock alerts with real notifications\n- Add more sophisticated parsing logic",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "System Health Monitor",
+        "description": "Daily automated health checks with parallel execution",
+        "nodes": [
+            {
+                "id": "trigger_manual",
+                "type": "manualTrigger",
+                "name": "Run Now",
+                "position": {
+                    "x": 100,
+                    "y": 150
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Click to run health checks immediately"
+            },
+            {
+                "id": "schedule_1",
+                "type": "scheduleTrigger",
+                "name": "Daily 8 AM",
+                "position": {
+                    "x": 100,
+                    "y": 300
+                },
+                "parameters": {
+                    "cronExpression": "0 8 * * *",
+                    "timezone": "America/New_York"
+                },
+                "disabled": true,
+                "notes": "Enable this for production scheduled runs"
+            },
+            {
+                "id": "merge_trigger",
+                "type": "merge",
+                "name": "Start Checks",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "waitForAll": false
+                },
+                "disabled": false,
+                "notes": "Combines manual and scheduled triggers - waitForAll=false means proceed with first trigger"
+            },
+            {
+                "id": "parallel_1",
+                "type": "parallel",
+                "name": "Parallel Checks",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "branches": 3,
+                    "waitForAll": true
+                },
+                "disabled": false,
+                "notes": "Runs all health checks simultaneously"
+            },
+            {
+                "id": "cmd_ping",
+                "type": "executeCommand",
+                "name": "Check Internet",
+                "position": {
+                    "x": 700,
+                    "y": 100
+                },
+                "parameters": {
+                    "command": "ping -n 1 8.8.8.8",
+                    "timeout": 10,
+                    "shell": "cmd"
+                },
+                "disabled": false,
+                "notes": "Pings Google DNS to verify internet connectivity"
+            },
+            {
+                "id": "cmd_disk",
+                "type": "executeCommand",
+                "name": "Check Disk",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "command": "wmic logicaldisk get caption,freespace,size",
+                    "timeout": 10,
+                    "shell": "cmd"
+                },
+                "disabled": false,
+                "notes": "Checks disk space on Windows"
+            },
+            {
+                "id": "cmd_api",
+                "type": "httpRequest",
+                "name": "Check API",
+                "position": {
+                    "x": 700,
+                    "y": 300
+                },
+                "parameters": {
+                    "url": "https://httpbin.org/get",
+                    "method": "GET",
+                    "timeout": 10
+                },
+                "disabled": false,
+                "notes": "Checks if a test API endpoint responds"
+            },
+            {
+                "id": "code_parse",
+                "type": "code",
+                "name": "Parse Results",
+                "position": {
+                    "x": 900,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Parse ping result\nconst output = input.stdout || '';\nconst success = output.includes('Reply from') || output.includes('bytes=');\n\nreturn {\n  check: 'internet',\n  status: success ? 'OK' : 'FAILED',\n  message: success ? 'Internet connectivity OK' : 'Cannot reach internet',\n  raw: output.substring(0, 200)\n};"
+                },
+                "disabled": false,
+                "notes": "Parses ping command output"
+            },
+            {
+                "id": "code_disk_parse",
+                "type": "code",
+                "name": "Parse Disk",
+                "position": {
+                    "x": 900,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Parse disk space result\nconst output = input.stdout || '';\nlet status = 'OK';\nlet message = 'Disk space OK';\n\n// Simple check: warn if we see very low numbers\n// In production, parse actual values\nconst lines = output.split('\\n').filter(l => l.trim());\n\nif (lines.length < 2) {\n  status = 'WARNING';\n  message = 'Could not parse disk info';\n}\n\nreturn {\n  check: 'disk',\n  status: status,\n  message: message,\n  raw: output.substring(0, 300)\n};"
+                },
+                "disabled": false,
+                "notes": "Parses disk space output"
+            },
+            {
+                "id": "code_api_parse",
+                "type": "code",
+                "name": "Parse API",
+                "position": {
+                    "x": 900,
+                    "y": 300
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Parse API health check result\nconst statusCode = input.statusCode || 0;\nconst success = statusCode >= 200 && statusCode < 300;\n\nreturn {\n  check: 'api',\n  status: success ? 'OK' : 'FAILED',\n  message: success ? `API responded with ${statusCode}` : `API error: ${statusCode}`,\n  statusCode: statusCode\n};"
+                },
+                "disabled": false,
+                "notes": "Parses API response"
+            },
+            {
+                "id": "merge_results",
+                "type": "merge",
+                "name": "Collect Results",
+                "position": {
+                    "x": 1100,
+                    "y": 200
+                },
+                "parameters": {
+                    "mode": "append",
+                    "waitForAll": false,
+                    "timeout": 10
+                },
+                "disabled": false,
+                "notes": "Combines all check results - waitForAll=false proceeds with partial results if checks fail"
+            },
+            {
+                "id": "code_aggregate",
+                "type": "code",
+                "name": "Aggregate Status",
+                "position": {
+                    "x": 1300,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Aggregate all check results\nconst results = Array.isArray(input) ? input : [input];\n\nconst failures = results.filter(r => r.status !== 'OK');\nconst allOk = failures.length === 0;\n\nreturn {\n  timestamp: new Date().toISOString(),\n  totalChecks: results.length,\n  passedChecks: results.length - failures.length,\n  failedChecks: failures.length,\n  failureCount: failures.length,\n  overallStatus: allOk ? 'HEALTHY' : 'DEGRADED',\n  results: results,\n  failures: failures\n};"
+                },
+                "disabled": false,
+                "notes": "Aggregates all results into a summary"
+            },
+            {
+                "id": "filter_1",
+                "type": "filter",
+                "name": "Filter Failures",
+                "position": {
+                    "x": 1500,
+                    "y": 200
+                },
+                "parameters": {
+                    "condition": "{{ failureCount }} > 0"
+                },
+                "disabled": false,
+                "notes": "Only passes through if there are failures"
+            },
+            {
+                "id": "if_alert",
+                "type": "if",
+                "name": "Should Alert?",
+                "position": {
+                    "x": 1700,
+                    "y": 200
+                },
+                "parameters": {
+                    "condition": "{{ failureCount }} > 0"
+                },
+                "disabled": false,
+                "notes": "Decides whether to send an alert"
+            },
+            {
+                "id": "code_alert",
+                "type": "code",
+                "name": "🚨 Send Alert",
+                "position": {
+                    "x": 1900,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Format and send alert\n// In production: Slack, PagerDuty, Email, etc.\n\nconsole.log('🚨 ALERT: System health issues detected!');\nconsole.log('Failures:', JSON.stringify(input.failures, null, 2));\n\nreturn {\n  alertSent: true,\n  alertType: 'SYSTEM_HEALTH',\n  severity: input.failureCount > 1 ? 'critical' : 'warning',\n  message: `${input.failureCount} health check(s) failed`,\n  details: input.failures,\n  timestamp: input.timestamp\n};"
+                },
+                "disabled": false,
+                "notes": "Sends alert notification (mock)"
+            },
+            {
+                "id": "code_ok",
+                "type": "code",
+                "name": "✅ All OK",
+                "position": {
+                    "x": 1900,
+                    "y": 300
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Log success - no alert needed\nconsole.log('✅ All health checks passed!');\n\nreturn {\n  alertSent: false,\n  status: 'HEALTHY',\n  message: `All ${input.totalChecks} health checks passed`,\n  timestamp: input.timestamp\n};"
+                },
+                "disabled": false,
+                "notes": "Logs success when all checks pass"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_manual",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_trigger",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "schedule_1",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_trigger",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "merge_trigger",
+                "sourceOutput": "main",
+                "targetNodeId": "parallel_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "0",
+                "targetNodeId": "cmd_ping",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "1",
+                "targetNodeId": "cmd_disk",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "parallel_1",
+                "sourceOutput": "2",
+                "targetNodeId": "cmd_api",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "cmd_ping",
+                "sourceOutput": "main",
+                "targetNodeId": "code_parse",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "cmd_disk",
+                "sourceOutput": "main",
+                "targetNodeId": "code_disk_parse",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "cmd_api",
+                "sourceOutput": "main",
+                "targetNodeId": "code_api_parse",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_10",
+                "sourceNodeId": "code_parse",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_11",
+                "sourceNodeId": "code_disk_parse",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_12",
+                "sourceNodeId": "code_api_parse",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_results",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_13",
+                "sourceNodeId": "merge_results",
+                "sourceOutput": "main",
+                "targetNodeId": "code_aggregate",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_14",
+                "sourceNodeId": "code_aggregate",
+                "sourceOutput": "main",
+                "targetNodeId": "filter_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_15",
+                "sourceNodeId": "filter_1",
+                "sourceOutput": "main",
+                "targetNodeId": "if_alert",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_16",
+                "sourceNodeId": "if_alert",
+                "sourceOutput": "true",
+                "targetNodeId": "code_alert",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_17",
+                "sourceNodeId": "if_alert",
+                "sourceOutput": "false",
+                "targetNodeId": "code_ok",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {},
+        "isActive": false,
+        "triggerType": "MANUAL",
+        "version": 1
+    }
+}

@@ -1,0 +1,311 @@
+{
+    "name": "Data Processing Pipeline",
+    "description": "Processes a list of items using loops, applies transformations, filters results, and aggregates data. Demonstrates: Loop, Code, IF, Merge, and data aggregation.",
+    "category": "Data Processing",
+    "difficulty": "advanced",
+    "tags": [
+        "loops",
+        "aggregation",
+        "filter",
+        "transformation",
+        "arrays"
+    ],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "Demonstrates how to process lists of data using a **Loop**.\n\nSimulates an e-commerce backend checking stock, filtering prices, and applying discounts.",
+                "highlightNodes": []
+            },
+            {
+                "title": "The Data",
+                "content": "The 'Sample Data' set node creates an array of products.\n\nIn a real workflow, this array might come from a Database node or an API request.",
+                "highlightNodes": [
+                    "set_data"
+                ]
+            },
+            {
+                "title": "Looping",
+                "content": "The Loop node takes the `{{ products }}` array and processes them one by one (batch size 1). \n\nInside the loop, `{{ item }}` refers to the current product.",
+                "highlightNodes": [
+                    "loop_1"
+                ]
+            },
+            {
+                "title": "Filtering logic",
+                "content": "Two IF nodes act as a funnel:\n1. Is it in stock?\n2. Is it above $50?\n\nOnly items passing both checks get the discount.",
+                "highlightNodes": [
+                    "if_instock",
+                    "if_minprice"
+                ]
+            },
+            {
+                "title": "Aggregation",
+                "content": "After the loop finishes, the 'Aggregate Results' code node runs once.\n\nIt takes the array of all results and calculates totals (Total Savings, etc.) and groups items by category.",
+                "highlightNodes": [
+                    "code_aggregate"
+                ]
+            }
+        ]
+    },
+    "nodes": [
+        {
+            "id": "trigger_1",
+            "type": "manualTrigger",
+            "name": "Start Pipeline",
+            "position": {
+                "x": 100,
+                "y": 250
+            },
+            "parameters": {},
+            "disabled": false,
+            "notes": "Starts the data processing pipeline"
+        },
+        {
+            "id": "set_data",
+            "type": "set",
+            "name": "Sample Data",
+            "position": {
+                "x": 300,
+                "y": 250
+            },
+            "parameters": {
+                "values": {
+                    "products": [
+                        {
+                            "id": 1,
+                            "name": "Laptop",
+                            "price": 999.99,
+                            "category": "electronics",
+                            "inStock": true
+                        },
+                        {
+                            "id": 2,
+                            "name": "Book",
+                            "price": 19.99,
+                            "category": "books",
+                            "inStock": true
+                        },
+                        {
+                            "id": 3,
+                            "name": "Headphones",
+                            "price": 149.99,
+                            "category": "electronics",
+                            "inStock": false
+                        },
+                        {
+                            "id": 4,
+                            "name": "Desk Chair",
+                            "price": 299.99,
+                            "category": "furniture",
+                            "inStock": true
+                        },
+                        {
+                            "id": 5,
+                            "name": "Monitor",
+                            "price": 449.99,
+                            "category": "electronics",
+                            "inStock": true
+                        },
+                        {
+                            "id": 6,
+                            "name": "Notebook",
+                            "price": 9.99,
+                            "category": "books",
+                            "inStock": true
+                        },
+                        {
+                            "id": 7,
+                            "name": "Keyboard",
+                            "price": 79.99,
+                            "category": "electronics",
+                            "inStock": false
+                        }
+                    ],
+                    "discountPercent": 10,
+                    "minPrice": 50
+                }
+            },
+            "disabled": false,
+            "notes": "Sample product data - replace with your data source"
+        },
+        {
+            "id": "loop_1",
+            "type": "loop",
+            "name": "Process Each Product",
+            "position": {
+                "x": 500,
+                "y": 250
+            },
+            "parameters": {
+                "items": "{{ products }}",
+                "batchSize": 1
+            },
+            "disabled": false,
+            "notes": "Iterates through each product in the list"
+        },
+        {
+            "id": "if_instock",
+            "type": "if",
+            "name": "In Stock?",
+            "position": {
+                "x": 700,
+                "y": 250
+            },
+            "parameters": {
+                "condition": "{{ inStock }} == true"
+            },
+            "disabled": false,
+            "notes": "Filters only in-stock products"
+        },
+        {
+            "id": "if_minprice",
+            "type": "if",
+            "name": "Above Min Price?",
+            "position": {
+                "x": 900,
+                "y": 150
+            },
+            "parameters": {
+                "condition": "{{ price }} >= {{ minPrice }}"
+            },
+            "disabled": false,
+            "notes": "Filters products above minimum price"
+        },
+        {
+            "id": "code_transform",
+            "type": "code",
+            "name": "Apply Discount",
+            "position": {
+                "x": 1100,
+                "y": 100
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Apply discount and calculate final price\n// Item properties are spread directly in input from loop\nconst item = input.item || input;\nconst discountPercent = input.discountPercent || 10;\n\nconst originalPrice = item.price;\nconst discountAmount = originalPrice * (discountPercent / 100);\nconst finalPrice = originalPrice - discountAmount;\n\nreturn {\n  id: item.id,\n  name: item.name,\n  price: item.price,\n  category: item.category,\n  inStock: item.inStock,\n  originalPrice: originalPrice,\n  discountPercent: discountPercent,\n  discountAmount: Math.round(discountAmount * 100) / 100,\n  finalPrice: Math.round(finalPrice * 100) / 100,\n  processed: true,\n  processedAt: new Date().toISOString()\n};"
+            },
+            "disabled": false,
+            "notes": "Applies discount to eligible products"
+        },
+        {
+            "id": "code_skip",
+            "type": "code",
+            "name": "Mark Skipped",
+            "position": {
+                "x": 1100,
+                "y": 300
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Mark item as skipped with reason\n// Item properties are spread directly in input from loop\nconst item = input.item || input;\nconst minPrice = input.minPrice || 50;\nlet skipReason = '';\n\nif (!item.inStock) {\n  skipReason = 'Out of stock';\n} else if (item.price < minPrice) {\n  skipReason = 'Below minimum price threshold';\n}\n\nreturn {\n  id: item.id,\n  name: item.name,\n  price: item.price,\n  category: item.category,\n  inStock: item.inStock,\n  processed: false,\n  skipped: true,\n  skipReason: skipReason\n};"
+            },
+            "disabled": false,
+            "notes": "Marks products that don't meet criteria"
+        },
+        {
+            "id": "merge_1",
+            "type": "merge",
+            "name": "Collect Results",
+            "position": {
+                "x": 1300,
+                "y": 250
+            },
+            "parameters": {
+                "mode": "append"
+            },
+            "disabled": false,
+            "notes": "Collects all processed items"
+        },
+        {
+            "id": "code_aggregate",
+            "type": "code",
+            "name": "Aggregate Results",
+            "position": {
+                "x": 1500,
+                "y": 250
+            },
+            "parameters": {
+                "language": "javascript",
+                "code": "// Aggregate all results after loop completes\nconst items = Array.isArray(input) ? input : [input];\n\nconst processed = items.filter(i => i.processed);\nconst skipped = items.filter(i => i.skipped);\n\nconst totalOriginal = processed.reduce((sum, i) => sum + i.originalPrice, 0);\nconst totalFinal = processed.reduce((sum, i) => sum + i.finalPrice, 0);\nconst totalSavings = totalOriginal - totalFinal;\n\n// Group by category\nconst byCategory = processed.reduce((acc, item) => {\n  acc[item.category] = acc[item.category] || [];\n  acc[item.category].push(item);\n  return acc;\n}, {});\n\nreturn {\n  summary: {\n    totalProducts: items.length,\n    processedCount: processed.length,\n    skippedCount: skipped.length,\n    totalOriginalPrice: Math.round(totalOriginal * 100) / 100,\n    totalFinalPrice: Math.round(totalFinal * 100) / 100,\n    totalSavings: Math.round(totalSavings * 100) / 100\n  },\n  processedItems: processed,\n  skippedItems: skipped,\n  byCategory: byCategory,\n  completedAt: new Date().toISOString()\n};"
+            },
+            "disabled": false,
+            "notes": "Calculates totals and groups results"
+        }
+    ],
+    "connections": [
+        {
+            "id": "conn_1",
+            "sourceNodeId": "trigger_1",
+            "sourceOutput": "main",
+            "targetNodeId": "set_data",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_2",
+            "sourceNodeId": "set_data",
+            "sourceOutput": "main",
+            "targetNodeId": "loop_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_3",
+            "sourceNodeId": "loop_1",
+            "sourceOutput": "loop",
+            "targetNodeId": "if_instock",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_4",
+            "sourceNodeId": "if_instock",
+            "sourceOutput": "true",
+            "targetNodeId": "if_minprice",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_5",
+            "sourceNodeId": "if_instock",
+            "sourceOutput": "false",
+            "targetNodeId": "code_skip",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_6",
+            "sourceNodeId": "if_minprice",
+            "sourceOutput": "true",
+            "targetNodeId": "code_transform",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_7",
+            "sourceNodeId": "if_minprice",
+            "sourceOutput": "false",
+            "targetNodeId": "code_skip",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_8",
+            "sourceNodeId": "code_transform",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_9",
+            "sourceNodeId": "code_skip",
+            "sourceOutput": "main",
+            "targetNodeId": "merge_1",
+            "targetInput": "main"
+        },
+        {
+            "id": "conn_10",
+            "sourceNodeId": "loop_1",
+            "sourceOutput": "done",
+            "targetNodeId": "code_aggregate",
+            "targetInput": "main"
+        }
+    ],
+    "settings": {},
+    "isActive": true,
+    "triggerType": "MANUAL",
+    "version": 1
+}

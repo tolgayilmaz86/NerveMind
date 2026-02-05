@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ButtonBar?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="ai.nervemind.ui.view.dialog.IconPickerController"
+      spacing="12"
+      prefWidth="520"
+      prefHeight="480"
+      styleClass="icon-picker-dialog"
+      stylesheets="@/ai/nervemind/ui/styles/variables.css, @/ai/nervemind/ui/styles/dialog.css">
+
+    <padding>
+        <Insets top="15" right="15" bottom="15" left="15"/>
+    </padding>
+
+    <!-- Filter Row -->
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="Search:" styleClass="icon-picker-dialog__label"/>
+        <TextField fx:id="searchField"
+                   promptText="Search icons..."
+                   prefWidth="250"
+                   styleClass="icon-picker-dialog__search-field"/>
+        
+        <Label text="Category:" styleClass="icon-picker-dialog__label"/>
+        <ComboBox fx:id="categoryFilter"
+                  styleClass="icon-picker-dialog__category-filter"/>
+    </HBox>
+
+    <!-- Icon Grid in ScrollPane -->
+    <ScrollPane fx:id="scrollPane"
+                VBox.vgrow="ALWAYS"
+                fitToWidth="true"
+                prefHeight="300"
+                styleClass="icon-picker-dialog__scroll-pane">
+        <FlowPane fx:id="iconGrid"
+                  hgap="8"
+                  vgap="8"
+                  styleClass="icon-picker-dialog__grid">
+            <padding>
+                <Insets top="10" right="10" bottom="10" left="10"/>
+            </padding>
+        </FlowPane>
+    </ScrollPane>
+
+    <!-- Preview Section -->
+    <HBox spacing="15" alignment="CENTER_LEFT">
+        <padding>
+            <Insets top="10"/>
+        </padding>
+        
+        <Label text="Selected:" styleClass="icon-picker-dialog__label"/>
+        <FontIcon fx:id="previewIcon" iconSize="32" iconColor="#60a5fa"/>
+        <Label fx:id="selectedLabel" styleClass="icon-picker-dialog__label"/>
+        
+        <HBox HBox.hgrow="ALWAYS"/>
+        
+        <Button fx:id="resetButton"
+                text="Reset to Default"
+                onAction="#onReset"
+                styleClass="icon-picker-dialog__reset-button"/>
+    </HBox>
+
+    <!-- Button Bar -->
+    <HBox alignment="CENTER_RIGHT">
+        <ButtonBar>
+            <buttons>
+                <Button fx:id="applyButton"
+                        text="Apply"
+                        onAction="#onApply"
+                        styleClass="dialog__button-primary"
+                        defaultButton="true"/>
+                <Button fx:id="cancelButton"
+                        text="Cancel"
+                        onAction="#onCancel"
+                        styleClass="dialog__button-secondary"
+                        cancelButton="true"/>
+            </buttons>
+        </ButtonBar>
+    </HBox>
+</VBox>

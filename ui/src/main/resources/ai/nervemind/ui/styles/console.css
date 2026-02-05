@@ -1,0 +1,819 @@
+/* Execution Console Styles - Nord Dark Theme */
+
+/* ====================================
+   CSS Variables (Custom Properties)
+   ==================================== */
+
+.root {
+    /* Nord Dark Theme Colors */
+    -nervemind-console-bg-primary: #2e3440;
+    -nervemind-console-bg-secondary: #3b4252;
+    -nervemind-console-bg-tertiary: #434c5e;
+    -nervemind-console-text-primary: #d8dee9;
+    -nervemind-console-text-muted: #616e88;
+    -nervemind-console-accent-blue: #5e81ac;
+    -nervemind-console-accent-cyan: #88c0d0;
+    -nervemind-console-accent-green: #a3be8c;
+    -nervemind-console-accent-red: #bf616a;
+    -nervemind-console-accent-purple: #b48ead;
+    -nervemind-console-accent-yellow: #ebcb8b;
+    -nervemind-console-accent-orange: #d08770;
+    -nervemind-console-node-color: #81a1c1;
+}
+
+/* ====================================
+   Main Console Container
+   ==================================== */
+
+.execution-console {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+.console-scroll {
+    -fx-background: -nervemind-console-bg-primary;
+}
+
+.console-scroll .viewport {
+    -fx-background-color: #2e3440;
+}
+
+.console-scroll .scroll-bar:vertical {
+    -fx-background-color: #3b4252;
+    -fx-pref-width: 10px;
+}
+
+.console-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #4c566a;
+    -fx-background-radius: 5px;
+}
+
+.console-scroll .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #616e88;
+}
+
+.console-scroll .scroll-bar:vertical .track {
+    -fx-background-color: transparent;
+}
+
+.console-scroll .scroll-bar:vertical .increment-button,
+.console-scroll .scroll-bar:vertical .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.console-scroll .scroll-bar:vertical .increment-arrow,
+.console-scroll .scroll-bar:vertical .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+/* Toolbar styling */
+.execution-console .tool-bar {
+    -fx-background-color: #3b4252;
+    -fx-padding: 5 10 5 10;
+    -fx-spacing: 5;
+}
+
+.execution-console .tool-bar .button,
+.execution-console .tool-bar .toggle-button {
+    -fx-background-color: #434c5e;
+    -fx-text-fill: #d8dee9;
+    -fx-padding: 5 8 5 8;
+    -fx-background-radius: 3px;
+}
+
+.execution-console .tool-bar .button:hover,
+.execution-console .tool-bar .toggle-button:hover {
+    -fx-background-color: #4c566a;
+    -fx-background-radius: 3px;
+}
+
+.execution-console .tool-bar .toggle-button:selected {
+    -fx-background-color: #5e81ac;
+    -fx-background-radius: 3px;
+}
+
+.execution-console .tool-bar .separator {
+    -fx-background-color: transparent;
+    -fx-padding: 0 5 0 5;
+}
+
+.execution-console .tool-bar .separator .line {
+    -fx-background-color: #4c566a;
+}
+
+.execution-console .tool-bar .text-field {
+    -fx-background-color: #434c5e;
+    -fx-text-fill: #d8dee9;
+    -fx-prompt-text-fill: #616e88;
+    -fx-background-radius: 3px;
+    -fx-padding: 5 8 5 8;
+}
+
+.execution-console .tool-bar .text-field:focused {
+    -fx-background-color: #4c566a;
+    -fx-border-color: #5e81ac;
+    -fx-border-radius: 3px;
+}
+
+/* Log entry styling */
+.log-entry {
+    -fx-padding: 3 10 3 10;
+}
+
+.log-entry:hover {
+    -fx-background-color: #3b4252;
+}
+
+.log-entry-error {
+    -fx-background-color: rgba(191, 97, 106, 0.15);
+}
+
+.log-entry-error:hover {
+    -fx-background-color: rgba(191, 97, 106, 0.25);
+}
+
+.log-entry-warn {
+    -fx-background-color: rgba(235, 203, 139, 0.1);
+}
+
+/* Details text area in expanded view */
+.log-details-textarea {
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #d8dee9;
+    -fx-font-family: 'Monospace';
+    -fx-font-size: 11px;
+    -fx-padding: 5;
+    -fx-border-color: #4c566a;
+    -fx-border-radius: 3px;
+    -fx-background-radius: 3px;
+}
+
+.log-details-textarea .content {
+    -fx-background-color: #3b4252;
+}
+
+.log-details-textarea .scroll-bar:vertical {
+    -fx-background-color: #4c566a;
+}
+
+.log-details-textarea .scroll-bar:vertical .thumb {
+    -fx-background-color: #616e88;
+}
+
+/* Execution header */
+.execution-header {
+    -fx-background-color: #3b4252;
+    -fx-background-radius: 5px;
+    -fx-padding: 8 12 8 12;
+    -fx-margin: 5 0 5 0;
+}
+
+/* Status bar */
+.status-bar {
+    -fx-background-color: #3b4252;
+    -fx-padding: 5 10 5 10;
+}
+
+.status-bar .label {
+    -fx-text-fill: #88c0d0;
+    -fx-font-size: 11px;
+}
+
+/* Tooltips */
+.tooltip {
+    -fx-background-color: #434c5e;
+    -fx-text-fill: #d8dee9;
+    -fx-background-radius: 3px;
+    -fx-padding: 8;
+    -fx-font-size: 11px;
+    -fx-max-width: 400px;
+}
+
+/* Context menu */
+.context-menu {
+    -fx-background-color: #3b4252;
+    -fx-background-radius: 5px;
+    -fx-padding: 5;
+}
+
+.context-menu .menu-item {
+    -fx-background-color: transparent;
+}
+
+.context-menu .menu-item:hover {
+    -fx-background-color: #4c566a;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: #d8dee9;
+}
+
+
+/* === Execution History Panel Styles === */
+
+.execution-history-panel {
+    -fx-background-color: #2e3440;
+    /* Nord dark background */
+    -fx-text-fill: #d8dee9;
+    /* Nord light text */
+}
+
+.execution-history-header {
+    -fx-background-color: #3b4252;
+    -fx-border-color: #434c5e;
+    -fx-border-width: 0 0 1 0;
+}
+
+.title-label {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #eceff4;
+}
+
+.execution-history-toolbar {
+    -fx-background-color: #3b4252;
+}
+
+.flat-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #d8dee9;
+}
+
+.flat-button:hover {
+    -fx-background-color: #4c566a;
+}
+
+.count-label {
+    -fx-text-fill: #616e88;
+    -fx-font-size: 11px;
+}
+
+.execution-table {
+    -fx-background-color: #2e3440;
+    -fx-border-color: #434c5e;
+    -fx-border-width: 1 0 0 0;
+}
+
+.execution-table .table-cell {
+    -fx-text-fill: #d8dee9;
+    -fx-font-size: 12px;
+    -fx-border-color: transparent;
+}
+
+.execution-table .column-header-background {
+    -fx-background-color: #3b4252;
+}
+
+.execution-table .column-header .label {
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: bold;
+}
+
+.execution-table .table-row-cell {
+    -fx-background-color: #2e3440;
+}
+
+.execution-table .table-row-cell:odd {
+    -fx-background-color: #353c4a;
+}
+
+.execution-table .table-row-cell:selected {
+    -fx-background-color: #5e81ac;
+}
+
+.duration-cell {
+    -fx-text-fill: #a3be8c;
+}
+
+.execution-details-pane {
+    -fx-background-color: #353c4a;
+    -fx-border-color: #434c5e;
+    -fx-border-width: 1 0 0 0;
+}
+
+/* Tab Pane */
+.details-tab-pane>.tab-header-area .tab-header-background {
+    -fx-background-color: #3b4252;
+}
+
+.details-tab-pane>.tab-header-area .tab {
+    -fx-background-color: #3b4252;
+    -fx-padding: 8 12 8 12;
+}
+
+.details-tab-pane>.tab-header-area .tab:selected {
+    -fx-background-color: #4c566a;
+}
+
+.details-tab-pane>.tab-header-area .tab .tab-label {
+    -fx-text-fill: #d8dee9;
+}
+
+.details-tab-pane>.tab-content-area {
+    -fx-background-color: #2e3440;
+    -fx-padding: 10;
+}
+
+
+/* Summary View */
+.summary-grid {
+    -fx-background-color: #353c4a;
+}
+
+.summary-label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #88c0d0;
+    /* Nord blue */
+}
+
+.code {
+    -fx-font-family: "Monospace";
+    -fx-text-fill: #b48ead;
+    /* Nord purple */
+}
+
+/* Status Badge */
+.status-badge {
+    -fx-padding: 4 8 4 8;
+    -fx-background-radius: 12;
+}
+
+.status-badge .label {
+    -fx-text-fill: #2e3440;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.status-badge.status-success {
+    -fx-background-color: #a3be8c;
+}
+
+.status-badge.status-failed {
+    -fx-background-color: #bf616a;
+}
+
+.status-badge.status-running {
+    -fx-background-color: #5e81ac;
+}
+
+.status-badge.status-pending {
+    -fx-background-color: #d08770;
+}
+
+.status-badge.status-cancelled {
+    -fx-background-color: #ebcb8b;
+}
+
+.status-badge.status-waiting {
+    -fx-background-color: #b48ead;
+}
+
+
+/* Nodes View */
+.nodes-view {
+    -fx-background-color: #2e3440;
+}
+
+.node-execution-row {
+    -fx-background-color: #3b4252;
+    -fx-background-radius: 4;
+    -fx-border-color: #4c566a;
+    -fx-border-width: 1px;
+    -fx-border-radius: 4;
+    -fx-cursor: hand;
+}
+
+.node-execution-row:hover {
+    -fx-background-color: #434c5e;
+}
+
+.node-name-label {
+    -fx-text-fill: #eceff4;
+    -fx-font-weight: bold;
+}
+
+.duration-label {
+    -fx-font-family: "Monospace";
+    -fx-text-fill: #a3be8c;
+    -fx-font-size: 11px;
+}
+
+.expand-icon {
+    -fx-fill: #88c0d0;
+}
+
+
+/* Node Details View */
+.node-details-view {
+    -fx-background-color: #2e3440;
+    -fx-padding: 10 10 10 30;
+}
+
+.data-section-title {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #88c0d0;
+}
+
+.data-textarea {
+    -fx-font-family: "Monospace";
+    -fx-font-size: 11px;
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #d8dee9;
+    -fx-border-color: #4c566a;
+    -fx-border-width: 1px;
+    -fx-border-radius: 3;
+}
+
+.data-textarea .content {
+    -fx-background-color: #3b4252;
+}
+
+
+/* Error View */
+.error-view {
+    -fx-background-color: #2e3440;
+}
+
+.error-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #bf616a;
+    /* Nord red */
+}
+
+.error-textarea {
+    -fx-font-family: "Monospace";
+    -fx-background-color: #3b4252;
+    -fx-text-fill: #d8dee9;
+}
+
+.error-textarea .content {
+    -fx-background-color: #3b4252;
+}
+
+
+/* Status Icons */
+.status-icon-success {
+    -fx-fill: #a3be8c;
+}
+
+.status-icon-failed {
+    -fx-fill: #bf616a;
+}
+
+.status-icon-running {
+    -fx-fill: #5e81ac;
+}
+
+.status-icon-pending {
+    -fx-fill: #d08770;
+}
+
+.status-icon-cancelled {
+    -fx-fill: #ebcb8b;
+}
+
+.status-icon-waiting {
+    -fx-fill: #b48ead;
+}
+
+/* Timeline View */
+.timeline-view {
+    -fx-background-color: #2e3440;
+}
+
+.timeline-node-label {
+    -fx-text-fill: #d8dee9;
+}
+
+.timeline-bar {
+    -fx-opacity: 0.8;
+}
+
+.timeline-bar:hover {
+    -fx-opacity: 1.0;
+}
+
+.timeline-bar.status-success {
+    -fx-fill: #a3be8c;
+}
+
+.timeline-bar.status-failed {
+    -fx-fill: #bf616a;
+}
+
+.timeline-bar.status-running {
+    -fx-fill: #5e81ac;
+}
+
+.timeline-bar.status-pending {
+    -fx-fill: #d08770;
+}
+
+.timeline-bar.status-cancelled {
+    -fx-fill: #ebcb8b;
+}
+
+.timeline-bar.status-waiting {
+    -fx-fill: #b48ead;
+}
+
+/* Variables Table */
+.variables-table {
+    -fx-background-color: #2e3440;
+}
+
+.variables-table .table-cell {
+    -fx-text-fill: #d8dee9;
+    -fx-font-family: "Monospace";
+}
+
+
+/* ====================================
+   NEW: Console FXML Component Styles
+   ==================================== */
+
+/* Console Toolbar */
+.console-toolbar {
+    -fx-background-color: -nervemind-console-bg-secondary;
+    -fx-padding: 5 10 5 10;
+    -fx-spacing: 8;
+}
+
+.console-tool-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -nervemind-console-text-primary;
+    -fx-padding: 5 8 5 8;
+    -fx-cursor: hand;
+}
+
+.console-tool-button:hover {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+    -fx-background-radius: 3px;
+}
+
+.console-toolbar-label {
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+/* Level Toggle Buttons */
+.console-level-toggle {
+    -fx-background-radius: 12;
+    -fx-padding: 4 12 4 12;
+    -fx-font-size: 11px;
+    -fx-cursor: hand;
+    /* Remove focus indicator ring */
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.console-level-toggle:focused {
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.console-level-toggle:selected {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.console-level-toggle:selected:focused {
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+    -fx-background-insets: 0;
+}
+
+.console-level-debug {
+    -fx-text-fill: -nervemind-console-accent-green;
+    -fx-border-color: -nervemind-console-accent-green;
+}
+
+.console-level-debug:selected {
+    -fx-background-color: -nervemind-console-accent-green;
+    -fx-text-fill: -nervemind-console-bg-primary;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-width: 0;
+}
+
+.console-level-trace {
+    -fx-text-fill: -nervemind-console-accent-purple;
+    -fx-border-color: -nervemind-console-accent-purple;
+}
+
+.console-level-trace:selected {
+    -fx-background-color: -nervemind-console-accent-purple;
+    -fx-text-fill: -nervemind-console-bg-primary;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-width: 0;
+}
+
+/* Filter Field */
+.console-filter-field {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+    -fx-text-fill: -nervemind-console-text-primary;
+    -fx-prompt-text-fill: -nervemind-console-text-muted;
+    -fx-background-radius: 3px;
+    -fx-padding: 5 8 5 8;
+}
+
+.console-filter-field:focused {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+    -fx-border-color: -nervemind-console-accent-blue;
+    -fx-border-radius: 3px;
+}
+
+/* Session Selector */
+.console-session-selector {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+.console-session-selector .list-cell {
+    -fx-background-color: -nervemind-console-bg-secondary;
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+/* Tab Pane */
+.console-tab-pane {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+.console-tab-pane>.tab-header-area>.tab-header-background {
+    -fx-background-color: -nervemind-console-bg-secondary;
+}
+
+.console-tab-pane>.tab-header-area .tab {
+    -fx-background-color: -nervemind-console-bg-secondary;
+    -fx-padding: 8 16 8 16;
+}
+
+.console-tab-pane>.tab-header-area .tab:selected {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+}
+
+.console-tab-pane>.tab-header-area .tab .tab-label {
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+.console-tab-pane>.tab-content-area {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+/* Summary Container */
+.console-summary-container {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+.console-empty-state {
+    -fx-text-fill: -nervemind-console-text-muted;
+    -fx-font-size: 14px;
+}
+
+.console-session-header {
+    -fx-alignment: center-left;
+}
+
+.console-session-title {
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+/* Cards */
+.console-card {
+    -fx-background-color: -nervemind-console-bg-secondary;
+    -fx-background-radius: 8;
+    -fx-padding: 15;
+    -fx-spacing: 10;
+}
+
+.console-card-title {
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -nervemind-console-accent-cyan;
+}
+
+.console-status-grid .console-grid-label {
+    -fx-text-fill: -nervemind-console-text-muted;
+    -fx-font-weight: bold;
+}
+
+.console-code {
+    -fx-text-fill: -nervemind-console-accent-purple;
+    -fx-font-family: "Monospace";
+}
+
+.console-duration {
+    -fx-text-fill: -nervemind-console-accent-green;
+}
+
+.console-progress-text {
+    -fx-text-fill: -nervemind-console-text-primary;
+}
+
+/* Logs Tab */
+.console-logs-pane {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+.console-logs-toolbar {
+    -fx-background-color: -nervemind-console-bg-tertiary;
+    -fx-border-color: -nervemind-console-bg-secondary;
+    -fx-border-width: 0 0 1 0;
+}
+
+.console-logs-title {
+    -fx-text-fill: -nervemind-console-text-primary;
+    -fx-font-weight: bold;
+}
+
+/* Statistics Badges */
+.console-stat-badge {
+    -fx-alignment: center;
+    -fx-padding: 2 6 2 6;
+    -fx-background-radius: 10;
+    -fx-spacing: 4;
+}
+
+.console-stat-badge.stat-info {
+    -fx-background-color: rgba(136, 192, 208, 0.15);
+}
+
+.console-stat-badge.stat-warn {
+    -fx-background-color: rgba(235, 203, 139, 0.15);
+}
+
+.console-stat-badge.stat-error {
+    -fx-background-color: rgba(191, 97, 106, 0.15);
+}
+
+.console-stat-badge .stat-icon {
+    -fx-font-size: 10px;
+}
+
+.console-stat-badge.stat-info .stat-count {
+    -fx-text-fill: -nervemind-console-accent-cyan;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.console-stat-badge.stat-warn .stat-count {
+    -fx-text-fill: -nervemind-console-accent-yellow;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+.console-stat-badge.stat-error .stat-count {
+    -fx-text-fill: -nervemind-console-accent-red;
+    -fx-font-weight: bold;
+    -fx-font-size: 11px;
+}
+
+/* Link Buttons */
+.console-link-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -nervemind-console-text-primary;
+    -fx-cursor: hand;
+}
+
+.console-link-button:hover {
+    -fx-background-color: -nervemind-console-bg-secondary;
+}
+
+.console-link-button.error-link {
+    -fx-text-fill: -nervemind-console-accent-red;
+}
+
+.console-count-label {
+    -fx-text-fill: -nervemind-console-text-muted;
+    -fx-font-size: 11px;
+}
+
+/* Log Container */
+.console-log-container {
+    -fx-background-color: -nervemind-console-bg-primary;
+}
+
+/* Status Bar */
+.console-status-bar {
+    -fx-background-color: -nervemind-console-bg-secondary;
+}
+
+.console-status-text {
+    -fx-text-fill: -nervemind-console-accent-cyan;
+}
+
+.console-filter-status {
+    -fx-text-fill: -nervemind-console-accent-yellow;
+}
+
+.console-session-count {
+    -fx-text-fill: -nervemind-console-text-muted;
+}

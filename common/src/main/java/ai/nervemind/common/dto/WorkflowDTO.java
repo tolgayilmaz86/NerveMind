@@ -1,0 +1,272 @@
+package ai.nervemind.common.dto;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+import ai.nervemind.common.domain.Connection;
+import ai.nervemind.common.domain.Node;
+import ai.nervemind.common.enums.TriggerType;
+
+/**
+ * Data Transfer Object for Workflow.
+ * Used for API communication and serialization.
+ *
+ * @param id             Workflow unique identifier
+ * @param name           Workflow display name
+ * @param description    Optional description
+ * @param nodes          List of nodes in the workflow
+ * @param connections    List of connections between nodes
+ * @param settings       Workflow-level settings
+ * @param isActive       Whether workflow is active (for scheduled/webhook
+ *                       triggers)
+ * @param triggerType    Type of trigger (MANUAL, SCHEDULE, WEBHOOK)
+ * @param cronExpression Cron expression for scheduled workflows
+ * @param createdAt      Creation timestamp
+ * @param updatedAt      Last update timestamp
+ * @param lastExecuted   Last execution timestamp
+ * @param version        Workflow version number
+ */
+public record WorkflowDTO(
+        Long id,
+        String name,
+        String description,
+        List<Node> nodes,
+        List<Connection> connections,
+        Map<String, Object> settings,
+        boolean isActive,
+        TriggerType triggerType,
+        String cronExpression,
+        Instant createdAt,
+        Instant updatedAt,
+        Instant lastExecuted,
+        int version) {
+    /**
+     * Compact constructor with validation and defaults.
+     */
+    public WorkflowDTO {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Workflow name cannot be null or blank");
+        }
+        if (nodes == null) {
+            nodes = List.of();
+        }
+        if (connections == null) {
+            connections = List.of();
+        }
+        if (settings == null) {
+            settings = Map.of();
+        }
+        if (triggerType == null) {
+            triggerType = TriggerType.MANUAL;
+        }
+        if (version < 1) {
+            version = 1;
+        }
+    }
+
+    /**
+     * Factory method for creating a new workflow with minimal required fields.
+     * 
+     * @param name the name of the workflow
+     * @return a new WorkflowDTO instance
+     */
+    public static WorkflowDTO create(String name) {
+        return new WorkflowDTO(
+                null, name, null, List.of(), List.of(), Map.of(),
+                false, TriggerType.MANUAL, null,
+                Instant.now(), Instant.now(), null, 1);
+    }
+
+    /**
+     * Factory method for creating a new workflow with description.
+     * 
+     * @param name        the name of the workflow
+     * @param description the description of the workflow
+     * @return a new WorkflowDTO instance
+     */
+    public static WorkflowDTO create(String name, String description) {
+        return new WorkflowDTO(
+                null, name, description, List.of(), List.of(), Map.of(),
+                false, TriggerType.MANUAL, null,
+                Instant.now(), Instant.now(), null, 1);
+    }
+
+    /**
+     * Factory method to create a WorkflowDTO from a Workflow domain object.
+     *
+     * @param workflow The workflow domain object to convert
+     * @return A new WorkflowDTO based on the workflow
+     */
+    public static WorkflowDTO fromWorkflow(ai.nervemind.common.domain.Workflow workflow) {
+        if (workflow == null) {
+            throw new IllegalArgumentException("Workflow cannot be null");
+        }
+        return new WorkflowDTO(
+                null,
+                workflow.name(),
+                workflow.description(),
+                workflow.nodes() != null ? workflow.nodes() : List.of(),
+                workflow.connections() != null ? workflow.connections() : List.of(),
+                workflow.settings() != null ? workflow.settings() : Map.of(),
+                false,
+                TriggerType.MANUAL,
+                null,
+                Instant.now(),
+                Instant.now(),
+                null,
+                1);
+    }
+
+    /**
+     * Find a node by its ID.
+     * 
+     * @param nodeId the node ID to search for
+     * @return the node or null if not found
+     */
+    public Node findNode(String nodeId) {
+        return nodes.stream()
+                .filter(n -> n.id().equals(nodeId))
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Get all trigger nodes (nodes with no incoming connections).
+     * 
+     * @return list of trigger nodes
+     */
+    public List<Node> getTriggerNodes() {
+        var targetNodeIds = connections.stream()
+                .map(Connection::targetNodeId)
+                .toList();
+
+        return nodes.stream()
+                .filter(n -> !targetNodeIds.contains(n.id()))
+                .toList();
+    }
+
+    /**
+     * Get connections from a specific node.
+     * 
+     * @param nodeId the source node ID
+     * @return list of outgoing connections
+     */
+    public List<Connection> getOutgoingConnections(String nodeId) {
+        return connections.stream()
+                .filter(c -> c.sourceNodeId().equals(nodeId))
+                .toList();
+    }
+
+    /**
+     * Get connections to a specific node.
+     * 
+     * @param nodeId the target node ID
+     * @return list of incoming connections
+     */
+    public List<Connection> getIncomingConnections(String nodeId) {
+        return connections.stream()
+                .filter(c -> c.targetNodeId().equals(nodeId))
+                .toList();
+    }
+
+    /**
+     * Create a copy with updated nodes.
+     * 
+     * @param newNodes the new nodes list
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withNodes(List<Node> newNodes) {
+        return new WorkflowDTO(
+                id, name, description, newNodes, connections, settings,
+                isActive, triggerType, cronExpression,
+                createdAt, Instant.now(), lastExecuted, version);
+    }
+
+    /**
+     * Create a copy with updated name.
+     * 
+     * @param newName the new name
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withName(String newName) {
+        return new WorkflowDTO(
+                id, newName, description, nodes, connections, settings,
+                isActive, triggerType, cronExpression,
+                createdAt, Instant.now(), lastExecuted, version);
+    }
+
+    /**
+     * Create a copy with updated active status.
+     * 
+     * @param isActive true if active
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withActive(boolean isActive) {
+        return new WorkflowDTO(
+                id, name, description, nodes, connections, settings,
+                isActive, triggerType, cronExpression,
+                createdAt, Instant.now(), lastExecuted, version);
+    }
+
+    /**
+     * Create a copy with updated connections.
+     * 
+     * @param newConnections the new connections list
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withConnections(List<Connection> newConnections) {
+        return new WorkflowDTO(
+                id, name, description, nodes, newConnections, settings,
+                isActive, triggerType, cronExpression,
+                createdAt, Instant.now(), lastExecuted, version);
+    }
+
+    /**
+     * Create a copy with an added node.
+     * 
+     * @param node the node to add
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withAddedNode(Node node) {
+        var newNodes = new java.util.ArrayList<>(nodes);
+        newNodes.add(node);
+        return withNodes(newNodes);
+    }
+
+    /**
+     * Create a copy with an added connection.
+     * 
+     * @param connection the connection to add
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withAddedConnection(Connection connection) {
+        var newConnections = new java.util.ArrayList<>(connections);
+        newConnections.add(connection);
+        return withConnections(newConnections);
+    }
+
+    /**
+     * Create a copy with a node removed.
+     * 
+     * @param nodeId the node ID to remove
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withRemovedNode(String nodeId) {
+        var newNodes = new java.util.ArrayList<>(nodes);
+        newNodes.removeIf(n -> n.id().equals(nodeId));
+        return withNodes(newNodes);
+    }
+
+    /**
+     * Create a copy with a connection removed.
+     * 
+     * @param connectionId the connection ID to remove
+     * @return a new WorkflowDTO instance
+     */
+    public WorkflowDTO withRemovedConnection(String connectionId) {
+        var newConnections = new java.util.ArrayList<>(connections);
+        newConnections.removeIf(c -> c.id().equals(connectionId));
+        return withConnections(newConnections);
+    }
+}

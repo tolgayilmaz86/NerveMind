@@ -1,0 +1,310 @@
+{
+    "id": "17-assignment-auto-grader",
+    "name": "Assignment Auto-Grader",
+    "description": "Automated code grading workflow that runs student submissions against test cases and generates AI-powered personalized feedback. Demonstrates file triggers, Python code execution, output comparison, and LLM-based tutoring.",
+    "category": "Education",
+    "difficulty": "advanced",
+    "language": "python",
+    "tags": [
+        "education",
+        "grading",
+        "automation",
+        "ai",
+        "python",
+        "testing",
+        "feedback",
+        "tutoring"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates **Educational Automation** - automatic grading of programming assignments with AI-powered feedback.\n\n**What you'll learn:**\n- File watching for student submissions\n- Safe code execution with Python\n- Output comparison and scoring\n- AI-generated personalized feedback\n- Report generation\n\n**Real-world applications:**\n- Computer Science courses (CS101, Data Structures)\n- Coding bootcamps\n- Online learning platforms (Coursera, edX)\n- Technical interviews\n\n**Benefits:**\n- Instant feedback for students\n- Consistent grading across submissions\n- Scales to thousands of students\n- Frees instructors for higher-value teaching",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Submission Trigger",
+                "content": "The **File Trigger** watches for new student submissions in a designated folder.\n\n**Expected file format:**\n- Python files (`.py`) containing student code\n- File named with student ID (e.g., `student_123_assignment1.py`)\n\n**Security considerations:**\n- In production, run submissions in Docker containers\n- Set resource limits (CPU, memory, time)\n- Sandbox network access",
+                "highlightNodes": [
+                    "file_trigger_submission"
+                ],
+                "codeSnippet": "# Example student submission structure:\n# File: student_123_assignment1.py\n\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\ndef is_prime(n):\n    \"\"\"Check if n is prime.\"\"\"\n    if n < 2:\n        return False\n    for i in range(2, int(n**0.5) + 1):\n        if n % i == 0:\n            return False\n    return True"
+            },
+            {
+                "title": "Load Test Cases",
+                "content": "The **Code node** loads test case definitions that specify expected inputs and outputs.\n\n**Test case structure:**\n- Function name to test\n- Input arguments\n- Expected output\n- Points value\n\n**Why separate test cases?**\n- Easy to update without changing workflow\n- Can have different test suites\n- Enables partial credit scoring",
+                "highlightNodes": [
+                    "read_expected_output"
+                ],
+                "codeSnippet": "# Test case definitions:\ntest_cases = [\n    {\n        'function': 'fibonacci',\n        'inputs': [0],\n        'expected': 0,\n        'points': 5\n    },\n    {\n        'function': 'fibonacci',\n        'inputs': [10],\n        'expected': 55,\n        'points': 10\n    },\n    {\n        'function': 'is_prime',\n        'inputs': [17],\n        'expected': True,\n        'points': 10\n    }\n]"
+            },
+            {
+                "title": "Execute Student Code",
+                "content": "The **Execute Command node** runs the student's code in a controlled environment.\n\n**Safety measures implemented:**\n- Timeout (5 seconds per test)\n- Output capture (stdout/stderr)\n- Exit code checking\n- Exception handling\n\n**In production:**\n- Use Docker containers for isolation\n- Implement resource limits\n- Block network and file system access",
+                "highlightNodes": [
+                    "exec_student_code"
+                ],
+                "codeSnippet": "# Execution wrapper (simplified):\nimport subprocess\nimport json\n\ndef run_test(code_file, function_name, inputs):\n    test_script = f'''\nimport sys\nsys.path.insert(0, '.')\nfrom {code_file} import {function_name}\nresult = {function_name}(*{inputs})\nprint(json.dumps({{\"result\": result}}))\n'''\n    \n    result = subprocess.run(\n        ['python', '-c', test_script],\n        capture_output=True,\n        timeout=5\n    )\n    return json.loads(result.stdout)"
+            },
+            {
+                "title": "Compare & Score",
+                "content": "The **Code node** compares actual outputs against expected outputs and calculates the score.\n\n**Grading logic:**\n- Exact match: Full points\n- Close match (for floats): Partial credit\n- Wrong output: Zero points\n- Error/timeout: Zero points + error flag\n\n**Output includes:**\n- Total score and percentage\n- Per-test results\n- Error messages for debugging",
+                "highlightNodes": [
+                    "code_compare_output"
+                ],
+                "codeSnippet": "def calculate_score(test_results):\n    total_points = 0\n    earned_points = 0\n    details = []\n    \n    for test in test_results:\n        total_points += test['points']\n        \n        if test.get('error'):\n            details.append({\n                'test': test['name'],\n                'status': 'ERROR',\n                'earned': 0,\n                'message': test['error']\n            })\n        elif test['actual'] == test['expected']:\n            earned_points += test['points']\n            details.append({\n                'test': test['name'],\n                'status': 'PASS',\n                'earned': test['points']\n            })\n        else:\n            details.append({\n                'test': test['name'],\n                'status': 'FAIL',\n                'earned': 0,\n                'expected': test['expected'],\n                'actual': test['actual']\n            })\n    \n    return {\n        'score': earned_points,\n        'total': total_points,\n        'percentage': round(earned_points/total_points*100, 1),\n        'details': details\n    }"
+            },
+            {
+                "title": "AI Feedback Generation",
+                "content": "The **LLM Chat node** generates personalized, educational feedback based on the test results.\n\n**Key principles:**\n- Explain *why* tests failed\n- Hint at solutions without giving answers\n- Encourage good practices\n- Be constructive and supportive\n\n**Why AI for feedback?**\n- Scales to any number of students\n- Consistent quality and tone\n- Addresses individual mistakes\n- Can be customized per course",
+                "highlightNodes": [
+                    "llm_generate_feedback"
+                ],
+                "codeSnippet": "# LLM prompt:\n\"You are a friendly programming tutor. A student \"\n\"submitted code that got {score}% correct.\\n\\n\"\n\"Test Results:\\n{test_details}\\n\\n\"\n\"Student Code:\\n{student_code}\\n\\n\"\n\"Write helpful, encouraging feedback that:\\n\"\n\"1. Praises what they did well\\n\"\n\"2. Explains WHY each test failed\\n\"\n\"3. Hints at the solution without giving it\\n\"\n\"4. Suggests resources for learning\\n\"\n\"Keep it under 300 words.\""
+            },
+            {
+                "title": "Generate Report",
+                "content": "The **Code node** creates a formatted grade report that can be saved or emailed to the student.\n\n**Report includes:**\n- Student ID and assignment name\n- Final score and grade letter\n- Per-test breakdown\n- AI-generated feedback\n- Timestamp\n\n**Output formats:**\n- Plain text (for console)\n- Markdown (for web display)\n- JSON (for LMS integration)",
+                "highlightNodes": [
+                    "file_write_report"
+                ],
+                "codeSnippet": "# Report template:\nreport = f'''\n====================================\n ASSIGNMENT GRADING REPORT\n====================================\n\nStudent: {student_id}\nAssignment: {assignment_name}\nSubmission Time: {timestamp}\n\nSCORE: {score}/{total} ({percentage}%)\nGRADE: {letter_grade}\n\n--- Test Results ---\n{test_details}\n\n--- Feedback ---\n{ai_feedback}\n\n--- Next Steps ---\n- Review the feedback above\n- Fix failing tests\n- Resubmit for regrading\n\nKeep up the great work!\n====================================\n'''"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**Testing with Manual Trigger:**\n1. Click Run (F5) to grade the sample submission\n2. Watch the Console for test execution\n3. Review the generated feedback\n\n**Testing with File Watcher:**\n1. Enable the File Trigger node\n2. Activate the workflow\n3. Drop a `.py` file in the submissions folder\n4. Check the output folder for the grade report\n\n**Customizing for your course:**\n- Update test cases for your assignments\n- Adjust the grading rubric\n- Customize the LLM prompt for your tone\n- Integrate with your LMS (Canvas, Moodle)\n- Add plagiarism detection",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "name": "Assignment Auto-Grader",
+        "description": "Automated code grading with AI-powered feedback",
+        "nodes": [
+            {
+                "id": "trigger_manual",
+                "type": "manualTrigger",
+                "name": "Test Trigger",
+                "position": {
+                    "x": 100,
+                    "y": 150
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Use for testing without file watcher"
+            },
+            {
+                "id": "code_sample_submission",
+                "type": "code",
+                "name": "Sample Submission",
+                "position": {
+                    "x": 300,
+                    "y": 150
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Simulate a student submission\n# This is the code the student wrote\n\nstudent_code = '''\ndef fibonacci(n):\n    \"\"\"Return the nth Fibonacci number.\"\"\"\n    if n <= 1:\n        return n\n    return fibonacci(n-1) + fibonacci(n-2)\n\ndef is_prime(n):\n    \"\"\"Check if n is prime.\"\"\"\n    if n < 2:\n        return False\n    # Bug: Should be range(2, int(n**0.5) + 1)\n    for i in range(2, n):\n        if n % i == 0:\n            return False\n    return True\n\ndef reverse_string(s):\n    \"\"\"Reverse a string.\"\"\"\n    return s[::-1]\n'''\n\nreturn {\n    'student_id': 'student_42',\n    'student_name': 'Alice Johnson',\n    'assignment_id': 'hw1_python_basics',\n    'assignment_name': 'Homework 1: Python Basics',\n    'submission_file': 'student_42_hw1.py',\n    'student_code': student_code,\n    'submitted_at': '2026-02-03T10:30:00Z'\n}"
+                },
+                "disabled": false,
+                "notes": "Edit to test different student submissions"
+            },
+            {
+                "id": "file_trigger_submission",
+                "type": "fileTrigger",
+                "name": "Watch Submissions",
+                "position": {
+                    "x": 100,
+                    "y": 350
+                },
+                "parameters": {
+                    "path": "./data/submissions",
+                    "pattern": "*.py",
+                    "events": [
+                        "created"
+                    ]
+                },
+                "disabled": true,
+                "notes": "Enable to watch for new student submissions"
+            },
+            {
+                "id": "merge_triggers",
+                "type": "merge",
+                "name": "Merge Inputs",
+                "position": {
+                    "x": 500,
+                    "y": 250
+                },
+                "parameters": {
+                    "mode": "passThrough",
+                    "waitForAll": false
+                },
+                "disabled": false,
+                "notes": "Combines manual and file trigger inputs"
+            },
+            {
+                "id": "read_expected_output",
+                "type": "code",
+                "name": "Load Test Cases",
+                "position": {
+                    "x": 700,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Define test cases for the assignment\n# In production, load from a JSON file or database\n\ntest_cases = [\n    {\n        'id': 'fib_0',\n        'name': 'fibonacci(0)',\n        'function': 'fibonacci',\n        'inputs': [0],\n        'expected': 0,\n        'points': 5,\n        'description': 'Base case: fibonacci(0) = 0'\n    },\n    {\n        'id': 'fib_1',\n        'name': 'fibonacci(1)',\n        'function': 'fibonacci',\n        'inputs': [1],\n        'expected': 1,\n        'points': 5,\n        'description': 'Base case: fibonacci(1) = 1'\n    },\n    {\n        'id': 'fib_10',\n        'name': 'fibonacci(10)',\n        'function': 'fibonacci',\n        'inputs': [10],\n        'expected': 55,\n        'points': 10,\n        'description': 'Standard case: fibonacci(10) = 55'\n    },\n    {\n        'id': 'prime_2',\n        'name': 'is_prime(2)',\n        'function': 'is_prime',\n        'inputs': [2],\n        'expected': True,\n        'points': 5,\n        'description': 'Edge case: 2 is the smallest prime'\n    },\n    {\n        'id': 'prime_17',\n        'name': 'is_prime(17)',\n        'function': 'is_prime',\n        'inputs': [17],\n        'expected': True,\n        'points': 10,\n        'description': 'Standard prime number'\n    },\n    {\n        'id': 'prime_15',\n        'name': 'is_prime(15)',\n        'function': 'is_prime',\n        'inputs': [15],\n        'expected': False,\n        'points': 10,\n        'description': 'Composite number: 15 = 3 × 5'\n    },\n    {\n        'id': 'reverse_hello',\n        'name': 'reverse_string(\"hello\")',\n        'function': 'reverse_string',\n        'inputs': ['hello'],\n        'expected': 'olleh',\n        'points': 10,\n        'description': 'Simple string reversal'\n    },\n    {\n        'id': 'reverse_empty',\n        'name': 'reverse_string(\"\")',\n        'function': 'reverse_string',\n        'inputs': [''],\n        'expected': '',\n        'points': 5,\n        'description': 'Edge case: empty string'\n    }\n]\n\nreturn {\n    **input,\n    'test_cases': test_cases,\n    'total_points': sum(tc['points'] for tc in test_cases)\n}"
+                },
+                "disabled": false,
+                "notes": "Defines test cases - customize for your assignments"
+            },
+            {
+                "id": "exec_student_code",
+                "type": "code",
+                "name": "Execute & Test Code",
+                "position": {
+                    "x": 900,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "import traceback\nfrom io import StringIO\nimport sys\n\ndef run_tests(student_code, test_cases):\n    \"\"\"Execute student code and run test cases.\"\"\"\n    results = []\n    \n    # Create a namespace for the student code\n    namespace = {}\n    \n    # Execute student code to define functions\n    try:\n        exec(student_code, namespace)\n    except Exception as e:\n        # Code doesn't even compile\n        return {\n            'compilation_error': str(e),\n            'results': [],\n            'score': 0\n        }\n    \n    # Run each test case\n    for test in test_cases:\n        result = {\n            'id': test['id'],\n            'name': test['name'],\n            'function': test['function'],\n            'expected': test['expected'],\n            'points': test['points'],\n            'description': test['description']\n        }\n        \n        # Check if function exists\n        if test['function'] not in namespace:\n            result['error'] = f\"Function '{test['function']}' not found\"\n            result['actual'] = None\n            result['passed'] = False\n            results.append(result)\n            continue\n        \n        # Execute the function with a timeout simulation\n        try:\n            func = namespace[test['function']]\n            actual = func(*test['inputs'])\n            result['actual'] = actual\n            result['passed'] = actual == test['expected']\n            result['error'] = None\n        except Exception as e:\n            result['actual'] = None\n            result['passed'] = False\n            result['error'] = f\"{type(e).__name__}: {str(e)}\"\n        \n        results.append(result)\n    \n    return {\n        'compilation_error': None,\n        'results': results\n    }\n\n# Run tests\ntest_output = run_tests(\n    input.get('student_code', ''),\n    input.get('test_cases', [])\n)\n\nreturn {\n    **input,\n    'test_output': test_output\n}"
+                },
+                "disabled": false,
+                "notes": "Executes student code and runs test cases"
+            },
+            {
+                "id": "code_compare_output",
+                "type": "code",
+                "name": "Calculate Score",
+                "position": {
+                    "x": 1100,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "def calculate_score(test_output, total_points):\n    \"\"\"Calculate score from test results.\"\"\"\n    \n    if test_output.get('compilation_error'):\n        return {\n            'score': 0,\n            'total': total_points,\n            'percentage': 0,\n            'grade_letter': 'F',\n            'compilation_error': test_output['compilation_error'],\n            'passed_tests': 0,\n            'failed_tests': 0,\n            'total_tests': 0,\n            'details': []\n        }\n    \n    results = test_output.get('results', [])\n    earned = 0\n    passed = 0\n    failed = 0\n    details = []\n    \n    for result in results:\n        if result.get('passed'):\n            earned += result['points']\n            passed += 1\n            status = '✅ PASS'\n        elif result.get('error'):\n            failed += 1\n            status = '❌ ERROR'\n        else:\n            failed += 1\n            status = '❌ FAIL'\n        \n        details.append({\n            'name': result['name'],\n            'status': status,\n            'points_earned': result['points'] if result.get('passed') else 0,\n            'points_possible': result['points'],\n            'expected': result['expected'],\n            'actual': result.get('actual'),\n            'error': result.get('error'),\n            'description': result['description']\n        })\n    \n    percentage = round((earned / total_points) * 100, 1) if total_points > 0 else 0\n    \n    # Assign letter grade\n    if percentage >= 90:\n        grade_letter = 'A'\n    elif percentage >= 80:\n        grade_letter = 'B'\n    elif percentage >= 70:\n        grade_letter = 'C'\n    elif percentage >= 60:\n        grade_letter = 'D'\n    else:\n        grade_letter = 'F'\n    \n    return {\n        'score': earned,\n        'total': total_points,\n        'percentage': percentage,\n        'grade_letter': grade_letter,\n        'passed_tests': passed,\n        'failed_tests': failed,\n        'total_tests': len(results),\n        'details': details\n    }\n\n# Calculate score\nscore_result = calculate_score(\n    input.get('test_output', {}),\n    input.get('total_points', 100)\n)\n\nprint(f\"📊 Score: {score_result['score']}/{score_result['total']} ({score_result['percentage']}%) - Grade: {score_result['grade_letter']}\")\n\nreturn {\n    **input,\n    'score_result': score_result\n}"
+                },
+                "disabled": false,
+                "notes": "Calculates final score and grade"
+            },
+            {
+                "id": "llm_generate_feedback",
+                "type": "llmChat",
+                "name": "Generate AI Feedback",
+                "position": {
+                    "x": 1300,
+                    "y": 250
+                },
+                "parameters": {
+                    "systemPrompt": "You are a friendly, encouraging programming tutor. Your role is to help students learn from their mistakes without giving away answers.\n\nGuidelines:\n1. Start with something positive they did well\n2. For each failed test, explain WHY it might have failed\n3. Give hints that guide them toward the solution\n4. Suggest specific concepts to review\n5. End with encouragement\n6. Keep feedback under 300 words\n7. Use a warm, supportive tone\n\nNever give the exact solution code.",
+                    "userPrompt": "A student submitted code for a programming assignment.\n\n**Student:** {{ student_name }}\n**Assignment:** {{ assignment_name }}\n**Score:** {{ score_result.score }}/{{ score_result.total }} ({{ score_result.percentage }}%)\n**Grade:** {{ score_result.grade_letter }}\n\n**Test Results:**\n{% for test in score_result.details %}\n- {{ test.name }}: {{ test.status }}\n  {% if test.error %}Error: {{ test.error }}{% endif %}\n  {% if not test.status.startswith('✅') %}Expected: {{ test.expected }}, Got: {{ test.actual }}{% endif %}\n{% endfor %}\n\n**Student's Code:**\n```python\n{{ student_code }}\n```\n\nPlease provide personalized feedback for this student.",
+                    "model": "gpt-3.5-turbo",
+                    "temperature": 0.7,
+                    "maxTokens": 500
+                },
+                "disabled": false,
+                "notes": "Generates personalized educational feedback"
+            },
+            {
+                "id": "code_parse_feedback",
+                "type": "code",
+                "name": "Process Feedback",
+                "position": {
+                    "x": 1500,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "# Extract and clean up the AI feedback\n\nfeedback = input.get('response', input.get('content', ''))\n\nif not feedback:\n    feedback = '''Great effort on this assignment!\n\nYour code shows good understanding of the basic concepts. Here are some areas to focus on:\n\n1. **Test your edge cases** - Make sure your functions handle boundary values correctly.\n\n2. **Efficiency matters** - Consider the time complexity of your solutions.\n\n3. **Read the error messages** - They often point directly to the issue.\n\nKeep practicing and you'll continue to improve!'''\n\nreturn {\n    **input,\n    'ai_feedback': feedback.strip()\n}"
+                },
+                "disabled": false,
+                "notes": "Cleans up and formats AI feedback"
+            },
+            {
+                "id": "file_write_report",
+                "type": "code",
+                "name": "Generate Report",
+                "position": {
+                    "x": 1700,
+                    "y": 250
+                },
+                "parameters": {
+                    "language": "python",
+                    "code": "from datetime import datetime\n\ndef generate_report(data):\n    \"\"\"Generate a formatted grade report.\"\"\"\n    score = data.get('score_result', {})\n    \n    # Build test results section\n    test_details = ''\n    for test in score.get('details', []):\n        test_details += f\"\\n  {test['status']} {test['name']}\"\n        test_details += f\"\\n      Points: {test['points_earned']}/{test['points_possible']}\"\n        if test.get('error'):\n            test_details += f\"\\n      Error: {test['error']}\"\n        elif not test['status'].startswith('✅'):\n            test_details += f\"\\n      Expected: {test['expected']}\"\n            test_details += f\"\\n      Got: {test['actual']}\"\n        test_details += '\\n'\n    \n    report = f'''\n╔══════════════════════════════════════════════════════════════╗\n║              ASSIGNMENT GRADING REPORT                        ║\n╚══════════════════════════════════════════════════════════════╝\n\n📋 SUBMISSION DETAILS\n────────────────────────────────────────────────────────────────\n  Student:     {data.get('student_name', 'Unknown')}\n  Student ID:  {data.get('student_id', 'N/A')}\n  Assignment:  {data.get('assignment_name', 'N/A')}\n  Submitted:   {data.get('submitted_at', 'N/A')}\n  Graded:      {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n📊 SCORE SUMMARY\n────────────────────────────────────────────────────────────────\n  Points:      {score.get('score', 0)} / {score.get('total', 0)}\n  Percentage:  {score.get('percentage', 0)}%\n  Grade:       {score.get('grade_letter', 'N/A')}\n  Tests:       {score.get('passed_tests', 0)} passed, {score.get('failed_tests', 0)} failed\n\n📝 TEST RESULTS\n────────────────────────────────────────────────────────────────\n{test_details}\n\n💡 FEEDBACK FROM YOUR TUTOR\n────────────────────────────────────────────────────────────────\n{data.get('ai_feedback', 'No feedback available.')}\n\n🚀 NEXT STEPS\n────────────────────────────────────────────────────────────────\n  • Review the feedback above carefully\n  • Fix the failing tests one at a time\n  • Test your changes locally before resubmitting\n  • Resubmit for regrading if needed\n\n────────────────────────────────────────────────────────────────\n                    Keep up the great work! 🌟\n────────────────────────────────────────────────────────────────\n'''\n    \n    return report\n\n# Generate and display report\nreport = generate_report(input)\nprint(report)\n\n# In production, save to file:\n# report_filename = f\"grade_{input['student_id']}_{input['assignment_id']}.txt\"\n# with open(f'./data/grades/{report_filename}', 'w') as f:\n#     f.write(report)\n\nreturn {\n    'status': 'graded',\n    'student_id': input.get('student_id'),\n    'assignment_id': input.get('assignment_id'),\n    'score': input.get('score_result', {}).get('score', 0),\n    'total': input.get('score_result', {}).get('total', 0),\n    'percentage': input.get('score_result', {}).get('percentage', 0),\n    'grade': input.get('score_result', {}).get('grade_letter', 'N/A'),\n    'report': report,\n    'graded_at': datetime.now().isoformat()\n}"
+                },
+                "disabled": false,
+                "notes": "Generates formatted grade report"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_manual",
+                "sourceOutput": "main",
+                "targetNodeId": "code_sample_submission",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "code_sample_submission",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "file_trigger_submission",
+                "sourceOutput": "main",
+                "targetNodeId": "merge_triggers",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "merge_triggers",
+                "sourceOutput": "main",
+                "targetNodeId": "read_expected_output",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "read_expected_output",
+                "sourceOutput": "main",
+                "targetNodeId": "exec_student_code",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "exec_student_code",
+                "sourceOutput": "main",
+                "targetNodeId": "code_compare_output",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "code_compare_output",
+                "sourceOutput": "main",
+                "targetNodeId": "llm_generate_feedback",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_8",
+                "sourceNodeId": "llm_generate_feedback",
+                "sourceOutput": "main",
+                "targetNodeId": "code_parse_feedback",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_9",
+                "sourceNodeId": "code_parse_feedback",
+                "sourceOutput": "main",
+                "targetNodeId": "file_write_report",
+                "targetInput": "main"
+            }
+        ]
+    }
+}

@@ -1,0 +1,253 @@
+{
+    "id": "sample-weather-alert",
+    "name": "Weather Alert Workflow",
+    "description": "Fetches weather data from an API, checks if temperature exceeds threshold, and sends an alert. Demonstrates: HTTP Request, Code, IF conditional, and data flow.",
+    "category": "API Integration",
+    "difficulty": "beginner",
+    "language": "javascript",
+    "tags": [
+        "api",
+        "weather",
+        "conditional",
+        "http",
+        "notifications"
+    ],
+    "author": "NerveMind Team",
+    "version": "1.0.0",
+    "requiredCredentials": [
+        "OPEN_WEATHER_API_KEY"
+    ],
+    "environmentVariables": [],
+    "guide": {
+        "steps": [
+            {
+                "title": "Overview",
+                "content": "This workflow demonstrates a common automation pattern: fetching data from an API, processing it, making decisions based on conditions, and formatting output.\n\n**What you'll learn:**\n- Making HTTP requests to external APIs\n- Parsing JSON responses with JavaScript\n- Using IF conditionals for branching logic\n- Formatting output messages\n\n**Prerequisites:**\n- An OpenWeatherMap API key (free tier available at openweathermap.org)",
+                "highlightNodes": [],
+                "codeSnippet": null
+            },
+            {
+                "title": "Manual Trigger",
+                "content": "Every workflow starts with a trigger. The Manual Trigger allows you to start the workflow on-demand by clicking the Run button.\n\nOther trigger types include:\n- **Schedule Trigger** - Run on a schedule (cron)\n- **Webhook Trigger** - Run when receiving HTTP requests\n- **File Watcher** - Run when files change",
+                "highlightNodes": [
+                    "trigger_1"
+                ],
+                "codeSnippet": null
+            },
+            {
+                "title": "HTTP Request Node",
+                "content": "The HTTP Request node fetches current weather data from the OpenWeatherMap API.\n\n**Configuration:**\n- **URL**: Uses template syntax `{{OPEN_WEATHER_API_KEY}}` to inject your API key\n- **Method**: GET request to retrieve data\n- **Headers**: Sets Accept header for JSON response\n\n**Tip:** Store sensitive data like API keys in Credentials (Settings → Credentials) rather than hardcoding them.",
+                "highlightNodes": [
+                    "http_1"
+                ],
+                "codeSnippet": "// The API returns data like:\n{\n  \"main\": {\n    \"temp\": 22.5,\n    \"humidity\": 65\n  },\n  \"weather\": [{\n    \"description\": \"partly cloudy\"\n  }],\n  \"name\": \"London\"\n}"
+            },
+            {
+                "title": "Parse Response (Code Node)",
+                "content": "The Code node uses JavaScript to parse the API response and extract the fields we need.\n\n**Key points:**\n- `input` contains data from the previous node\n- `input.body` is the raw response body (string)\n- Use `JSON.parse()` to convert to an object\n- Return an object with the data for downstream nodes",
+                "highlightNodes": [
+                    "code_1"
+                ],
+                "codeSnippet": "// Extract temperature from weather API response\nconst weatherData = JSON.parse(input.body);\nconst temperature = weatherData.main.temp;\nconst city = weatherData.name;\nconst condition = weatherData.weather[0].description;\n\nreturn {\n  temperature: temperature,\n  city: city,\n  condition: condition,\n  timestamp: new Date().toISOString(),\n  threshold: 25  // Temperature threshold in Celsius\n};"
+            },
+            {
+                "title": "IF Conditional",
+                "content": "The IF node checks whether the temperature exceeds our threshold (25°C).\n\n**Condition syntax:**\n- Use `{{ variableName }}` to reference input values\n- Supports comparison operators: `>`, `<`, `>=`, `<=`, `==`, `!=`\n- Supports logical operators: `&&`, `||`, `!`\n\n**Branching:**\n- **TRUE** output → Hot weather path\n- **FALSE** output → Normal weather path",
+                "highlightNodes": [
+                    "if_1"
+                ],
+                "codeSnippet": "// Condition expression:\n{{ temperature }} > {{ threshold }}\n\n// This becomes (for example):\n22.5 > 25  // evaluates to false\n// or\n28.3 > 25  // evaluates to true"
+            },
+            {
+                "title": "Format Alerts (Branch Nodes)",
+                "content": "Based on the IF condition result, one of two Code nodes formats the appropriate message.\n\n**Hot Weather Alert** (temperature > 25°C):\n- Creates a warning-level alert\n- Includes safety recommendations\n\n**Normal Status** (temperature ≤ 25°C):\n- Creates an info-level status\n- Confirms weather is normal",
+                "highlightNodes": [
+                    "code_hot",
+                    "code_normal"
+                ],
+                "codeSnippet": "// Hot weather alert format\nreturn {\n  alertType: 'HOT_WEATHER',\n  message: `🔥 Hot Weather Alert!\\n\\nCity: ${input.city}\\nTemperature: ${input.temperature}°C`,\n  severity: 'warning'\n};"
+            },
+            {
+                "title": "Final Output (Set Node)",
+                "content": "The Set node consolidates the output from both branches into a consistent format.\n\n**Why use Set?**\n- Standardizes output structure\n- Makes downstream processing easier\n- Both branches produce the same output fields\n\n**Template syntax:**\n- `{{ message }}` references the message from either branch",
+                "highlightNodes": [
+                    "set_1"
+                ],
+                "codeSnippet": "// Set node values configuration:\n{\n  \"result\": \"{{ message }}\",\n  \"alertType\": \"{{ alertType }}\",\n  \"processedAt\": \"{{ timestamp }}\"\n}"
+            },
+            {
+                "title": "Running the Workflow",
+                "content": "**To run this workflow:**\n\n1. **Set up your API key:**\n   - Go to Settings → Credentials\n   - Add a new credential: OPEN_WEATHER_API_KEY\n   - Enter your OpenWeatherMap API key\n\n2. **Run the workflow:**\n   - Click the Run button (or press F5)\n   - Watch the execution in the Console\n\n3. **Check results:**\n   - Right-click on any node → Debug View\n   - See input/output data for each node\n\n**Tip:** Try changing the threshold value in the Code node to see different results!",
+                "highlightNodes": [],
+                "codeSnippet": null
+            }
+        ]
+    },
+    "workflow": {
+        "nodes": [
+            {
+                "id": "trigger_1",
+                "type": "manualTrigger",
+                "name": "Manual Start",
+                "position": {
+                    "x": 100,
+                    "y": 200
+                },
+                "parameters": {},
+                "disabled": false,
+                "notes": "Click Run to start the workflow"
+            },
+            {
+                "id": "http_1",
+                "type": "httpRequest",
+                "name": "Get Weather Data",
+                "position": {
+                    "x": 300,
+                    "y": 200
+                },
+                "parameters": {
+                    "url": "https://api.openweathermap.org/data/2.5/weather?q=Eindhoven&appid={{OPEN_WEATHER_API_KEY}}&units=metric",
+                    "method": "GET",
+                    "headers": {
+                        "Accept": "application/json"
+                    },
+                    "timeout": 30
+                },
+                "disabled": false,
+                "notes": "Fetches current weather for Eindhoven. Replace 'Eindhoven' with any city."
+            },
+            {
+                "id": "code_1",
+                "type": "code",
+                "name": "Extract Temperature",
+                "position": {
+                    "x": 500,
+                    "y": 200
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Extract temperature from weather API response\nconst weatherData = JSON.parse(input.body);\nconst temperature = weatherData.main.temp;\nconst city = weatherData.name;\nconst condition = weatherData.weather[0].description;\n\nreturn {\n  temperature: temperature,\n  city: city,\n  condition: condition,\n  timestamp: new Date().toISOString(),\n  threshold: 25\n};"
+                },
+                "disabled": false,
+                "notes": "Parses the JSON response and extracts relevant fields"
+            },
+            {
+                "id": "if_1",
+                "type": "if",
+                "name": "Temperature > 25°C?",
+                "position": {
+                    "x": 700,
+                    "y": 200
+                },
+                "parameters": {
+                    "condition": "{{ temperature }} > {{ threshold }}"
+                },
+                "disabled": false,
+                "notes": "Checks if temperature exceeds the threshold"
+            },
+            {
+                "id": "code_hot",
+                "type": "code",
+                "name": "Format Hot Alert",
+                "position": {
+                    "x": 900,
+                    "y": 100
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Format alert message for hot weather\nreturn {\n  alertType: 'HOT_WEATHER',\n  message: `🔥 Hot Weather Alert!\\n\\nCity: ${input.city}\\nTemperature: ${input.temperature}°C\\nCondition: ${input.condition}\\n\\nStay hydrated and avoid direct sunlight!`,\n  severity: 'warning',\n  timestamp: input.timestamp\n};"
+                },
+                "disabled": false,
+                "notes": "Creates alert message for hot weather"
+            },
+            {
+                "id": "code_normal",
+                "type": "code",
+                "name": "Format Normal Status",
+                "position": {
+                    "x": 900,
+                    "y": 300
+                },
+                "parameters": {
+                    "language": "javascript",
+                    "code": "// Format status message for normal weather\nreturn {\n  alertType: 'NORMAL',\n  message: `✅ Weather Status\\n\\nCity: ${input.city}\\nTemperature: ${input.temperature}°C\\nCondition: ${input.condition}\\n\\nWeather is within normal range.`,\n  severity: 'info',\n  timestamp: input.timestamp\n};"
+                },
+                "disabled": false,
+                "notes": "Creates status message for normal weather"
+            },
+            {
+                "id": "set_1",
+                "type": "set",
+                "name": "Final Output",
+                "position": {
+                    "x": 1100,
+                    "y": 200
+                },
+                "parameters": {
+                    "values": {
+                        "result": "{{ message }}",
+                        "alertType": "{{ alertType }}",
+                        "processedAt": "{{ timestamp }}"
+                    }
+                },
+                "disabled": false,
+                "notes": "Consolidates the final output"
+            }
+        ],
+        "connections": [
+            {
+                "id": "conn_1",
+                "sourceNodeId": "trigger_1",
+                "sourceOutput": "main",
+                "targetNodeId": "http_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_2",
+                "sourceNodeId": "http_1",
+                "sourceOutput": "main",
+                "targetNodeId": "code_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_3",
+                "sourceNodeId": "code_1",
+                "sourceOutput": "main",
+                "targetNodeId": "if_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_4",
+                "sourceNodeId": "if_1",
+                "sourceOutput": "true",
+                "targetNodeId": "code_hot",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_5",
+                "sourceNodeId": "if_1",
+                "sourceOutput": "false",
+                "targetNodeId": "code_normal",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_6",
+                "sourceNodeId": "code_hot",
+                "sourceOutput": "main",
+                "targetNodeId": "set_1",
+                "targetInput": "main"
+            },
+            {
+                "id": "conn_7",
+                "sourceNodeId": "code_normal",
+                "sourceOutput": "main",
+                "targetNodeId": "set_1",
+                "targetInput": "main"
+            }
+        ],
+        "settings": {},
+        "isActive": true,
+        "triggerType": "MANUAL",
+        "version": 1
+    }
+}

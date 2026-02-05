@@ -1,0 +1,23 @@
+plugins {
+    id 'com.gradle.develocity' version '4.3'
+}
+
+develocity {
+    buildScan {
+        publishing.onlyIf {
+            System.getenv("CI") != null
+        }
+        termsOfUseUrl = "https://gradle.com/help/legal-terms-of-use"
+        termsOfUseAgree = "yes"
+        tag "CI"
+        uploadInBackground = false
+    }
+}
+
+rootProject.name = 'NerveMind'
+include 'common'
+include 'plugin-api'
+include 'plugins:file-watcher'
+include 'plugins:connection-label'
+include 'app'
+include 'ui'

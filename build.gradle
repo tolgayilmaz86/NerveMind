@@ -1,0 +1,140 @@
+buildscript {
+    ext {
+        // Core versions
+        springBootVersion = "4.0.2"
+        flywayDbVersion = "11.7.2"
+        jpackageVersion = "1.7.6"
+        sonarqubeVersion = "7.2.2.6593"
+
+        // Library versions
+        atlantafxVersion = "2.0.1"
+        ikonliVersion = "12.3.1"
+        bouncycastleVersion = "1.83"
+        graalvmVersion = "25.0.1"
+        jnaVersion = "5.18.1"
+        jsoupVersion = "1.22.1"
+        apacheCommonsLangVersion = "3.20.0"
+        apacheCommonsCollectionsVersion = "4.5.0"
+        jacksonVersion = "2.19.0"
+
+        // Test versions - updated
+        junitVersion = "6.0.1"
+        archunitVersion = "1.4.1"
+        testfxVersion = "4.0.18"
+        wiremockVersion = "3.13.0"
+    }
+}
+
+plugins {
+    id 'org.springframework.boot' version "$springBootVersion" apply false
+    id 'org.flywaydb.flyway' version "$flywayDbVersion" apply false
+    id 'org.panteleyev.jpackageplugin' version "$jpackageVersion" apply false
+    id 'org.sonarqube' version "$sonarqubeVersion"
+}
+
+wrapper {
+    gradleVersion = "9.2.0" // To upgrade Gradle, change the version here, refresh, then run the 'build setup/wrapper' task
+}
+
+// Determine version early
+def versionName = "0.1.0"
+try {
+    def proc = "git describe --tags".execute()
+    proc.waitFor()
+    if (proc.exitValue() == 0) {
+        versionName = proc.text.trim().substring(1) // Remove 'v' prefix
+    }
+} catch (Exception e) {
+    // Git not available, use default
+}
+
+// Version management - will be set by a task
+// Task to determine version from git
+task determineVersion {
+    doLast {
+        println "Version: $versionName"
+    }
+}
+
+subprojects {
+    group = 'ai.nervemind'
+    version = versionName
+
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(25)
+        }
+    }
+
+    compileJava {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += [
+            '--enable-preview',
+            '-Xlint:preview'
+        ]
+    }
+
+    compileTestJava {
+        options.encoding = 'UTF-8'
+        options.compilerArgs += ['--enable-preview']
+    }
+
+    test {
+        jvmArgs '--enable-preview'
+    }
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+    }
+
+    tasks.withType(JavaCompile).configureEach {
+        options.compilerArgs << '-parameters'
+    }
+}
+
+// Task to deploy all plugins to the app/plugins directory
+tasks.register('deployPlugins') {
+    description = 'Deploys all plugin JARs to app/plugins directory'
+    group = 'build'
+    
+    dependsOn ':plugins:file-watcher:jar'
+    
+    doLast {
+        def pluginsDir = file("${projectDir}/app/plugins")
+        pluginsDir.mkdirs()
+        
+        // Copy file-watcher plugin
+        copy {
+            from project(':plugins:file-watcher').jar.archiveFile
+            into pluginsDir
+        }
+        
+        println "✅ Plugins deployed to: ${pluginsDir}"
+    }
+}
+
+// Task to publish plugin-api to local Maven repository
+tasks.register('publishPluginApi') {
+    description = 'Publishes plugin-api to local Maven repository for third-party developers'
+    group = 'publishing'
+    
+    dependsOn ':plugin-api:publishToMavenLocal'
+    
+    doLast {
+        println "✅ Plugin API published to local Maven repository"
+        println "   Third-party developers can now use:"
+        println "   compileOnly 'ai.nervemind:plugin-api:${versionName}'"
+    }
+}
+
+sonarqube {
+    properties {
+        property "sonar.projectKey", "NerveMind"
+        property "sonar.organization", "nervemind"
+        property "sonar.host.url", "https://sonarcloud.io"
+    }
+}
