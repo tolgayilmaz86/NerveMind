@@ -10,20 +10,28 @@ public class AddConnectionCommand implements CanvasCommand {
 
     private final WorkflowCanvas canvas;
     private final String sourceNodeId;
+    private final String sourceHandleId;
     private final String targetNodeId;
-    private String createdConnectionId;
+    private final String targetHandleId;
+    private final String connectionId;
 
     /**
      * Creates a new command to add a connection.
      *
-     * @param canvas       The workflow canvas
-     * @param sourceNodeId The ID of the source node
-     * @param targetNodeId The ID of the target node
+     * @param canvas         The workflow canvas
+     * @param sourceNodeId   The ID of the source node
+     * @param sourceHandleId The ID of the source handle/port
+     * @param targetNodeId   The ID of the target node
+     * @param targetHandleId The ID of the target handle/port
      */
-    public AddConnectionCommand(WorkflowCanvas canvas, String sourceNodeId, String targetNodeId) {
+    public AddConnectionCommand(WorkflowCanvas canvas, String sourceNodeId, String sourceHandleId,
+            String targetNodeId, String targetHandleId) {
         this.canvas = canvas;
         this.sourceNodeId = sourceNodeId;
+        this.sourceHandleId = sourceHandleId;
         this.targetNodeId = targetNodeId;
+        this.targetHandleId = targetHandleId;
+        this.connectionId = java.util.UUID.randomUUID().toString();
     }
 
     /**
@@ -31,7 +39,8 @@ public class AddConnectionCommand implements CanvasCommand {
      */
     @Override
     public void execute() {
-        createdConnectionId = canvas.createConnectionInternal(sourceNodeId, targetNodeId);
+        canvas.createConnectionInternal(connectionId, sourceNodeId, sourceHandleId, targetNodeId,
+                targetHandleId);
     }
 
     /**
@@ -39,9 +48,7 @@ public class AddConnectionCommand implements CanvasCommand {
      */
     @Override
     public void undo() {
-        if (createdConnectionId != null) {
-            canvas.deleteConnectionInternal(createdConnectionId);
-        }
+        canvas.deleteConnectionInternal(connectionId);
     }
 
     /**

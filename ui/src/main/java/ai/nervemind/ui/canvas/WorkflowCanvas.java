@@ -163,6 +163,21 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
     private Label workflowTitleLabel;
     private Label activeIndicator;
 
+    // Dirty state property
+    private final javafx.beans.property.BooleanProperty dirty = new javafx.beans.property.SimpleBooleanProperty(false);
+
+    public javafx.beans.property.BooleanProperty dirtyProperty() {
+        return dirty;
+    }
+
+    public boolean isDirty() {
+        return dirty.get();
+    }
+
+    public void markAsClean() {
+        dirty.set(false);
+    }
+
     public WorkflowCanvas(WorkflowServiceInterface workflowService, ExecutionServiceInterface executionService,
             PluginServiceInterface pluginService) {
         this.workflowService = workflowService;
@@ -207,6 +222,11 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
 
         canvasScrollPane.getStyleClass().add("canvas-scroll");
 
+        // Initialize undo/redo manager
+        // Initialize undo/redo manager
+        undoRedoManager = new UndoRedoManager();
+        undoRedoManager.setOnStateChanged(() -> dirty.set(true));
+
         // Node palette on the left with scroll
         nodePalette = createNodePalette();
         paletteScrollPane = new ScrollPane(nodePalette);
@@ -224,6 +244,18 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
             }
         });
         propertiesPanel.setOnShowHelp(this::showNodeHelpDialog);
+        propertiesPanel.setOnApplyChanges((nodeId, updatedNode) -> {
+            Node originalNode = workflow.nodes().stream()
+                    .filter(n -> n.id().equals(nodeId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (originalNode != null) {
+                undoRedoManager.executeCommand(
+                        new ai.nervemind.ui.canvas.commands.EditNodeCommand(
+                                this, originalNode, updatedNode, "Edit Properties"));
+            }
+        });
 
         // Execution history panel (toggleable on the right side below properties, MVVM
         // component)
@@ -260,9 +292,6 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         // Load debug toolbar stylesheet
         centerContainer.getStylesheets().add(
                 getClass().getResource("/ai/nervemind/ui/styles/debug.css").toExternalForm());
-
-        // Initialize undo/redo manager
-        undoRedoManager = new UndoRedoManager();
 
         // Layout - no top bar, workflow info is in palette header
         setCenter(centerContainer);
@@ -861,6 +890,8 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
 
         // Update active indicator
         updateActiveIndicator();
+        undoRedoManager.clear();
+        markAsClean();
     }
 
     public void loadWorkflow(WorkflowDTO workflow) {
@@ -896,6 +927,8 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         updateActiveIndicator();
 
         showStatus("Loaded: " + workflow.name());
+        undoRedoManager.clear();
+        markAsClean();
     }
 
     public void saveWorkflow() {
@@ -934,6 +967,7 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                 saved = workflowService.update(workflow);
             }
             this.workflow = saved;
+            markAsClean();
             showStatus("Saved: " + saved.name());
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -995,6 +1029,7 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                     1);
             WorkflowDTO saved = workflowService.create(workflow);
             this.workflow = saved;
+            markAsClean();
             showStatus("Saved as: " + saved.name());
 
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -1033,7 +1068,7 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                 showStatus("No running executions to stop");
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to stop workflow: " + e.getMessage(), e);
+            LOGGER.log(Level.WARNING, e, () -> "Failed to stop workflow: " + e.getMessage());
             showStatus("Error stopping workflow: " + e.getMessage());
         }
     }
@@ -1440,22 +1475,28 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         return TriggerType.MANUAL;
     }
 
+    // ==================== Command Internal Methods ====================
+
+    /**
+     * Internal method to create a connection (used by AddConnectionCommand).
+     */
+    public String createConnectionInternal(String connectionId, String sourceNodeId, String sourceHandleId,
+            String targetNodeId,
+            String targetHandleId) {
+        ai.nervemind.common.domain.Connection connection = new ai.nervemind.common.domain.Connection(
+                connectionId, sourceNodeId, sourceHandleId,
+                targetNodeId, targetHandleId);
+
+        workflow = workflow.withAddedConnection(connection);
+        createConnectionLine(connection);
+        return connectionId;
+    }
+
+    // Existing addNode method delegates to command
     private void addNode(String type, String name, double x, double y) {
-        String id = UUID.randomUUID().toString();
-        Node node = new Node(
-                id, type, name,
-                new Node.Position(snapToGrid(x), snapToGrid(y)),
-                Map.of(), null, false, null);
-
-        // Update workflow
-        workflow = workflow.withAddedNode(node);
-
-        // Create view
-        NodeView nodeView = new NodeView(node, this);
-        nodeViews.put(id, nodeView);
-        nodeLayer.getChildren().add(nodeView);
-
-        // Update canvas bounds and minimap
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.AddNodeCommand(this, type,
+                        snapToGrid(x), snapToGrid(y)));
         updateCanvasBounds();
     }
 
@@ -1533,44 +1574,28 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
      * Deletes all currently selected nodes and their connections.
      */
     public void deleteSelected() {
-        if (!selectedNodes.isEmpty()) {
-            // Collect all node IDs to delete
-            java.util.Set<String> nodeIdsToDelete = selectedNodes.stream()
-                    .map(nodeView -> nodeView.getNode().id())
-                    .collect(java.util.stream.Collectors.toSet());
-
-            // Remove from workflow
-            var newNodes = workflow.nodes().stream()
-                    .filter(n -> !nodeIdsToDelete.contains(n.id()))
-                    .toList();
-            var newConnections = workflow.connections().stream()
-                    .filter(c -> !nodeIdsToDelete.contains(c.sourceNodeId()) &&
-                            !nodeIdsToDelete.contains(c.targetNodeId()))
-                    .toList();
-            workflow = new WorkflowDTO(
-                    workflow.id(), workflow.name(), workflow.description(),
-                    newNodes, newConnections, workflow.settings(),
-                    workflow.isActive(), workflow.triggerType(), workflow.cronExpression(),
-                    workflow.createdAt(), workflow.updatedAt(), workflow.lastExecuted(),
-                    workflow.version());
-
-            // Remove views
-            for (NodeView nodeView : selectedNodes) {
-                nodeLayer.getChildren().remove(nodeView);
-                nodeViews.remove(nodeView.getNode().id());
-            }
-
-            // Remove connections
-            connectionLines.entrySet().removeIf(entry -> {
-                if (nodeIdsToDelete.stream().anyMatch(entry.getValue()::involvesNode)) {
-                    connectionLayer.getChildren().remove(entry.getValue());
-                    return true;
-                }
-                return false;
-            });
-
-            selectedNodes.clear();
+        if (selectedNodes.isEmpty()) {
+            return;
         }
+
+        // Collect all node IDs to delete
+        java.util.Set<String> nodeIdsToDelete = selectedNodes.stream()
+                .map(nodeView -> nodeView.getNode().id())
+                .collect(java.util.stream.Collectors.toSet());
+
+        // Capture nodes and connections for undo
+        java.util.List<Node> nodesToDelete = selectedNodes.stream()
+                .map(NodeView::getNode)
+                .toList();
+        java.util.List<ai.nervemind.common.domain.Connection> connectionsToDelete = workflow.connections().stream()
+                .filter(c -> nodeIdsToDelete.contains(c.sourceNodeId()) || nodeIdsToDelete.contains(c.targetNodeId()))
+                .toList();
+
+        selectedNodes.clear();
+
+        undoRedoManager.executeCommand(
+                ai.nervemind.ui.canvas.commands.CompositeCommand.deleteMultiple(
+                        this, nodesToDelete, connectionsToDelete));
     }
 
     public void updateNodePosition(String nodeId, double x, double y) {
@@ -1805,32 +1830,23 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
     public void endConnectionDrag() {
         // Check if we're hovering over a valid target
         if (hoveredTarget != null && connectionSource != null && connectionSource.canConnectTo(hoveredTarget)) {
-            // Create the connection with handle IDs
-            String connectionId = UUID.randomUUID().toString();
             String sourceOutput = connectionSourceHandleId != null ? connectionSourceHandleId : "main";
             String targetInput = hoveredTargetHandleId != null ? hoveredTargetHandleId : "main";
-            Connection connection = new Connection(connectionId,
-                    connectionSource.getNode().id(),
-                    sourceOutput,
-                    hoveredTarget.getNode().id(),
-                    targetInput);
-            workflow = workflow.withAddedConnection(connection);
-            createConnectionLine(connection);
+            // Create the connection through undo/redo
+            undoRedoManager.executeCommand(
+                    new ai.nervemind.ui.canvas.commands.AddConnectionCommand(
+                            this, connectionSource.getNode().id(), sourceOutput,
+                            hoveredTarget.getNode().id(), targetInput));
         } else if (connectionSource != null && tempConnectionLine != null) {
             // Try to find target under the mouse cursor
             NodeView target = findTargetNodeAtPoint(tempConnectionLine.getEndX(), tempConnectionLine.getEndY());
             if (target != null && connectionSource.canConnectTo(target)) {
-                String connectionId = UUID.randomUUID().toString();
                 String sourceOutput = connectionSourceHandleId != null ? connectionSourceHandleId : "main";
-                // Use first input handle of target node
                 String targetInput = target.getInputHandleIds().isEmpty() ? "main" : target.getInputHandleIds().get(0);
-                Connection connection = new Connection(connectionId,
-                        connectionSource.getNode().id(),
-                        sourceOutput,
-                        target.getNode().id(),
-                        targetInput);
-                workflow = workflow.withAddedConnection(connection);
-                createConnectionLine(connection);
+                undoRedoManager.executeCommand(
+                        new ai.nervemind.ui.canvas.commands.AddConnectionCommand(
+                                this, connectionSource.getNode().id(), sourceOutput,
+                                target.getNode().id(), targetInput));
             }
         }
 
@@ -1922,21 +1938,13 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
             return;
         }
 
-        // Create the connection with handle IDs
-        String connectionId = UUID.randomUUID().toString();
         String sourceOutput = connectionSourceHandleId != null ? connectionSourceHandleId : "main";
         String targetInput = handleId != null ? handleId : "main";
-        Connection connection = new Connection(connectionId,
-                connectionSource.getNode().id(),
-                sourceOutput,
-                target.getNode().id(),
-                targetInput);
 
-        // Add to workflow
-        workflow = workflow.withAddedConnection(connection);
-
-        // Create visual connection
-        createConnectionLine(connection);
+        // Create the connection via undo/redo
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.AddConnectionCommand(
+                        this, connectionSource.getNode().id(), sourceOutput, target.getNode().id(), targetInput));
 
         // Clean up
         endConnectionDrag();
@@ -1991,16 +1999,8 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
      * Delete a connection by its ID.
      */
     public void deleteConnection(String connectionId) {
-        ConnectionLine line = connectionLines.remove(connectionId);
-        if (line != null) {
-            connectionLayer.getChildren().remove(line);
-
-            // Remove from workflow
-            var newConnections = workflow.connections().stream()
-                    .filter(c -> !c.id().equals(connectionId))
-                    .toList();
-            workflow = workflow.withConnections(newConnections);
-        }
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.DeleteConnectionCommand(this, connectionId));
     }
 
     // ==================== Node Action Methods ====================
@@ -2169,10 +2169,11 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                 node.disabled(),
                 node.notes());
 
-        updateNode(nodeView, updatedNode);
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.EditNodeCommand(this, node, updatedNode, "Edit " + node.name()));
 
         if (propertiesPanel.isShowing()) {
-            propertiesPanel.show(nodeView);
+            propertiesPanel.show(nodeViews.get(node.id()));
         }
     }
 
@@ -2346,16 +2347,6 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         dialog.showAndWait();
     }
 
-    private void updateNodeName(String nodeId, String newName) {
-        var newNodes = workflow.nodes().stream()
-                .map(n -> n.id().equals(nodeId)
-                        ? new Node(n.id(), n.type(), newName, n.position(), n.parameters(),
-                                n.credentialId(), n.disabled(), n.notes())
-                        : n)
-                .toList();
-        workflow = workflow.withNodes(newNodes);
-    }
-
     /**
      * Execute a single node for testing.
      */
@@ -2434,16 +2425,14 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                 original.disabled(),
                 original.notes());
 
-        // Add to workflow
-        workflow = workflow.withAddedNode(duplicate);
-
-        // Create view
-        NodeView newView = new NodeView(duplicate, this);
-        nodeViews.put(newId, newView);
-        nodeLayer.getChildren().add(newView);
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.AddNodeCommand(this, duplicate));
 
         // Select the new node
-        selectNode(newView);
+        NodeView newView = nodeViews.get(newId);
+        if (newView != null) {
+            selectNode(newView);
+        }
     }
 
     /**
@@ -2472,6 +2461,7 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         // Clear selection before pasting
         deselectAll();
 
+        java.util.List<Node> pastedNodeList = new java.util.ArrayList<>();
         for (Node node : clipboardNodes) {
             String newId = UUID.randomUUID().toString();
             Node pastedNode = new Node(
@@ -2483,22 +2473,24 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
                     node.credentialId(),
                     node.disabled(),
                     node.notes());
-
-            // Add to workflow
-            workflow = workflow.withAddedNode(pastedNode);
-
-            // Create view
-            NodeView newView = new NodeView(pastedNode, this);
-            nodeViews.put(newId, newView);
-            nodeLayer.getChildren().add(newView);
-
-            // Select the pasted node
-            selectedNodes.add(newView);
-            newView.setSelected(true);
+            pastedNodeList.add(pastedNode);
 
             // Offset next node position
             baseX += 50;
             baseY += 50;
+        }
+
+        // Execute via composite command for single undo/redo
+        undoRedoManager.executeCommand(
+                ai.nervemind.ui.canvas.commands.CompositeCommand.pasteMultiple(this, pastedNodeList));
+
+        // Select all pasted nodes
+        for (Node pastedNode : pastedNodeList) {
+            NodeView newView = nodeViews.get(pastedNode.id());
+            if (newView != null) {
+                selectedNodes.add(newView);
+                newView.setSelected(true);
+            }
         }
 
         // Update properties panel for multi-selection
@@ -2525,22 +2517,12 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         Node node = nodeView.getNode();
         boolean newState = !node.disabled();
 
-        var newNodes = workflow.nodes().stream()
-                .map(n -> n.id().equals(node.id())
-                        ? new Node(n.id(), n.type(), n.name(), n.position(), n.parameters(),
-                                n.credentialId(), newState, n.notes())
-                        : n)
-                .toList();
-        workflow = workflow.withNodes(newNodes);
+        Node updatedNode = new Node(node.id(), node.type(), node.name(), node.position(),
+                node.parameters(), node.credentialId(), newState, node.notes());
 
-        // Update visual
-        if (newState) {
-            nodeView.setOpacity(0.5);
-            nodeView.getStyleClass().add("disabled");
-        } else {
-            nodeView.setOpacity(1.0);
-            nodeView.getStyleClass().remove("disabled");
-        }
+        String desc = newState ? "Disable " + node.name() : "Enable " + node.name();
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.EditNodeCommand(this, node, updatedNode, desc));
     }
 
     /**
@@ -2556,18 +2538,11 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
 
         dialog.showAndWait().ifPresent(newName -> {
             if (!newName.isBlank() && !newName.equals(node.name())) {
-                updateNodeName(node.id(), newName);
-                // Need to refresh the node view - recreate it
-                nodeLayer.getChildren().remove(nodeView);
-                nodeViews.remove(node.id());
-
-                Node updatedNode = workflow.findNode(node.id());
-                if (updatedNode != null) {
-                    NodeView newView = new NodeView(updatedNode, this);
-                    nodeViews.put(node.id(), newView);
-                    nodeLayer.getChildren().add(newView);
-                    selectNode(newView);
-                }
+                Node updatedNode = new Node(node.id(), node.type(), newName, node.position(),
+                        node.parameters(), node.credentialId(), node.disabled(), node.notes());
+                undoRedoManager.executeCommand(
+                        new ai.nervemind.ui.canvas.commands.EditNodeCommand(
+                                this, node, updatedNode, "Rename " + node.name()));
             }
         });
     }
@@ -2583,9 +2558,19 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
             // Update if changed (null means reset to default)
             if ((newIconCode == null && currentIcon != null)
                     || (newIconCode != null && !newIconCode.equals(currentIcon))) {
-                updateNodeIcon(node.id(), newIconCode);
-                // Update the visual immediately
-                nodeView.updateIcon(newIconCode);
+                // Build updated node with new icon parameter
+                Map<String, Object> newParams = new HashMap<>(
+                        node.parameters() != null ? node.parameters() : Map.of());
+                if (newIconCode != null) {
+                    newParams.put("customIcon", newIconCode);
+                } else {
+                    newParams.remove("customIcon");
+                }
+                Node updatedNode = new Node(node.id(), node.type(), node.name(), node.position(),
+                        newParams, node.credentialId(), node.disabled(), node.notes());
+                undoRedoManager.executeCommand(
+                        new ai.nervemind.ui.canvas.commands.EditNodeCommand(
+                                this, node, updatedNode, "Change icon of " + node.name()));
             }
         });
     }
@@ -2606,32 +2591,6 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
      * @param nodeId   The node ID
      * @param iconCode The icon code, or null to reset to default
      */
-    private void updateNodeIcon(String nodeId, String iconCode) {
-        var updatedNodes = workflow.nodes().stream()
-                .map(n -> {
-                    if (n.id().equals(nodeId)) {
-                        // Update parameters with new icon
-                        Map<String, Object> newParams = new HashMap<>(
-                                n.parameters() != null ? n.parameters() : Map.of());
-                        if (iconCode != null) {
-                            newParams.put("customIcon", iconCode);
-                        } else {
-                            newParams.remove("customIcon");
-                        }
-                        return new Node(n.id(), n.type(), n.name(), n.position(),
-                                newParams, n.credentialId(), n.disabled(), n.notes());
-                    }
-                    return n;
-                })
-                .toList();
-
-        workflow = new WorkflowDTO(
-                workflow.id(), workflow.name(), workflow.description(),
-                updatedNodes, workflow.connections(), workflow.settings(),
-                workflow.isActive(), workflow.triggerType(), workflow.cronExpression(),
-                workflow.createdAt(), workflow.updatedAt(), workflow.lastExecuted(),
-                workflow.version());
-    }
 
     /**
      * Show the debug view dialog for a node, displaying last execution data.
@@ -2666,34 +2625,17 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
     public void deleteNode(NodeView nodeView) {
         String nodeId = nodeView.getNode().id();
 
-        // Remove from workflow
-        var newNodes = workflow.nodes().stream()
-                .filter(n -> !n.id().equals(nodeId))
+        // Capture the node and its connections for undo
+        Node nodeToDelete = nodeView.getNode();
+        java.util.List<ai.nervemind.common.domain.Connection> connectionsToDelete = workflow.connections().stream()
+                .filter(c -> c.involvesNode(nodeId))
                 .toList();
-        var newConnections = workflow.connections().stream()
-                .filter(c -> !c.involvesNode(nodeId))
-                .toList();
-        workflow = new WorkflowDTO(
-                workflow.id(), workflow.name(), workflow.description(),
-                newNodes, newConnections, workflow.settings(),
-                workflow.isActive(), workflow.triggerType(), workflow.cronExpression(),
-                workflow.createdAt(), workflow.updatedAt(), workflow.lastExecuted(),
-                workflow.version());
-
-        // Remove view
-        nodeLayer.getChildren().remove(nodeView);
-        nodeViews.remove(nodeId);
-
-        // Remove connections
-        connectionLines.entrySet().removeIf(entry -> {
-            if (entry.getValue().involvesNode(nodeId)) {
-                connectionLayer.getChildren().remove(entry.getValue());
-                return true;
-            }
-            return false;
-        });
 
         selectedNodes.remove(nodeView);
+
+        undoRedoManager.executeCommand(
+                ai.nervemind.ui.canvas.commands.CompositeCommand.deleteMultiple(
+                        this, java.util.List.of(nodeToDelete), connectionsToDelete));
     }
 
     /**
@@ -3545,8 +3487,7 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
     /**
      * Create a node internally (for command pattern).
      */
-    public ai.nervemind.common.domain.Node createNodeInternal(String type, double x, double y) {
-        String id = UUID.randomUUID().toString();
+    public ai.nervemind.common.domain.Node createNodeInternal(String id, String type, double x, double y) {
         String name = getDefaultNameForType(type);
         ai.nervemind.common.domain.Node node = new ai.nervemind.common.domain.Node(
                 id, type, name, new ai.nervemind.common.domain.Node.Position(x, y),
@@ -3555,8 +3496,10 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         workflow = workflow.withAddedNode(node);
         NodeView nodeView = new NodeView(node, this);
         nodeViews.put(id, nodeView);
+        nodeViews.put(id, nodeView);
         nodeLayer.getChildren().add(nodeView);
         updateMinimap();
+        updateCanvasBounds();
         return node;
     }
 
@@ -3615,30 +3558,20 @@ public class WorkflowCanvas extends BorderPane implements NodeStateListener {
         }
     }
 
-    /**
-     * Create a connection internally (for command pattern).
-     */
-    public String createConnectionInternal(String sourceNodeId, String targetNodeId) {
-        String id = UUID.randomUUID().toString();
-        ai.nervemind.common.domain.Connection connection = new ai.nervemind.common.domain.Connection(
-                id, sourceNodeId, "main", targetNodeId, "main");
-
-        workflow = workflow.withAddedConnection(connection);
-
-        NodeView source = nodeViews.get(sourceNodeId);
-        NodeView target = nodeViews.get(targetNodeId);
-        if (source != null && target != null) {
-            ConnectionLine line = new ConnectionLine(connection, source, target, this);
-            line.setPluginMenuManager(pluginMenuManager);
-            connectionLines.put(id, line);
-            connectionLayer.getChildren().add(line);
-
-            // Notify plugins about the new connection
-            ConnectionContextImpl context = new ConnectionContextImpl(line, this);
-            pluginService.notifyConnectionCreated(context);
+    public void applyNodeState(Node node) {
+        NodeView view = nodeViews.get(node.id());
+        if (view != null) {
+            updateNode(view, node);
         }
+    }
 
-        return id;
+    /**
+     * Record a node move operation for undo/redo.
+     * Called by NodeView after a drag operation completes.
+     */
+    public void recordNodeMove(String nodeId, double oldX, double oldY, double newX, double newY) {
+        undoRedoManager.executeCommand(
+                new ai.nervemind.ui.canvas.commands.MoveNodeCommand(this, nodeId, oldX, oldY, newX, newY));
     }
 
     /**

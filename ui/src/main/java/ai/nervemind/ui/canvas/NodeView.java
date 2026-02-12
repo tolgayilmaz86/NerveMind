@@ -92,6 +92,9 @@ public class NodeView extends StackPane {
 
     private double dragOffsetX;
     private double dragOffsetY;
+    private double dragStartLayoutX;
+    private double dragStartLayoutY;
+    private boolean wasDragged;
     private boolean selected = false;
     private ExecutionState executionState = ExecutionState.IDLE;
     private String errorMessage = null;
@@ -632,6 +635,9 @@ public class NodeView extends StackPane {
             if (e.getButton() == MouseButton.PRIMARY) {
                 dragOffsetX = e.getSceneX() - getLayoutX();
                 dragOffsetY = e.getSceneY() - getLayoutY();
+                dragStartLayoutX = getLayoutX();
+                dragStartLayoutY = getLayoutY();
+                wasDragged = false;
                 toFront();
                 canvas.selectNode(this);
                 e.consume();
@@ -653,6 +659,20 @@ public class NodeView extends StackPane {
                 setLayoutY(newY);
 
                 canvas.updateNodePosition(node.id(), newX, newY);
+                wasDragged = true;
+                e.consume();
+            }
+        });
+
+        nodeBox.setOnMouseReleased(e -> {
+            if (e.getButton() == MouseButton.PRIMARY && wasDragged) {
+                double endX = getLayoutX();
+                double endY = getLayoutY();
+                // Only record if position actually changed
+                if (endX != dragStartLayoutX || endY != dragStartLayoutY) {
+                    canvas.recordNodeMove(node.id(), dragStartLayoutX, dragStartLayoutY, endX, endY);
+                }
+                wasDragged = false;
                 e.consume();
             }
         });

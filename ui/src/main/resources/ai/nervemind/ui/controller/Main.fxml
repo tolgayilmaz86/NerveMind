@@ -84,10 +84,12 @@
 
             <!-- Toolbar -->
             <ToolBar styleClass="main-toolbar">
-                <Button fx:id="btnNewWorkflow" text="New" onAction="#onNewWorkflow" styleClass="toolbar-button, fancy-button"/>
-                <Button fx:id="btnOpenWorkflow" text="Open" onAction="#onOpenWorkflow" styleClass="toolbar-button, fancy-button"/>
-                <Button fx:id="btnSaveWorkflow" text="Save" onAction="#onSaveWorkflow" styleClass="toolbar-button, fancy-button"/>
-                <Button fx:id="btnRunWorkflow" text="Run" onAction="#onRunWorkflow" styleClass="toolbar-button, run-button"/>
+                <Button fx:id="btnNewWorkflow" onAction="#onNewWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnOpenWorkflow" onAction="#onOpenWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnSaveWorkflow" onAction="#onSaveWorkflow" styleClass="toolbar-button, fancy-button"/>
+                <Separator orientation="VERTICAL"/>
+                <Button fx:id="btnUndo" onAction="#onUndo" styleClass="toolbar-button, fancy-button"/>
+                <Button fx:id="btnRedo" onAction="#onRedo" styleClass="toolbar-button, fancy-button"/>
                 <Region HBox.hgrow="ALWAYS"/>
                 <TextField promptText="Search nodes..." prefWidth="200"/>
             </ToolBar>

@@ -14,6 +14,7 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignF;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignR;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
 import org.springframework.stereotype.Component;
 
 import ai.nervemind.common.domain.SampleWorkflow;
@@ -51,6 +52,7 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -169,7 +171,9 @@ public class MainViewController implements Initializable {
     @FXML
     private Button btnSaveWorkflow;
     @FXML
-    private Button btnRunWorkflow;
+    private Button btnUndo;
+    @FXML
+    private Button btnRedo;
 
     // Canvas instance (reused)
     private WorkflowCanvas workflowCanvas;
@@ -251,12 +255,15 @@ public class MainViewController implements Initializable {
         btnNewWorkflow.setGraphic(new FontIcon(MaterialDesignP.PLUS));
         btnOpenWorkflow.setGraphic(new FontIcon(MaterialDesignF.FOLDER_OPEN));
         btnSaveWorkflow.setGraphic(new FontIcon(MaterialDesignC.CONTENT_SAVE));
+        btnUndo.setGraphic(new FontIcon(MaterialDesignU.UNDO));
+        btnRedo.setGraphic(new FontIcon(MaterialDesignR.REDO));
 
-        // Hide run button as it is replaced by floating toolbar
-        if (btnRunWorkflow != null) {
-            btnRunWorkflow.setVisible(false);
-            btnRunWorkflow.setManaged(false);
-        }
+        // Add proper tooltips
+        btnNewWorkflow.setTooltip(new Tooltip("New Workflow (Ctrl+N)"));
+        btnOpenWorkflow.setTooltip(new Tooltip("Open Workflow (Ctrl+O)"));
+        btnSaveWorkflow.setTooltip(new Tooltip("Save Workflow (Ctrl+S)"));
+        btnUndo.setTooltip(new Tooltip("Undo (Ctrl+Z)"));
+        btnRedo.setTooltip(new Tooltip("Redo (Ctrl+Y)"));
     }
 
     private void setupSidebarActions() {
@@ -453,6 +460,7 @@ public class MainViewController implements Initializable {
             if (pluginMenuManager != null) {
                 workflowCanvas.setPluginMenuManager(pluginMenuManager);
             }
+            workflowCanvas.dirtyProperty().addListener((o, oldV, newV) -> viewModel.setWorkflowDirty(newV));
         } else {
             workflowCanvas.refreshPalette();
         }
@@ -895,6 +903,9 @@ public class MainViewController implements Initializable {
 
     @FXML
     private void onNewWorkflow() {
+        if (!checkUnsavedChanges()) {
+            return;
+        }
         showWorkflowsView();
         if (workflowCanvas != null) {
             workflowCanvas.newWorkflow();
@@ -905,6 +916,9 @@ public class MainViewController implements Initializable {
 
     @FXML
     private void onOpenWorkflow() {
+        if (!checkUnsavedChanges()) {
+            return;
+        }
         List<WorkflowDTO> workflows = viewModel.getAllWorkflows();
 
         Consumer<WorkflowDTO> onDelete = workflow -> {
@@ -948,7 +962,6 @@ public class MainViewController implements Initializable {
     private void onSaveWorkflow() {
         if (workflowCanvas != null) {
             workflowCanvas.saveWorkflow();
-            viewModel.setWorkflowDirty(false);
         }
     }
 
@@ -1027,16 +1040,19 @@ public class MainViewController implements Initializable {
 
     // ========== Other Actions ==========
 
+    public boolean checkUnsavedChanges() {
+        if (viewModel.isWorkflowDirty()) {
+            return dialogService.confirm(
+                    "Unsaved Changes",
+                    "You have unsaved changes. Proceed without saving?");
+        }
+        return true;
+    }
+
     @FXML
     private void onExit() {
-        // Check for unsaved changes
-        if (viewModel.isWorkflowDirty()) {
-            boolean confirm = dialogService.confirm(
-                    "Unsaved Changes",
-                    "You have unsaved changes. Are you sure you want to exit?");
-            if (!confirm) {
-                return;
-            }
+        if (!checkUnsavedChanges()) {
+            return;
         }
         // Shutdown all subsidiary windows/services
         ExecutionConsoleService.getInstance().shutdown();

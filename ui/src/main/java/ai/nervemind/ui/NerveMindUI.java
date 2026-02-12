@@ -14,6 +14,7 @@ import ch.qos.logback.classic.Logger;
 import javafx.animation.PauseTransition;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -210,9 +211,17 @@ public class NerveMindUI extends Application {
             // Step 3: Load main view (this is the heavy operation)
             loadingLabel.setText("Loading main interface...");
             progressBar.setProgress(0.3);
-            Scene scene = new Scene(
-                    fxWeaver.loadView(ai.nervemind.ui.view.MainViewController.class),
-                    1400, 900);
+            var cav = fxWeaver.load(ai.nervemind.ui.view.MainViewController.class);
+            Parent view = (Parent) cav.getView().get();
+            Scene scene = new Scene(view, 1400.0, 900.0);
+            var controller = cav.getController();
+
+            // Handle window close request
+            primaryStage.setOnCloseRequest(event -> {
+                if (!controller.checkUnsavedChanges()) {
+                    event.consume();
+                }
+            });
 
             // Step 4: Load CSS
             progressBar.setProgress(0.6);
@@ -317,9 +326,17 @@ public class NerveMindUI extends Application {
         FxWeaver fxWeaver = springContext.getBean(FxWeaver.class);
 
         // Load main view
-        Scene scene = new Scene(
-                fxWeaver.loadView(ai.nervemind.ui.view.MainViewController.class),
-                1400, 900);
+        var cav = fxWeaver.load(ai.nervemind.ui.view.MainViewController.class);
+        Parent view = (Parent) cav.getView().get();
+        Scene scene = new Scene(view, 1400.0, 900.0);
+        var controller = cav.getController();
+
+        // Handle window close request
+        primaryStage.setOnCloseRequest(event -> {
+            if (!controller.checkUnsavedChanges()) {
+                event.consume();
+            }
+        });
 
         // Load application CSS, without this left menu would look sparse
         scene.getStylesheets().add(getClass().getResource("/ai/nervemind/ui/styles/main.css").toExternalForm());
