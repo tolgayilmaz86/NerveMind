@@ -11,6 +11,7 @@ description = 'NerveMind Plugin API - Interfaces for extending NerveMind with cu
 dependencies {
     // Minimal dependencies - this module should be lightweight
     // Plugins only need to depend on this module
+    implementation project(':common')
 }
 
 // This module is published for plugin developers
