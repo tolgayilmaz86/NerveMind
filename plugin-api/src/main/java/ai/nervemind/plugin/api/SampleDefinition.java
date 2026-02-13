@@ -22,7 +22,7 @@ package ai.nervemind.plugin.api;
  * <h2>Usage Example</h2>
  * 
  * <pre>{@code
- * @Override
+ * // Create samples for your plugin
  * public List<SampleDefinition> getSamples() {
  *     return List.of(
  *             SampleDefinition.fromResource(
@@ -54,7 +54,6 @@ package ai.nervemind.plugin.api;
  * 
  * @author NerveMind Team
  * @since 1.0.0
- * @see PluginProvider#getSamples()
  * @see SampleDifficulty
  */
 public record SampleDefinition(

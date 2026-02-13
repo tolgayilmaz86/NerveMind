@@ -1,0 +1,48 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    compileOnly 'ai.nervemind:plugin-api:1.0.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    withSourcesJar()
+    withJavadocJar()
+}
+
+jar {
+    manifest {
+        attributes(
+            'Plugin-Id': project.pluginId,
+            'Plugin-Name': project.pluginName,
+            'Plugin-Version': project.version,
+            'Plugin-Description': project.description,
+            'Plugin-Provider': project.pluginProvider,
+            'Plugin-Category': 'TRIGGER',
+            'NerveMind-Version': project.nervemindVersion
+        )
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+tasks.register('installPlugin', Copy) {
+    dependsOn jar
+    from jar
+    into "$rootDir/../app/plugins"
+}

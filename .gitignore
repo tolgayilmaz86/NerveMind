@@ -21,8 +21,12 @@ bin/
 *.o
 *.obj
 *.pyc
+
 # Exclude Gradle wrapper JAR
 gradle/wrapper/gradle-wrapper.jar
+
+# Exclude META-INF directory (contains build metadata)
+META-INF/
 
 # IDE
 .idea/
