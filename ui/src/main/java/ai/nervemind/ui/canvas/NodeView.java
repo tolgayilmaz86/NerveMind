@@ -1342,6 +1342,10 @@ public class NodeView extends StackPane {
             case "textClassifier" -> MaterialDesignT.TAG_TEXT_OUTLINE;
             case "embedding" -> MaterialDesignV.VECTOR_BEZIER;
             case "rag" -> MaterialDesignB.BOOK_SEARCH;
+            case "database" -> MaterialDesignD.DATABASE;
+            case "emailSend" -> MaterialDesignE.EMAIL_OUTLINE;
+            case "csv" -> MaterialDesignF.FILE_DELIMITED;
+            case "slack" -> MaterialDesignS.SLACK;
             case "subworkflow" -> MaterialDesignS.SITEMAP;
             case "parallel" -> MaterialDesignF.FORMAT_ALIGN_JUSTIFY;
             case "tryCatch" -> MaterialDesignS.SHIELD_CHECK;
@@ -1380,6 +1384,10 @@ public class NodeView extends StackPane {
             case "textClassifier" -> "classifier";
             case "embedding" -> "vectors";
             case "rag" -> "retrieval";
+            case "database" -> "database";
+            case "emailSend" -> "email";
+            case "csv" -> "csv";
+            case "slack" -> "messaging";
             case "subworkflow" -> "nested";
             case "parallel" -> "parallel";
             case "tryCatch" -> "error handling";

@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -48,18 +50,27 @@ public class CredentialInitializer {
      * Load credentials from .env file in the project root.
      */
     private void loadCredentialsFromEnvFile() {
-        // Try multiple possible locations for the .env file
-        Path[] possiblePaths = {
-                Paths.get(".env"), // Current directory
-                Paths.get("..", ".env"), // Parent directory
-                Paths.get(System.getProperty("user.dir"), ".env"), // User working directory
-                Paths.get(System.getProperty("user.home"), ".env") // User home (fallback)
-        };
+        // Try normalized paths only in expected local locations.
+        Path cwd = normalizePath(Paths.get("."));
+        Path userDir = normalizePath(Paths.get(System.getProperty("user.dir", ".")));
+        Path userHome = normalizePath(Paths.get(System.getProperty("user.home", ".")));
+
+        List<Path> possiblePaths = new ArrayList<>();
+        if (cwd != null) {
+            possiblePaths.add(cwd.resolve(".env"));
+        }
+        if (userDir != null && !userDir.equals(cwd)) {
+            possiblePaths.add(userDir.resolve(".env"));
+        }
+        if (userHome != null && !userHome.equals(cwd) && !userHome.equals(userDir)) {
+            possiblePaths.add(userHome.resolve(".env"));
+        }
 
         Path envFile = null;
         for (Path path : possiblePaths) {
-            if (Files.exists(path)) {
-                envFile = path;
+            Path normalized = normalizePath(path);
+            if (normalized != null && Files.isRegularFile(normalized) && Files.isReadable(normalized)) {
+                envFile = normalized;
                 break;
             }
         }
@@ -157,5 +168,14 @@ public class CredentialInitializer {
         }
 
         return envVars;
+    }
+
+    private Path normalizePath(Path path) {
+        try {
+            return path.toAbsolutePath().normalize();
+        } catch (Exception e) {
+            log.warn("Skipping invalid path candidate '{}': {}", path, e.getMessage());
+            return null;
+        }
     }
 }

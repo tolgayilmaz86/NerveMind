@@ -13,7 +13,11 @@ public enum CredentialType {
     /** OAuth 2.0 authentication flow. */
     OAUTH2("OAuth 2.0", "OAuth 2.0 authentication flow"),
     /** Custom HTTP header authentication. */
-    CUSTOM_HEADER("Custom Header", "Custom HTTP header authentication");
+    CUSTOM_HEADER("Custom Header", "Custom HTTP header authentication"),
+    /** Database connection credentials. */
+    DATABASE("Database", "Database connection credentials"),
+    /** SMTP email credentials. */
+    EMAIL_SMTP("Email (SMTP)", "SMTP server credentials for sending email");
 
     private final String displayName;
     private final String description;

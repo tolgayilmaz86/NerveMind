@@ -7,7 +7,7 @@ plugins {
     id 'org.openjfx.javafxplugin' version '0.1.0'
     id 'checkstyle'
     id 'pmd'
-    // id 'com.github.spotbugs' version '6.0.4'
+    id 'com.github.spotbugs' version '6.0.4'
 }
 
 java {
@@ -335,10 +335,12 @@ pmd {
 }
 
 // SpotBugs configuration
-// spotbugs {
-//     toolVersion = '4.8.3'
-//     excludeFilter = rootProject.file('config/spotbugs/exclude.xml')
-// }
+spotbugs {
+    toolVersion = '4.8.3'
+    excludeFilter = rootProject.file('config/spotbugs/exclude.xml')
+    effort = 'DEFAULT'
+    reportLevel = 'MEDIUM'
+}
 
 dependencies {
     // Spring Boot BOM
@@ -393,6 +395,10 @@ dependencies {
     // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0'
     
+    // Email (Jakarta Mail)
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.eclipse.angus:angus-mail:2.0.3'
+
     // JNA for native access
     implementation "net.java.dev.jna:jna-platform:$jnaVersion"
     

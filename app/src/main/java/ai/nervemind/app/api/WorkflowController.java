@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import ai.nervemind.app.service.WorkflowService;
 import ai.nervemind.common.dto.WorkflowDTO;
+import jakarta.validation.Valid;
 
 /**
  * REST API controller for workflow management.
@@ -72,7 +73,7 @@ public class WorkflowController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public WorkflowDTO create(@RequestBody final WorkflowDTO dto) {
+    public WorkflowDTO create(@Valid @RequestBody final WorkflowDTO dto) {
         WorkflowDTO created = workflowService.create(dto);
         fileWatcherService.registerWorkflow(created);
         return created;
@@ -86,7 +87,7 @@ public class WorkflowController {
      * @return the updated workflow if successful, 400 if ID mismatch
      */
     @PutMapping("/{id}")
-    public ResponseEntity<WorkflowDTO> update(@PathVariable final Long id, @RequestBody final WorkflowDTO dto) {
+    public ResponseEntity<WorkflowDTO> update(@PathVariable final Long id, @Valid @RequestBody final WorkflowDTO dto) {
         if (!id.equals(dto.id())) {
             return ResponseEntity.badRequest().build();
         }

@@ -10,6 +10,8 @@ import java.time.format.DateTimeFormatter;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignA;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignE;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignK;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignS;
 
@@ -196,6 +198,8 @@ public class CredentialManagerController {
             case HTTP_BEARER -> FontIcon.of(MaterialDesignS.SHIELD_KEY, 14);
             case OAUTH2 -> FontIcon.of(MaterialDesignS.SECURITY, 14);
             case CUSTOM_HEADER -> FontIcon.of(MaterialDesignC.CODE_BRACES, 14);
+            case DATABASE -> FontIcon.of(MaterialDesignD.DATABASE, 14);
+            case EMAIL_SMTP -> FontIcon.of(MaterialDesignE.EMAIL_OUTLINE, 14);
         };
         icon.getStyleClass().add("credential-manager-dialog__type-icon");
         return icon;

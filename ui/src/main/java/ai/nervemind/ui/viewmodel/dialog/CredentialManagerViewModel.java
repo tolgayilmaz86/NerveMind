@@ -226,6 +226,8 @@ public class CredentialManagerViewModel extends BaseViewModel {
             case HTTP_BEARER -> "mdi2s-shield-key";
             case OAUTH2 -> "mdi2s-shield-account";
             case CUSTOM_HEADER -> "mdi2c-code-tags";
+            case DATABASE -> "mdi2d-database";
+            case EMAIL_SMTP -> "mdi2e-email-outline";
         };
     }
 

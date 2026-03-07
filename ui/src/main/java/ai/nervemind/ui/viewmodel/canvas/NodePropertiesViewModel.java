@@ -673,6 +673,10 @@ public class NodePropertiesViewModel extends BaseViewModel {
             case "textClassifier" -> buildTextClassifierParams(params);
             case "embedding" -> buildEmbeddingParams(params);
             case "rag" -> buildRagParams(params);
+            case "database" -> buildDatabaseParams(params);
+            case "emailSend" -> buildEmailSendParams(params);
+            case "csv" -> buildCsvParams(params);
+            case "slack" -> buildSlackParams(params);
             default -> buildGenericParams(params);
         }
     }
@@ -791,6 +795,70 @@ public class NodePropertiesViewModel extends BaseViewModel {
         addComboBox("provider", "LLM Provider", new String[] { "openai", "anthropic", "ollama" },
                 params.getOrDefault("provider", "openai").toString());
         addTextField("model", "Model", params.getOrDefault("model", "").toString(), "gpt-4");
+    }
+
+    private void buildDatabaseParams(Map<String, Object> params) {
+        addTextField("jdbcUrl", "JDBC URL", params.getOrDefault("jdbcUrl", "").toString(),
+                "jdbc:h2:mem:test or jdbc:h2:file:./data/mydb");
+        addTextField("username", "Username", params.getOrDefault("username", "sa").toString(), "sa");
+        addTextField("password", "Password", params.getOrDefault("password", "").toString(), "");
+        addComboBox("operation", "Operation",
+                new String[] { "SELECT", "INSERT", "UPDATE", "DELETE", "DDL" },
+                params.getOrDefault("operation", "SELECT").toString());
+        addTextArea("query", "SQL Query", params.getOrDefault("query", "").toString());
+        addTextField("parameters", "Parameters (comma-separated)",
+                params.getOrDefault("parameters", "").toString(), "value1, value2");
+        addSpinner("maxRows", "Max Rows",
+                ((Number) params.getOrDefault("maxRows", 1000)).intValue(), 1, 10000);
+        addSpinner("timeout", "Timeout (seconds)",
+                ((Number) params.getOrDefault("timeout", 30)).intValue(), 1, 300);
+        addHint("Only H2 databases supported. Use ? for parameter placeholders.");
+    }
+
+    private void buildEmailSendParams(Map<String, Object> params) {
+        addTextField("smtpHost", "SMTP Host", params.getOrDefault("smtpHost", "").toString(),
+                "smtp.gmail.com");
+        addSpinner("smtpPort", "SMTP Port",
+                ((Number) params.getOrDefault("smtpPort", 587)).intValue(), 1, 65535);
+        addTextField("username", "Username", params.getOrDefault("username", "").toString(), "user@example.com");
+        addTextField("password", "Password", params.getOrDefault("password", "").toString(), "");
+        addCheckBox("useTls", "Enable TLS",
+                Boolean.parseBoolean(params.getOrDefault("useTls", "true").toString()));
+        addTextField("from", "From", params.getOrDefault("from", "").toString(), "sender@example.com");
+        addTextField("to", "To", params.getOrDefault("to", "").toString(), "recipient@example.com");
+        addTextField("cc", "CC", params.getOrDefault("cc", "").toString(), "");
+        addTextField("bcc", "BCC", params.getOrDefault("bcc", "").toString(), "");
+        addTextField("subject", "Subject", params.getOrDefault("subject", "").toString(), "Email Subject");
+        addTextArea("body", "Body", params.getOrDefault("body", "").toString());
+        addComboBox("bodyType", "Body Type", new String[] { "text", "html" },
+                params.getOrDefault("bodyType", "text").toString());
+    }
+
+    private void buildCsvParams(Map<String, Object> params) {
+        addComboBox("operation", "Operation", new String[] { "READ", "WRITE" },
+                params.getOrDefault("operation", "READ").toString());
+        addComboBox("source", "Source", new String[] { "FILE", "STRING", "INPUT" },
+                params.getOrDefault("source", "FILE").toString());
+        addTextField("filePath", "File Path", params.getOrDefault("filePath", "").toString(),
+                "data/input.csv");
+        addTextArea("content", "CSV Content", params.getOrDefault("content", "").toString());
+        addTextField("delimiter", "Delimiter", params.getOrDefault("delimiter", ",").toString(), ",");
+        addCheckBox("hasHeader", "Has Header Row",
+                Boolean.parseBoolean(params.getOrDefault("hasHeader", "true").toString()));
+        addSpinner("maxRows", "Max Rows",
+                ((Number) params.getOrDefault("maxRows", 10000)).intValue(), 1, 50000);
+        addHint("READ: parses CSV from file, string, or upstream input. WRITE: outputs CSV to file or string.");
+    }
+
+    private void buildSlackParams(Map<String, Object> params) {
+        addComboBox("action", "Action", new String[] { "SEND", "HISTORY" },
+                params.getOrDefault("action", "SEND").toString());
+        addTextField("channel", "Channel ID", params.getOrDefault("channel", "").toString(),
+                "C01234567");
+        addTextArea("message", "Message", params.getOrDefault("message", "").toString());
+        addSpinner("limit", "History Limit",
+                ((Number) params.getOrDefault("limit", 10)).intValue(), 1, 100);
+        addHint("Assign an API_KEY credential with your Slack Bot Token (xoxb-...).");
     }
 
     private void buildGenericParams(Map<String, Object> params) {

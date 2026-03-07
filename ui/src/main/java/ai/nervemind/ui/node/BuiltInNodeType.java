@@ -3,6 +3,8 @@ package ai.nervemind.ui.node;
 import org.kordamp.ikonli.Ikon;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignB;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignD;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignE;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignF;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignR;
@@ -98,7 +100,20 @@ public enum BuiltInNodeType implements NodeTypeDescriptor {
         RAG("rag", "RAG", MaterialDesignB.BOOK_SEARCH, NodeCategory.AI,
                         "Retrieval-Augmented Generation for document Q&A."),
 
-        // Advanced
+        // Integration
+        /** Database query node. */
+        DATABASE("database", "Database", MaterialDesignD.DATABASE, NodeCategory.INTEGRATION,
+                        "Execute SQL queries against an H2 database."),
+        /** Email send node. */
+        EMAIL_SEND("emailSend", "Send Email", MaterialDesignE.EMAIL_OUTLINE, NodeCategory.INTEGRATION,
+                        "Send emails via SMTP server."),
+        /** CSV read/write node. */
+        CSV("csv", "CSV", MaterialDesignF.FILE_DELIMITED, NodeCategory.INTEGRATION,
+                        "Read and write CSV files or data."),
+        /** Slack messaging node. */
+        SLACK("slack", "Slack", MaterialDesignS.SLACK, NodeCategory.INTEGRATION,
+                        "Send messages and read history from Slack channels."),
+
         // Advanced
         /** Subworkflow node. */
         SUBWORKFLOW("subworkflow", "Subworkflow", MaterialDesignS.SITEMAP, NodeCategory.ADVANCED,
@@ -146,6 +161,7 @@ public enum BuiltInNodeType implements NodeTypeDescriptor {
                                 case FLOW -> "linear-gradient(to right, #7c3aed 0%, #a78bfa 100%)";
                                 case DATA -> "linear-gradient(to right, #10b981 0%, #34d399 100%)";
                                 case ACTION -> "linear-gradient(to right, #06b6d4 0%, #22d3ee 100%)";
+                                case INTEGRATION -> "linear-gradient(to right, #f97316 0%, #fb923c 100%)";
                                 default -> "linear-gradient(to right, #4a9eff 0%, #6bb3ff 100%)";
                         };
                 };
@@ -161,6 +177,7 @@ public enum BuiltInNodeType implements NodeTypeDescriptor {
                                 case AI -> "mdi2b-brain";
                                 case FLOW -> "mdi2s-sitemap";
                                 case DATA -> "mdi2d-database";
+                                case INTEGRATION -> "mdi2p-puzzle";
                                 default -> "mdi2c-cog";
                         };
                 };

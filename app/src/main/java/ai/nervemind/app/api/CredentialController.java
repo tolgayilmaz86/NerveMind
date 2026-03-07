@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import ai.nervemind.app.service.CredentialService;
 import ai.nervemind.common.dto.CredentialDTO;
 import ai.nervemind.common.enums.CredentialType;
+import jakarta.validation.Valid;
 
 /**
  * REST API controller for credential management.
@@ -88,7 +89,7 @@ public class CredentialController {
      */
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public CredentialDTO create(@RequestBody final Map<String, Object> request) {
+    public CredentialDTO create(@Valid @RequestBody final Map<String, Object> request) {
         final String name = (String) request.get("name");
         final CredentialType type = CredentialType.valueOf((String) request.get("type"));
         final String data = (String) request.get("data");
@@ -108,7 +109,7 @@ public class CredentialController {
     @PutMapping("/{id}")
     public ResponseEntity<CredentialDTO> update(
             @PathVariable final Long id,
-            @RequestBody final Map<String, Object> request) {
+            @Valid @RequestBody final Map<String, Object> request) {
         final String name = (String) request.get("name");
         final CredentialType type = CredentialType.valueOf((String) request.get("type"));
         final String data = (String) request.get("data");

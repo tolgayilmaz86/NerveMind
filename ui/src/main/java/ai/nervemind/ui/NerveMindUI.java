@@ -9,9 +9,12 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import ai.nervemind.ui.console.ExecutionConsoleAppender;
 import ai.nervemind.ui.console.ExecutionConsoleService;
+import ai.nervemind.ui.tray.SystemTrayManager;
 import atlantafx.base.theme.NordDark;
 import ch.qos.logback.classic.Logger;
-import javafx.animation.PauseTransition;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Parent;
@@ -88,6 +91,7 @@ public class NerveMindUI extends Application {
 
     private static ConfigurableApplicationContext springContext;
     private static Class<?> applicationClass;
+    private SystemTrayManager systemTrayManager;
 
     /**
      * Sets the Spring application context.
@@ -158,21 +162,21 @@ public class NerveMindUI extends Application {
             // Create image view for splash
             javafx.scene.image.ImageView imageView = new javafx.scene.image.ImageView(splashImage);
             imageView.setPreserveRatio(true);
-            imageView.setFitWidth(800); // Reasonable size for splash
-            imageView.setFitHeight(600);
+            imageView.setFitWidth(280);
+            imageView.setFitHeight(210);
 
             // Create loading text and progress bar
             Label loadingLabel = new Label("Starting NerveMind...");
-            loadingLabel.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+            loadingLabel.setStyle("-fx-text-fill: white; -fx-font-size: 12px;");
 
             ProgressBar progressBar = new ProgressBar();
-            progressBar.setPrefWidth(300);
-            progressBar.setProgress(0.0); // Start at 0, will update as we load
+            progressBar.setPrefWidth(220);
+            progressBar.setProgress(0.0);
 
             // Layout
-            VBox splashLayout = new VBox(20);
+            VBox splashLayout = new VBox(12);
             splashLayout.setAlignment(javafx.geometry.Pos.CENTER);
-            splashLayout.setStyle("-fx-background-color: #2d3748; -fx-padding: 40;");
+            splashLayout.setStyle("-fx-background-color: #2d3748; -fx-padding: 20;");
             splashLayout.getChildren().addAll(imageView, loadingLabel, progressBar);
 
             Scene splashScene = new Scene(splashLayout);
@@ -182,8 +186,9 @@ public class NerveMindUI extends Application {
             splashStage.centerOnScreen();
             splashStage.show();
 
-            // Start preloading on JavaFX thread with progress updates
-            Platform.runLater(() -> preloadMainWindow(primaryStage, splashStage, progressBar, loadingLabel));
+            // Preload on a background thread so progress bar updates are visible
+            Thread.ofVirtual().name("splash-loader").start(
+                    () -> preloadMainWindow(primaryStage, splashStage, progressBar, loadingLabel));
 
         } catch (Exception e) {
             LOGGER.warning("Failed to load splash image, proceeding to main window: " + e.getMessage());
@@ -192,84 +197,124 @@ public class NerveMindUI extends Application {
         }
     }
 
+    private void updateSplash(ProgressBar progressBar, Label loadingLabel, double progress, String text) {
+        Platform.runLater(() -> {
+            loadingLabel.setText(text);
+            Timeline timeline = new Timeline(
+                    new KeyFrame(Duration.millis(400),
+                            new KeyValue(progressBar.progressProperty(), progress)));
+            timeline.play();
+        });
+    }
+
     /**
-     * Preloads the main window components while updating the splash screen progress
+     * Preloads the main window components while updating the splash screen
+     * progress.
+     * Runs on a background thread; all JavaFX work is posted via Platform.runLater.
      */
     private void preloadMainWindow(Stage primaryStage, Stage splashStage, ProgressBar progressBar, Label loadingLabel) {
         try {
             // Step 1: Initialize application
-            loadingLabel.setText("Initializing application...");
-            progressBar.setProgress(0.1);
+            updateSplash(progressBar, loadingLabel, 0.1, "Initializing application...");
 
-            // Apply AtlantaFX theme
-            Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet());
+            // Apply AtlantaFX theme (must be on FX thread)
+            Platform.runLater(() -> Application.setUserAgentStylesheet(new NordDark().getUserAgentStylesheet()));
 
             // Step 2: Get FxWeaver
-            progressBar.setProgress(0.2);
+            updateSplash(progressBar, loadingLabel, 0.2, "Loading Spring beans...");
             FxWeaver fxWeaver = springContext.getBean(FxWeaver.class);
 
-            // Step 3: Load main view (this is the heavy operation)
-            loadingLabel.setText("Loading main interface...");
-            progressBar.setProgress(0.3);
-            var cav = fxWeaver.load(ai.nervemind.ui.view.MainViewController.class);
-            Parent view = (Parent) cav.getView().get();
-            Scene scene = new Scene(view, 1400.0, 900.0);
-            var controller = cav.getController();
+            // Step 3: Load main view (this is the heavy operation — must be on FX thread)
+            updateSplash(progressBar, loadingLabel, 0.3, "Loading main interface...");
 
-            // Handle window close request
-            primaryStage.setOnCloseRequest(event -> {
-                if (!controller.checkUnsavedChanges()) {
-                    event.consume();
+            // FxWeaver.load() touches the scene graph, so it must run on the FX thread.
+            // We use a CountDownLatch to wait for it from this background thread.
+            var latch = new java.util.concurrent.CountDownLatch(1);
+            // Use a single-element array to pass results out of the lambda
+            final Scene[] sceneHolder = new Scene[1];
+            final ai.nervemind.ui.view.MainViewController[] controllerHolder = new ai.nervemind.ui.view.MainViewController[1];
+
+            Platform.runLater(() -> {
+                try {
+                    var cav = fxWeaver.load(ai.nervemind.ui.view.MainViewController.class);
+                    Parent view = (Parent) cav.getView().get();
+                    sceneHolder[0] = new Scene(view, 1400.0, 900.0);
+                    controllerHolder[0] = cav.getController();
+                } finally {
+                    latch.countDown();
                 }
             });
+            latch.await();
+
+            Scene scene = sceneHolder[0];
+            var controller = controllerHolder[0];
+            if (scene == null) {
+                throw new IllegalStateException("Failed to load main view on FX thread");
+            }
 
             // Step 4: Load CSS
-            progressBar.setProgress(0.6);
-            scene.getStylesheets().add(getClass().getResource("/ai/nervemind/ui/styles/main.css").toExternalForm());
-            scene.getStylesheets().add(getClass().getResource("/ai/nervemind/ui/styles/console.css").toExternalForm());
+            updateSplash(progressBar, loadingLabel, 0.6, "Loading stylesheets...");
+            Platform.runLater(() -> {
+                scene.getStylesheets().add(getClass().getResource("/ai/nervemind/ui/styles/main.css").toExternalForm());
+                scene.getStylesheets()
+                        .add(getClass().getResource("/ai/nervemind/ui/styles/console.css").toExternalForm());
+            });
 
             // Step 5: Setup console appender
-            progressBar.setProgress(0.8);
+            updateSplash(progressBar, loadingLabel, 0.8, "Setting up console...");
             Logger root = (Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME);
             ExecutionConsoleAppender appender = new ExecutionConsoleAppender();
             appender.setContext(root.getLoggerContext());
             appender.start();
             root.addAppender(appender);
 
-            // Step 6: Configure stage
-            progressBar.setProgress(0.9);
+            // Step 6 + 7: Configure stage and show (must be on FX thread)
+            updateSplash(progressBar, loadingLabel, 0.9, "Almost ready...");
             String appName = applicationClass != null ? applicationClass.getSimpleName().replace("Application", "")
                     : "NerveMind";
-            primaryStage.setTitle(appName + " - Workflow Automation");
-            primaryStage.setScene(scene);
-            primaryStage.setMinWidth(1200);
-            primaryStage.setMinHeight(700);
 
-            // Step 7: Load icons
-            loadApplicationIcons(primaryStage);
-            progressBar.setProgress(1.0);
-            loadingLabel.setText("Ready!");
+            updateSplash(progressBar, loadingLabel, 1.0, "Ready!");
+            // Small pause so the user sees "Ready!" at 100%
+            Thread.sleep(300);
 
-            // Show main window immediately, then hide splash (no gap between windows)
-            primaryStage.setMaximized(true);
-            primaryStage.show();
+            Platform.runLater(() -> {
+                primaryStage.setOnCloseRequest(event -> {
+                    if (!controller.checkUnsavedChanges()) {
+                        event.consume();
+                    }
+                });
 
-            // Small delay to show "Ready!" then hide splash
-            PauseTransition finishPause = new PauseTransition(Duration.millis(300));
-            finishPause.setOnFinished(event -> {
+                primaryStage.setTitle(appName + " - Workflow Automation");
+                primaryStage.setScene(scene);
+                primaryStage.setMinWidth(1200);
+                primaryStage.setMinHeight(700);
+                loadApplicationIcons(primaryStage);
+
+                primaryStage.setMaximized(true);
+                primaryStage.show();
+
+                // Install system tray (overrides close handler with minimize-to-tray)
+                installSystemTray(primaryStage);
+
                 splashStage.hide();
 
-                // Log successful startup
-                LOGGER.info(() -> "Starting " + (applicationClass != null ? applicationClass.getSimpleName() : "JavaFX")
-                        + " UI");
+                LOGGER.info(() -> "Starting "
+                        + (applicationClass != null ? applicationClass.getSimpleName() : "JavaFX") + " UI");
             });
-            finishPause.play();
 
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            LOGGER.severe("Splash loading interrupted");
+            Platform.runLater(() -> {
+                splashStage.hide();
+                showMainWindow(primaryStage);
+            });
         } catch (Exception e) {
             LOGGER.severe("Failed to preload main window: " + e.getMessage());
-            splashStage.hide();
-            // Try to show main window anyway
-            showMainWindow(primaryStage);
+            Platform.runLater(() -> {
+                splashStage.hide();
+                showMainWindow(primaryStage);
+            });
         }
     }
 
@@ -363,11 +408,57 @@ public class NerveMindUI extends Application {
         // Start maximized on primary monitor
         primaryStage.setMaximized(true);
         primaryStage.show();
+
+        // Install system tray (overrides close handler with minimize-to-tray)
+        installSystemTray(primaryStage);
+    }
+
+    /**
+     * Installs the system tray icon with workflow menu and minimize-to-tray
+     * support.
+     */
+    private void installSystemTray(Stage primaryStage) {
+        try {
+            var workflowService = springContext.getBean(
+                    ai.nervemind.common.service.WorkflowServiceInterface.class);
+            var executionService = springContext.getBean(
+                    ai.nervemind.common.service.ExecutionServiceInterface.class);
+
+            systemTrayManager = new SystemTrayManager(
+                    primaryStage, workflowService, executionService, this::performQuit);
+
+            if (!systemTrayManager.install()) {
+                LOGGER.warning("System tray not available; close will exit normally");
+                systemTrayManager = null;
+            }
+        } catch (Exception e) {
+            LOGGER.log(java.util.logging.Level.WARNING, "Failed to install system tray", e);
+            systemTrayManager = null;
+        }
+    }
+
+    /**
+     * Full application quit invoked from system tray Quit action.
+     */
+    private void performQuit() {
+        if (systemTrayManager != null) {
+            systemTrayManager.uninstall();
+            systemTrayManager = null;
+        }
+        ExecutionConsoleService.getInstance().shutdown();
+        if (springContext != null) {
+            springContext.close();
+        }
+        Platform.exit();
     }
 
     @Override
     public void stop() {
         // Shutdown subsidiary windows/services before exiting
+        if (systemTrayManager != null) {
+            systemTrayManager.uninstall();
+            systemTrayManager = null;
+        }
         ExecutionConsoleService.getInstance().shutdown();
 
         // Shutdown Spring context

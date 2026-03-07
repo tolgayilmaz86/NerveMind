@@ -102,6 +102,10 @@ public class NerveMindApplication {
     public static void main(final String[] args) {
         log.info("🚀 NerveMind Application Starting...");
 
+        // AWT system tray requires headless=false; must be set before Spring Boot
+        // starts, since SpringApplication sets java.awt.headless=true by default.
+        System.setProperty("java.awt.headless", "false");
+
         // First bootstrap Spring Boot
         final ConfigurableApplicationContext context = SpringApplication.run(NerveMindApplication.class, args);
 

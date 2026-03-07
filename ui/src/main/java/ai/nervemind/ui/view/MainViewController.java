@@ -15,6 +15,8 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignF;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignP;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignR;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignU;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import ai.nervemind.common.domain.SampleWorkflow;
@@ -77,6 +79,8 @@ import net.rgielen.fxweaver.core.FxmlView;
 @Component
 @FxmlView("/ai/nervemind/ui/controller/Main.fxml")
 public class MainViewController implements Initializable {
+
+    private static final Logger LOG = LoggerFactory.getLogger(MainViewController.class);
 
     private static final String ACTIVE_STYLE_CLASS = "active";
     private static final String STATUS_COMPLETED_STYLE = "status-completed";
@@ -879,11 +883,11 @@ public class MainViewController implements Initializable {
             Workflow workflow = sample.workflow();
             if (workflow != null) {
                 WorkflowDTO workflowDto = WorkflowDTO.fromWorkflow(workflow);
-                System.out.println("[importSampleWorkflow] Creating workflow: " + workflowDto.name());
+                LOG.debug("[importSampleWorkflow] Creating workflow: {}", workflowDto.name());
 
                 // Save the workflow to the database (creates new or updates if ID exists)
                 workflowDto = workflowService.create(workflowDto);
-                System.out.println("[importSampleWorkflow] Created workflow with ID: " + workflowDto.id());
+                LOG.debug("[importSampleWorkflow] Created workflow with ID: {}", workflowDto.id());
                 viewModel.updateStatus("Imported and saved sample: " + sample.name());
 
                 showWorkflowsView();
@@ -893,8 +897,7 @@ public class MainViewController implements Initializable {
                 }
             }
         } catch (Exception e) {
-            System.err.println("[importSampleWorkflow] Error: " + e.getMessage());
-            e.printStackTrace();
+            LOG.error("[importSampleWorkflow] Error importing sample workflow", e);
             dialogService.showError("Import Error", "Failed to import sample workflow", e);
         }
     }

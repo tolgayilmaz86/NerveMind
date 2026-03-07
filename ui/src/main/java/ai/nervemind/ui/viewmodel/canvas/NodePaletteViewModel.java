@@ -121,6 +121,12 @@ public class NodePaletteViewModel extends BaseViewModel {
         addItem("Embedding", "embedding", "mdmz-vector_line", "AI");
         addItem("RAG", "rag", "mdmz-book_4_spark", "AI");
 
+        // Integration
+        addItem("Database", "database", "mdmz-database", "Integration");
+        addItem("Send Email", "emailSend", "mdmz-mail", "Integration");
+        addItem("CSV", "csv", "mdmz-csv", "Integration");
+        addItem("Slack", "slack", "mdmz-slack", "Integration");
+
         // Advanced
         addItem("Subworkflow", "subworkflow", "mdmz-account_tree", "Advanced");
         addItem("Parallel", "parallel", "mdomz-view_week", "Advanced");
