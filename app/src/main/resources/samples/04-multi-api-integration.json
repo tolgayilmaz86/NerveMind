@@ -76,7 +76,7 @@
             },
             "parameters": {
                 "language": "javascript",
-                "code": "// Parse user data from API response\nconst data = JSON.parse(input.body);\nconst user = data.results[0];\n\nreturn {\n  user: {\n    firstName: user.name.first,\n    lastName: user.name.last,\n    email: user.email,\n    country: user.location.country,\n    city: user.location.city,\n    timezone: user.location.timezone.description,\n    picture: user.picture.large\n  },\n  location: {\n    city: user.location.city,\n    country: user.location.country,\n    lat: user.location.coordinates.latitude,\n    lon: user.location.coordinates.longitude\n  }\n};"
+                "code": "// Parse user data from API response\nconst data = JSON.parse(input.body);\n\n// Handle case where API returns empty results\nif (!data.results || data.results.length === 0) {\n  throw new Error('RandomUser API returned no results. Please try again.');\n}\n\nconst user = data.results[0];\n\nreturn {\n  user: {\n    firstName: user.name.first,\n    lastName: user.name.last,\n    email: user.email,\n    country: user.location.country,\n    city: user.location.city,\n    timezone: user.location.timezone.description,\n    picture: user.picture.large\n  },\n  location: {\n    city: user.location.city,\n    country: user.location.country,\n    lat: user.location.coordinates.latitude,\n    lon: user.location.coordinates.longitude\n  }\n};"
             },
             "disabled": false,
             "notes": "Extracts relevant user information"

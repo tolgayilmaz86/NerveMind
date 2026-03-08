@@ -7,7 +7,10 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ServiceLoader;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
@@ -19,6 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import ai.nervemind.plugin.api.ActionProvider;
+import ai.nervemind.plugin.api.PluginDependency;
 import ai.nervemind.plugin.api.PluginProvider;
 import ai.nervemind.plugin.api.TriggerProvider;
 import jakarta.annotation.PostConstruct;
@@ -81,10 +85,20 @@ public class PluginLoader {
 
     /**
      * Cleans up plugin resources before shutdown.
-     * Closes all plugin class loaders.
+     * Calls destroy() on all loaded plugins and closes all plugin class loaders.
      */
     @PreDestroy
     public void cleanup() {
+        // Call destroy() on all PluginProvider instances
+        for (PluginProvider provider : loadedPluginProviders) {
+            try {
+                provider.destroy();
+                log.info("  🔌 Destroyed plugin: {}", provider.getName());
+            } catch (Exception e) {
+                log.warn("Failed to destroy plugin {}: {}", provider.getName(), e.getMessage());
+            }
+        }
+
         for (URLClassLoader classLoader : pluginClassLoaders) {
             try {
                 classLoader.close();
@@ -144,8 +158,67 @@ public class PluginLoader {
             loadPluginJar(jarPath);
         }
 
-        log.info("✅ Plugin loading complete. Loaded {} triggers, {} actions from {} JARs",
-                loadedTriggers.size(), loadedActions.size(), loadedPluginJars.size());
+        // Validate dependencies and remove plugins with unmet dependencies
+        validateDependencies();
+
+        // Initialize all loaded PluginProvider instances
+        initializePlugins();
+
+        log.info("✅ Plugin loading complete. Loaded {} triggers, {} actions, {} providers from {} JARs",
+                loadedTriggers.size(), loadedActions.size(),
+                loadedPluginProviders.size(), loadedPluginJars.size());
+    }
+
+    /**
+     * Validates plugin dependencies and removes plugins with unmet dependencies.
+     */
+    private void validateDependencies() {
+        // Build a map of available plugin IDs to versions
+        Map<String, String> availablePlugins = new HashMap<>();
+        for (PluginProvider provider : loadedPluginProviders) {
+            availablePlugins.put(provider.getId(), provider.getVersion());
+        }
+
+        // Check each plugin's dependencies
+        Iterator<PluginProvider> it = loadedPluginProviders.iterator();
+        while (it.hasNext()) {
+            PluginProvider provider = it.next();
+            List<PluginDependency> deps = provider.getDependencies();
+            if (deps == null || deps.isEmpty()) {
+                continue;
+            }
+
+            for (PluginDependency dep : deps) {
+                String availableVersion = availablePlugins.get(dep.pluginId());
+                if (availableVersion == null) {
+                    log.error("     ❌ Plugin {} requires missing dependency: {}",
+                            provider.getId(), dep.getDescription());
+                    it.remove();
+                    break;
+                }
+                if (!dep.isSatisfiedBy(availableVersion)) {
+                    log.error("     ❌ Plugin {} requires {} but found version {}",
+                            provider.getId(), dep.getDescription(), availableVersion);
+                    it.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * Initializes all loaded PluginProvider instances by calling init().
+     */
+    private void initializePlugins() {
+        for (PluginProvider provider : loadedPluginProviders) {
+            try {
+                provider.init(null); // PluginContext will be provided by PluginService when available
+                log.info("     ✓ Initialized plugin: {}", provider.getName());
+            } catch (Exception e) {
+                log.error("     ❌ Failed to initialize plugin {}: {}",
+                        provider.getName(), e.getMessage(), e);
+            }
+        }
     }
 
     /**

@@ -1,0 +1,9 @@
+plugins/
+
+# Gradle Wrapper
+gradle/wrapper/gradle-wrapper.properties
+gradle/wrapper/gradle-wrapper.jar
+
+# Gradle Wrapper Script
+gradlew
+gradlew.bat

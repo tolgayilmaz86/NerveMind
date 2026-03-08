@@ -1,0 +1,59 @@
+plugins {
+    id 'java-library'
+}
+
+group = 'com.example'
+version = '1.0.0'
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    // Plugin API - provided by NerveMind at runtime
+    compileOnly 'ai.nervemind:plugin-api:1.0.0'
+    
+    // Testing
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+    
+    withSourcesJar()
+    withJavadocJar()
+}
+
+jar {
+    manifest {
+        attributes(
+            'Plugin-Id': project.pluginId,
+            'Plugin-Name': project.pluginName,
+            'Plugin-Version': project.version,
+            'Plugin-Description': project.description,
+            'Plugin-Provider': project.pluginProvider,
+            'Plugin-Category': project.pluginCategory,
+            'NerveMind-Version': project.nervemindVersion
+        )
+    }
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// Task to copy plugin JAR to NerveMind plugins directory
+tasks.register('installPlugin', Copy) {
+    dependsOn jar
+    from jar
+    into "$rootDir/../app/plugins"
+    doFirst {
+        mkdir "$rootDir/../app/plugins"
+    }
+    doLast {
+        println "Plugin installed to app/plugins/"
+    }
+}

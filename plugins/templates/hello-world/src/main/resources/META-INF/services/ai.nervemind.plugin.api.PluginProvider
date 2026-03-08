@@ -1,0 +1,4 @@
+# Service registration for NerveMind PluginProvider
+# This file is used by Java's ServiceLoader to discover the plugin
+
+com.example.HelloWorldPlugin

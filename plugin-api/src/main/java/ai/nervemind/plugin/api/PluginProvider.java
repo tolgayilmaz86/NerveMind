@@ -1,7 +1,6 @@
 package ai.nervemind.plugin.api;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -9,575 +8,424 @@ import java.util.Optional;
  * 
  * <p>
  * This is the primary interface that plugin developers implement to provide
- * custom nodes, UI extensions, and samples to NerveMind. It consolidates the
- * functionality previously spread across {@link NodeDescriptor},
- * {@link NodeExecutor},
- * {@link TriggerProvider}, and {@link ActionProvider} into a single
- * comprehensive
- * interface.
+ * custom nodes to NerveMind.
  * </p>
  * 
  * <h2>Plugin Registration</h2>
  * <p>
- * Plugins are discovered using the Java ServiceLoader mechanism. Create a file
- * at:
+ * Plugins are discovered using Java ServiceLoader. Create a file at:
  * </p>
  * 
- * <pre>
- * META - INF / services / ai.nervemind.plugin.api.PluginProvider
- * </pre>
- * <p>
- * The file should contain the fully qualified class name of each
- * implementation.
- * </p>
- * 
- * <h2>Required vs Optional Methods</h2>
- * <table border="1">
- * <caption>PluginProvider interface methods</caption>
- * <tr>
- * <th>Method</th>
- * <th>Required</th>
- * <th>Description</th>
- * </tr>
- * <tr>
- * <td>{@link #getNodeType()}</td>
- * <td>Yes</td>
- * <td>Unique node type ID</td>
- * </tr>
- * <tr>
- * <td>{@link #getDisplayName()}</td>
- * <td>Yes</td>
- * <td>Name shown in UI</td>
- * </tr>
- * <tr>
- * <td>{@link #getDescription()}</td>
- * <td>Yes</td>
- * <td>Tooltip text</td>
- * </tr>
- * <tr>
- * <td>{@link #getCategory()}</td>
- * <td>Yes</td>
- * <td>Palette category</td>
- * </tr>
- * <tr>
- * <td>{@link #getProperties()}</td>
- * <td>Yes</td>
- * <td>Configurable properties</td>
- * </tr>
- * <tr>
- * <td>{@link #execute(ExecutionContext)}</td>
- * <td>Yes</td>
- * <td>Execution logic</td>
- * </tr>
- * <tr>
- * <td>{@link #getHandles()}</td>
- * <td>No</td>
- * <td>Custom connection handles</td>
- * </tr>
- * <tr>
- * <td>{@link #createNodeView(NodeViewContext)}</td>
- * <td>No</td>
- * <td>Custom rendering</td>
- * </tr>
- * <tr>
- * <td>{@link #getMenuContributions()}</td>
- * <td>No</td>
- * <td>Menu items</td>
- * </tr>
- * <tr>
- * <td>{@link #getSidePanel()}</td>
- * <td>No</td>
- * <td>Side panel</td>
- * </tr>
- * <tr>
- * <td>{@link #getSamples()}</td>
- * <td>No</td>
- * <td>Sample workflows</td>
- * </tr>
- * </table>
- * 
- * <h2>Minimal Implementation Example</h2>
- *
  * <pre>{@code
- * public class MyNodePlugin implements PluginProvider {
- *     &#64;Override
- *     public String getNodeType() {
- *         return "com.example.myplugin.mynode";
+ * META - INF / services / ai.nervemind.plugin.api.PluginProvider
+ * }</pre>
+ * 
+ * <h2>Lifecycle</h2>
+ * <ol>
+ * <li>NerveMind starts and discovers plugins via ServiceLoader</li>
+ * <li>For each plugin: {@link #init(PluginContext)} is called</li>
+ * <li>Plugin is ready for workflow execution</li>
+ * <li>On shutdown: {@link #destroy()} is called</li>
+ * </ol>
+ * 
+ * <h2>Example Implementation</h2>
+ * 
+ * <pre>{@code
+ * public class MyPlugin implements PluginProvider {
+ *
+ *     private PluginContext context;
+ *
+ *     public String getId() {
+ *         return "com.example.myplugin";
  *     }
  *
- *     &#64;Override
- *     public String getDisplayName() {
- *         return "My Custom Node";
+ *     public String getName() {
+ *         return "My Plugin";
  *     }
  *
- *     &#64;Override
+ *     public String getVersion() {
+ *         return "1.0.0";
+ *     }
+ *
  *     public String getDescription() {
  *         return "Does something useful";
  *     }
  *
- *     &#64;Override
- *     public NodeCategory getCategory() {
- *         return NodeCategory.ACTION;
- *     }
- *
- *     &#64;Override
- *     public List<PropertyDefinition> getProperties() {
+ *     public List<PluginHandle> getHandles() {
  *         return List.of(
- *                 PropertyDefinition.requiredString("input", "Input", "The input value"));
+ *                 new PluginHandle(
+ *                         "my-action", // handle ID
+ *                         "My Action", // display name
+ *                         "Does something", // description
+ *                         NodeCategory.ACTION, // category
+ *                         null, // trigger type (null for actions)
+ *                         this::execute, // executor function
+ *                         this::validate, // validation function
+ *                         () -> "Help text", // help text supplier
+ *                         () -> Map.of("type", "object") // JSON schema
+ *                 ));
  *     }
  *
- *     &#64;Override
- *     public Map<String, Object> execute(ExecutionContext context)
- *             throws NodeExecutionException {
- *         String input = (String) context.getNodeSettings().get("input");
- *         return Map.of("result", "Processed: " + input);
+ *     public void init(PluginContext context) {
+ *         this.context = context;
+ *     }
+ *
+ *     public void destroy() {
+ *         // Cleanup resources
+ *     }
+ *
+ *     private Map execute(Map config, Map inputs, Map context) {
+ *         return Map.of("result", "done");
+ *     }
+ *
+ *     private Map validate(Map config) {
+ *         return Map.of(); // Empty map = valid
  *     }
  * }
  * }</pre>
- * 
- * <h2>Full-Featured Plugin Example</h2>
  *
- * <pre>{@code
- * public class AdvancedPlugin implements PluginProvider {
- *     // ... required methods ...
- *
- *     &#64;Override
- *     public List<HandleDefinition> getHandles() {
- *         return List.of(
- *                 HandleDefinition.input("in", HandlePosition.LEFT),
- *                 HandleDefinition.output("success", HandlePosition.RIGHT, "Success"),
- *                 HandleDefinition.output("error", HandlePosition.BOTTOM, "Error"));
- *     }
- *
- *     &#64;Override
- *     public javafx.scene.Node createNodeView(NodeViewContext context) {
- *         // Return custom JavaFX node for canvas rendering
- *         return new MyCustomNodeView(context);
- *     }
- *
- *     &#64;Override
- *     public List<MenuContribution> getMenuContributions() {
- *         return List.of(
- *                 MenuContribution.item(MenuLocation.TOOLS, "My Tool", "WRENCH", this::showTool));
- *     }
- * }
- * }</pre>
- * 
  * @author NerveMind Team
- * @since 1.0.0
- * @see ExecutionContext For runtime context during execution
- * @see PropertyDefinition For defining configurable properties
- * @see HandleDefinition For custom connection handles
+ * @version 1.0.0
+ * @see PluginHandle
+ * @see PluginContext
+ * @see PluginDependency
  */
 public interface PluginProvider {
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // REQUIRED: Core Node Definition
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===== Core Identity Methods =====
 
     /**
-     * Gets the unique identifier for this node type.
+     * Unique identifier for this plugin.
      * 
      * <p>
-     * This ID must be globally unique across all plugins. Use reverse domain
-     * notation to avoid conflicts (e.g., {@code "com.example.myplugin.slack"}).
+     * Use reverse domain notation (e.g., "com.example.myplugin").
+     * This ID must be unique across all plugins.
      * </p>
      * 
-     * <p>
-     * This ID is used for serialization and must remain stable across versions.
-     * </p>
-     * 
-     * @return the unique node type identifier
+     * @return the unique plugin identifier
      */
-    String getNodeType();
+    String getId();
 
     /**
-     * Gets the display name shown in the UI palette.
+     * Display name shown in the UI.
      * 
-     * <p>
-     * This should be a short, human-readable name (2-4 words).
-     * </p>
-     * 
-     * @return the display name
+     * @return the human-readable plugin name
      */
-    String getDisplayName();
+    String getName();
 
     /**
-     * Gets the description shown in tooltips.
+     * Plugin version (semantic versioning recommended).
      * 
      * <p>
-     * This should briefly explain what the node does (1-2 sentences).
+     * Format: MAJOR.MINOR.PATCH (e.g., "1.0.0")
      * </p>
      * 
-     * @return the description
+     * @return the version string
+     */
+    String getVersion();
+
+    /**
+     * Brief description of what the plugin does.
+     * 
+     * @return a short description for the UI
      */
     String getDescription();
 
     /**
-     * Gets the category for grouping in the node palette.
+     * Plugin category for UI organization.
+     * 
+     * <p>
+     * Determines which section of the node palette the plugin appears in.
+     * Default is {@link NodeCategory#UTILITY}.
+     * </p>
      * 
      * @return the node category
      */
-    NodeCategory getCategory();
+    default NodeCategory getCategory() {
+        return NodeCategory.UTILITY;
+    }
 
     /**
-     * Gets the configurable properties for this node.
+     * Icon name for the plugin in the UI.
      * 
      * <p>
-     * These properties are displayed in the properties panel when the node
-     * is selected. Values are passed to {@link #execute(ExecutionContext)}
-     * via the context's node settings.
+     * Use Material Design icon names (e.g., "ROCKET", "COG", "DATABASE").
      * </p>
      * 
-     * @return list of property definitions
-     */
-    List<PropertyDefinition> getProperties();
-
-    /**
-     * Executes the node logic.
-     * 
-     * <p>
-     * This method is called by the workflow runtime when the node runs.
-     * It receives configuration and input data via the context and should
-     * return output data for downstream nodes.
-     * </p>
-     * 
-     * @param context the execution context
-     * @return output data as a map of key-value pairs
-     * @throws NodeExecutionException if execution fails
-     */
-    Map<String, Object> execute(ExecutionContext context) throws NodeExecutionException;
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: Node Metadata
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Gets the icon name from Material Design Icons.
-     * 
-     * <p>
-     * See <a href="https://materialdesignicons.com/">Material Design Icons</a>
-     * for available icons. Use the icon name in UPPER_SNAKE_CASE.
-     * </p>
-     * 
-     * @return the icon name (default: "PUZZLE")
+     * @return the icon name, or null for default icon
      */
     default String getIconName() {
-        return "PUZZLE";
+        return null;
     }
 
     /**
-     * Gets a short subtitle displayed below the node name.
+     * Subtitle shown below the plugin name in the UI.
      * 
      * <p>
-     * The subtitle provides quick context about the node's function.
-     * It should be very short (1-2 words). If not provided, a default
-     * subtitle is derived from the display name.
+     * Useful for additional categorization within a plugin category.
      * </p>
      * 
-     * @return the subtitle text (default: derived from display name)
+     * @return the subtitle text, or null for no subtitle
      */
     default String getSubtitle() {
-        // Default: extract last word from display name and lowercase it
-        String name = getDisplayName();
-        if (name == null || name.isBlank()) {
-            return "";
-        }
-        String[] words = name.split("\\s+");
-        return words[words.length - 1].toLowerCase();
+        return null;
     }
 
     /**
-     * Gets extended help text for the help panel.
+     * Help text for the plugin.
      * 
      * <p>
-     * This text is shown when users access help for this node type.
-     * It should explain what the node does, its parameters, and provide
-     * usage examples. Markdown formatting is supported.
+     * Markdown-formatted documentation shown when users request help.
+     * Can include headers, tables, code blocks, and lists.
      * </p>
      * 
-     * @return the help text (default: uses description)
+     * @return the help text in Markdown format, or null for no help
      */
     default String getHelpText() {
-        return getDescription();
+        return null;
     }
 
+    // ===== Node Definition =====
+
     /**
-     * Gets the plugin version.
+     * Handles provided by this plugin.
      * 
      * <p>
-     * Use semantic versioning (e.g., "1.0.0", "2.1.3").
+     * Each handle represents a node type in the workflow editor.
+     * A plugin can provide multiple handles for different operations.
      * </p>
      * 
-     * @return the version string (default: "1.0.0")
+     * <p>
+     * For example, a database plugin might provide handles for:
+     * </p>
+     * <ul>
+     * <li>"query" - Execute a SQL query</li>
+     * <li>"insert" - Insert a record</li>
+     * <li>"update" - Update a record</li>
+     * </ul>
+     * 
+     * @return a list of plugin handles (must not be empty)
+     * @see PluginHandle
      */
-    default String getVersion() {
-        return "1.0.0";
-    }
+    List<PluginHandle> getHandles();
+
+    // ===== Lifecycle Methods =====
 
     /**
-     * Indicates whether this node is a trigger (workflow entry point).
+     * Called when the plugin is first loaded.
      * 
      * <p>
-     * Trigger nodes start workflow execution. They typically respond to
-     * external events or user actions. Non-trigger nodes are actions that
-     * process data within the workflow.
+     * Use for initialization tasks such as:
      * </p>
+     * <ul>
+     * <li>Opening database connections</li>
+     * <li>Reading configuration from
+     * {@link PluginContext#getPersistentConfig()}</li>
+     * <li>Registering event handlers via
+     * {@link PluginContext#registerEventHandler(EventHandler)}</li>
+     * <li>Getting services from {@link PluginContext#getService(Class)}</li>
+     * </ul>
      * 
-     * @return true if this is a trigger node (default: false)
+     * @param context the plugin context providing access to services and
+     *                configuration
+     * @see PluginContext
      */
-    default boolean isTrigger() {
-        return false;
+    default void init(PluginContext context) {
+        // Optional - override to initialize resources
     }
 
     /**
-     * Indicates whether a trigger requires a background service.
+     * Called when NerveMind is shutting down.
      * 
      * <p>
-     * Background triggers run continuously while the workflow is active
-     * (e.g., file watchers, scheduled tasks). Non-background triggers
-     * are activated manually or by one-time events.
+     * Use for cleanup tasks such as:
      * </p>
-     * 
-     * <p>
-     * This setting is only relevant when {@link #isTrigger()} returns true.
-     * </p>
-     * 
-     * @return true if the trigger needs background processing (default: false)
+     * <ul>
+     * <li>Closing database connections</li>
+     * <li>Saving state to persistent configuration</li>
+     * <li>Releasing external resources</li>
+     * </ul>
      */
-    default boolean requiresBackgroundService() {
-        return false;
+    default void destroy() {
+        // Optional - override to cleanup resources
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: Validation
-    // ═══════════════════════════════════════════════════════════════════════════
+    // ===== Dependencies =====
 
     /**
-     * Validates the node's configuration.
+     * Plugin dependencies (optional).
      * 
      * <p>
-     * Called before workflow execution to check if the node is properly
-     * configured. Return validation errors for missing or invalid settings.
-     * </p>
-     * 
-     * @param settings the node's current settings
-     * @return validation result (default: always valid)
-     */
-    default ValidationResult validate(Map<String, Object> settings) {
-        return ValidationResult.valid();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: Custom Rendering
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Gets the connection handles for this node.
-     * 
-     * <p>
-     * Override this to define custom connection points. The default provides
-     * a single input on the left and a single output on the right.
+     * If specified, these plugins must be loaded and initialized before
+     * this plugin. Use for plugins that build on top of other plugins.
      * </p>
      * 
      * <p>
-     * <strong>Example: Conditional Node</strong>
+     * Example:
      * </p>
      * 
      * <pre>{@code
-     * return List.of(
-     *         HandleDefinition.input("in", HandlePosition.LEFT),
-     *         HandleDefinition.output("then", HandlePosition.RIGHT, "Then"),
-     *         HandleDefinition.output("else", HandlePosition.BOTTOM, "Else"));
+     * public List<PluginDependency> getDependencies() {
+     *     return List.of(
+     *             PluginDependency.required("com.example.database", ">=1.0.0"),
+     *             PluginDependency.optional("com.example.logging", ">=2.0.0"));
+     * }
      * }</pre>
      * 
-     * @return list of handle definitions (default: standard left input, right
-     *         output)
+     * @return a list of plugin dependencies (empty by default)
+     * @see PluginDependency
      */
-    default List<HandleDefinition> getHandles() {
-        return List.of(
-                HandleDefinition.input("in", HandlePosition.LEFT),
-                HandleDefinition.output("out", HandlePosition.RIGHT));
+    default List<PluginDependency> getDependencies() {
+        return List.of();
     }
 
-    /**
-     * Creates a custom view for rendering on the canvas.
-     * 
-     * <p>
-     * Return null to use the default node rendering. Custom views can display
-     * additional information, use different shapes, or provide interactive
-     * elements within the node.
-     * </p>
-     * 
-     * <p>
-     * <strong>Note:</strong> The return type is {@code Object} to avoid a direct
-     * dependency on JavaFX in the plugin API. Implementations should return a
-     * {@code javafx.scene.Node} instance.
-     * </p>
-     * 
-     * <p>
-     * <strong>Guidelines</strong>
-     * </p>
-     * <ul>
-     * <li>Respect the suggested dimensions in the context</li>
-     * <li>Handle selection and execution states visually</li>
-     * <li>Keep the view lightweight (many nodes may be visible)</li>
-     * </ul>
-     * 
-     * @param context the view context with node state information
-     * @return a custom javafx.scene.Node, or null to use default rendering
-     */
-    default Object createNodeView(NodeViewContext context) {
-        return null;
-    }
+    // ===== UI Extensions =====
 
     /**
-     * Creates a custom property editor for a specific property.
+     * Get menu contributions from this plugin.
      * 
      * <p>
-     * Return null to use the default editor for the property type. Custom
-     * editors can provide specialized input controls like color pickers,
-     * date selectors, or complex composite editors.
+     * Allows adding items to application menus and context menus.
      * </p>
      * 
-     * <p>
-     * <strong>Note:</strong> The return type is {@code Object} to avoid a direct
-     * dependency on JavaFX in the plugin API. Implementations should return a
-     * {@code javafx.scene.Node} instance.
-     * </p>
-     * 
-     * @param propertyName the name of the property
-     * @param context      the editor context with current value and change callback
-     * @return a custom javafx.scene.Node editor, or null to use default
-     */
-    default Object createPropertyEditor(String propertyName,
-            PropertyEditorContext context) {
-        return null;
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: UI Extensions
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Gets menu items to contribute to the application.
-     * 
-     * <p>
-     * Menu items can be added to the main menu bar or context menus.
-     * Use {@link MenuLocation} to specify where items should appear.
-     * </p>
-     * 
-     * @return list of menu contributions (default: empty)
+     * @return a list of menu contributions (empty by default)
      * @see MenuContribution
-     * @see MenuLocation
      */
     default List<MenuContribution> getMenuContributions() {
         return List.of();
     }
 
     /**
-     * Gets a side panel to contribute to the workspace.
+     * Get side panel contribution from this plugin.
      * 
      * <p>
-     * Side panels appear in collapsible areas beside the main canvas.
-     * They can provide tools, information displays, or additional controls.
+     * Allows adding a custom panel to the sidebar for plugin-specific UI.
      * </p>
      * 
-     * @return optional side panel contribution (default: empty)
+     * @return an optional side panel contribution (empty by default)
      * @see SidePanelContribution
      */
     default Optional<SidePanelContribution> getSidePanel() {
         return Optional.empty();
     }
 
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: Sample Workflows
-    // ═══════════════════════════════════════════════════════════════════════════
-
     /**
-     * Gets sample workflows that demonstrate this plugin.
+     * Create a custom node view for this plugin.
      * 
      * <p>
-     * Samples appear in the Samples Browser with a plugin badge. Provide
-     * samples to help users understand how to use your node type effectively.
+     * Override to provide custom JavaFX rendering for nodes on the canvas.
+     * Return null to use the default node appearance.
      * </p>
      * 
-     * @return list of sample definitions (default: empty)
-     * @see SampleDefinition
+     * @param context the node view context with node state information
+     * @return a JavaFX Node for custom rendering, or null for default
+     * @see NodeViewContext
      */
-    default List<SampleDefinition> getSamples() {
+    default Object createNodeView(NodeViewContext context) {
+        return null;
+    }
+
+    /**
+     * Called when a connection is created involving this plugin's node.
+     * 
+     * <p>
+     * Useful for validating connections or updating internal state.
+     * </p>
+     * 
+     * @param context the connection context with connection details
+     * @see ConnectionContext
+     */
+    default void onConnectionCreated(ConnectionContext context) {
+        // Optional - override to handle connection events
+    }
+
+    // ===== Trigger-Specific Methods =====
+
+    /**
+     * Whether this plugin is a trigger (starts workflows).
+     * 
+     * <p>
+     * Triggers are workflow entry points like:
+     * </p>
+     * <ul>
+     * <li>Webhook triggers</li>
+     * <li>Schedule triggers</li>
+     * <li>File watcher triggers</li>
+     * <li>Manual triggers</li>
+     * </ul>
+     * 
+     * @return true if this plugin is a trigger, false for actions
+     */
+    default boolean isTrigger() {
+        return false;
+    }
+
+    /**
+     * Whether this trigger requires a background service.
+     * 
+     * <p>
+     * Set to true for triggers that need continuous monitoring:
+     * </p>
+     * <ul>
+     * <li>File watchers</li>
+     * <li>Message queue listeners</li>
+     * <li>HTTP webhook listeners</li>
+     * </ul>
+     * 
+     * <p>
+     * Set to false for triggers that are invoked on-demand:
+     * </p>
+     * <ul>
+     * <li>Manual triggers</li>
+     * <li>Scheduled triggers (handled by scheduler)</li>
+     * </ul>
+     * 
+     * @return true if background service is needed, false otherwise
+     */
+    default boolean requiresBackgroundService() {
+        return false;
+    }
+
+    // ===== Helper Methods =====
+
+    /**
+     * Get the first handle's ID (convenience method).
+     * 
+     * <p>
+     * Useful for single-handle plugins where the handle ID serves as the node type.
+     * </p>
+     * 
+     * @return the first handle's ID, or the plugin ID if no handles exist
+     */
+    default String getNodeType() {
+        List<PluginHandle> handles = getHandles();
+        if (handles != null && !handles.isEmpty()) {
+            return handles.get(0).id();
+        }
+        return getId();
+    }
+
+    /**
+     * Get display name (alias for {@link #getName()}).
+     * 
+     * @return the display name
+     */
+    default String getDisplayName() {
+        return getName();
+    }
+
+    /**
+     * Get properties for this plugin.
+     * 
+     * <p>
+     * Defines configurable properties shown in the node configuration panel.
+     * Each property has a type, name, description, and optional constraints.
+     * </p>
+     * 
+     * @return a list of property definitions (empty by default)
+     * @see PropertyDefinition
+     */
+    default List<PropertyDefinition> getProperties() {
         return List.of();
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════════
-    // OPTIONAL: Lifecycle
-    // ═══════════════════════════════════════════════════════════════════════════
-
-    /**
-     * Called when the plugin is enabled.
-     * 
-     * <p>
-     * Use this to initialize resources, start background services, or
-     * register additional components.
-     * </p>
-     */
-    default void onEnable() {
-        // Default: no action
-    }
-
-    /**
-     * Called when the plugin is disabled.
-     * 
-     * <p>
-     * Use this to clean up resources, stop background services, or
-     * unregister components.
-     * </p>
-     */
-    default void onDisable() {
-        // Default: no action
-    }
-
-    /**
-     * Called when a connection is created or restored on the canvas.
-     * 
-     * <p>
-     * Plugins can override this to apply visual decorations, restore persisted
-     * state (like labels), or perform other connection-related initialization.
-     * This is called for both new connections and connections loaded from a
-     * saved workflow.
-     * </p>
-     * 
-     * <p>
-     * Example: A label plugin can check workflow settings and restore labels:
-     * </p>
-     * 
-     * <pre>{@code
-     * @Override
-     * public void onConnectionCreated(ConnectionContext connection) {
-     *     Map<String, String> labels = connection.getWorkflowSetting("connectionLabels");
-     *     if (labels != null && labels.containsKey(connection.getConnectionId())) {
-     *         connection.setLabel(labels.get(connection.getConnectionId()));
-     *     }
-     * }
-     * }</pre>
-     * 
-     * @param connection the connection context providing access to connection
-     *                   information and operations
-     */
-    default void onConnectionCreated(ConnectionContext connection) {
-        // Default: no action
-    }
-
-    /**
-     * Called when execution is cancelled.
-     * 
-     * <p>
-     * Override this to perform cleanup when a running execution is cancelled.
-     * This is called from a different thread than
-     * {@link #execute(ExecutionContext)}.
-     * </p>
-     */
-    default void cancel() {
-        // Default: no action
     }
 }

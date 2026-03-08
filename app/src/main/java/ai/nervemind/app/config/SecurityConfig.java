@@ -25,7 +25,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-
         /**
          * Configures the security filter chain.
          *
@@ -35,16 +34,16 @@ public class SecurityConfig {
          */
         @Bean
         public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-                http
-                                .authorizeHttpRequests(authz -> authz
-                                                // Local-first default: unrestricted H2 console access.
-                                                // Harden this for shared/networked deployments.
-                                                .requestMatchers("/h2-console/**").permitAll()
-                                                // Allow access to static resources
-                                                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico")
-                                                .permitAll()
-                                                // Require authentication for all other requests
-                                                .anyRequest().authenticated())
+                http.authorizeHttpRequests(authz -> authz
+                                // Allow unrestricted access to H2 console
+                                .requestMatchers("/h2-console/**").permitAll()
+                                // Allow access to static resources
+                                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico")
+                                .permitAll()
+                                // Restrict admin endpoints to ADMIN role
+                                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+                                // Require authentication for all other requests
+                                .anyRequest().authenticated())
                                 .httpBasic(httpBasic -> {
                                 }) // Enable HTTP Basic authentication
                                 .csrf(csrf -> csrf

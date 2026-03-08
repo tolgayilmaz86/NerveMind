@@ -5,13 +5,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,10 +87,10 @@ import jakarta.annotation.PostConstruct;
  * <strong>Thread Safety</strong>
  * </p>
  * <p>
- * This service is designed for single-threaded access from the JavaFX
- * Application Thread.
- * The internal maps are not synchronized; all UI interactions should occur on
- * the FX thread.
+ * This service uses {@link java.util.concurrent.ConcurrentHashMap} for all
+ * plugin registries to support safe concurrent access from HTTP request
+ * threads,
+ * workflow execution threads, and the UI thread.
  * </p>
  * 
  * <p>
@@ -159,7 +158,7 @@ public class PluginService implements PluginServiceInterface {
      * Value: the PluginProvider implementation
      * </p>
      */
-    private final Map<String, PluginProvider> discoveredPluginProviders = new HashMap<>();
+    private final Map<String, PluginProvider> discoveredPluginProviders = new ConcurrentHashMap<>();
 
     /**
      * Registry of currently enabled PluginProvider implementations.
@@ -167,7 +166,18 @@ public class PluginService implements PluginServiceInterface {
      * Updated when plugins are enabled/disabled via the UI.
      * </p>
      */
-    private final Map<String, PluginProvider> enabledPluginProviders = new HashMap<>();
+    private final Map<String, PluginProvider> enabledPluginProviders = new ConcurrentHashMap<>();
+
+    /**
+     * Registry of enabled plugin handles by handle ID.
+     * <p>
+     * Key: handle ID (node type used in workflows)
+     * </p>
+     * <p>
+     * Value: the plugin handle definition
+     * </p>
+     */
+    private final Map<String, ai.nervemind.plugin.api.PluginHandle> enabledPluginHandles = new ConcurrentHashMap<>();
 
     /**
      * Registry of all discovered trigger plugins (enabled and disabled).
@@ -178,7 +188,7 @@ public class PluginService implements PluginServiceInterface {
      * Value: the TriggerProvider implementation
      * </p>
      */
-    private final Map<String, TriggerProvider> discoveredTriggers = new HashMap<>();
+    private final Map<String, TriggerProvider> discoveredTriggers = new ConcurrentHashMap<>();
 
     /**
      * Registry of all discovered action plugins (enabled and disabled).
@@ -189,7 +199,7 @@ public class PluginService implements PluginServiceInterface {
      * Value: the ActionProvider implementation
      * </p>
      */
-    private final Map<String, ActionProvider> discoveredActions = new HashMap<>();
+    private final Map<String, ActionProvider> discoveredActions = new ConcurrentHashMap<>();
 
     /**
      * Registry of currently enabled trigger plugins only.
@@ -197,7 +207,7 @@ public class PluginService implements PluginServiceInterface {
      * Updated when plugins are enabled/disabled via the UI.
      * </p>
      */
-    private final Map<String, TriggerProvider> enabledTriggers = new HashMap<>();
+    private final Map<String, TriggerProvider> enabledTriggers = new ConcurrentHashMap<>();
 
     /**
      * Registry of currently enabled action plugins only.
@@ -205,7 +215,7 @@ public class PluginService implements PluginServiceInterface {
      * Updated when plugins are enabled/disabled via the UI.
      * </p>
      */
-    private final Map<String, ActionProvider> enabledActions = new HashMap<>();
+    private final Map<String, ActionProvider> enabledActions = new ConcurrentHashMap<>();
 
     /**
      * Combined registry of all enabled nodes (triggers + actions + pluginProviders)
@@ -214,7 +224,7 @@ public class PluginService implements PluginServiceInterface {
      * Used by {@link #getNode(String)} and {@link #getProperties(String)}.
      * </p>
      */
-    private final Map<String, NodeDescriptor> enabledNodes = new HashMap<>();
+    private final Map<String, NodeDescriptor> enabledNodes = new ConcurrentHashMap<>();
 
     /**
      * Set of plugin IDs that are currently enabled.
@@ -222,7 +232,7 @@ public class PluginService implements PluginServiceInterface {
      * This set is persisted to settings and loaded on startup.
      * </p>
      */
-    private final Set<String> enabledPluginIds = new HashSet<>();
+    private final Set<String> enabledPluginIds = ConcurrentHashMap.newKeySet();
 
     /**
      * Constructs the PluginService with required dependencies.
@@ -293,10 +303,9 @@ public class PluginService implements PluginServiceInterface {
         // Discover new unified PluginProvider implementations from classpath
         ServiceLoader<PluginProvider> pluginProviders = ServiceLoader.load(PluginProvider.class);
         for (PluginProvider provider : pluginProviders) {
-            discoveredPluginProviders.put(provider.getNodeType(), provider);
-            log.info("  📦 Classpath plugin: {} ({}) [{}]",
-                    provider.getDisplayName(), provider.getNodeType(),
-                    provider.isTrigger() ? "trigger" : "action");
+            discoveredPluginProviders.put(provider.getId(), provider);
+            log.info("  📦 Classpath plugin: {} ({}) [plugin]",
+                    provider.getName(), provider.getId());
         }
 
         // Legacy: Discover Trigger Providers from classpath
@@ -319,14 +328,13 @@ public class PluginService implements PluginServiceInterface {
     private void discoverExternalPlugins() {
         // Add PluginProvider implementations from external plugin JARs
         for (PluginProvider provider : pluginLoader.getLoadedPluginProviders()) {
-            String nodeType = provider.getNodeType();
-            if (discoveredPluginProviders.containsKey(nodeType)) {
-                log.warn("  ⚠ External plugin {} overrides classpath version", nodeType);
+            String pluginId = provider.getId();
+            if (discoveredPluginProviders.containsKey(pluginId)) {
+                log.warn("  ⚠ External plugin {} overrides classpath version", pluginId);
             }
-            discoveredPluginProviders.put(nodeType, provider);
-            log.info("  📦 External plugin: {} ({}) [{}]",
-                    provider.getDisplayName(), nodeType,
-                    provider.isTrigger() ? "trigger" : "action");
+            discoveredPluginProviders.put(pluginId, provider);
+            log.info("  📦 External plugin: {} ({}) [plugin]",
+                    provider.getName(), pluginId);
         }
 
         // Legacy: Add triggers from external plugin JARs
@@ -358,6 +366,7 @@ public class PluginService implements PluginServiceInterface {
 
         enabledPluginIds.clear();
         enabledPluginProviders.clear();
+        enabledPluginHandles.clear();
         enabledTriggers.clear();
         enabledActions.clear();
         enabledNodes.clear();
@@ -371,32 +380,59 @@ public class PluginService implements PluginServiceInterface {
 
         // Register enabled plugins
         for (String pluginId : enabledPluginIds) {
-            // Check new unified PluginProvider first
-            PluginProvider pluginProvider = discoveredPluginProviders.get(pluginId);
-            if (pluginProvider != null) {
-                enabledPluginProviders.put(pluginId, pluginProvider);
-                enabledNodes.put(pluginId, new PluginProviderAdapter(pluginProvider));
-                log.info("  ✅ Enabled plugin: {} [{}]",
-                        pluginProvider.getDisplayName(),
-                        pluginProvider.isTrigger() ? "trigger" : "action");
-                continue; // Don't also check legacy providers for same ID
+            if (tryEnablePluginProvider(pluginId)) {
+                continue;
             }
+            tryEnableLegacyTrigger(pluginId);
+            tryEnableLegacyAction(pluginId);
+        }
+    }
 
-            // Legacy: Check TriggerProvider
-            TriggerProvider trigger = discoveredTriggers.get(pluginId);
-            if (trigger != null) {
-                enabledTriggers.put(pluginId, trigger);
-                enabledNodes.put(pluginId, trigger);
-                log.info("  ✅ Enabled trigger: {}", trigger.getDisplayName());
+    /**
+     * Attempts to enable a PluginProvider by pluginId.
+     * Returns true if a PluginProvider was found and enabled.
+     */
+    private boolean tryEnablePluginProvider(String pluginId) {
+        PluginProvider pluginProvider = discoveredPluginProviders.get(pluginId);
+        if (pluginProvider != null) {
+            enabledPluginProviders.put(pluginId, pluginProvider);
+            List<ai.nervemind.plugin.api.PluginHandle> handles = pluginProvider.getHandles();
+            if (handles != null && !handles.isEmpty()) {
+                for (ai.nervemind.plugin.api.PluginHandle handle : handles) {
+                    if (handle != null && handle.id() != null && !handle.id().isBlank()) {
+                        enabledPluginHandles.put(handle.id(), handle);
+                        enabledNodes.put(handle.id(), new PluginHandleDescriptorAdapter(pluginProvider, handle));
+                    }
+                }
             }
+            enabledNodes.put(pluginId, new PluginProviderAdapter(pluginProvider));
+            log.info("  ✅ Enabled plugin: {} [plugin]", pluginProvider.getName());
+            return true;
+        }
+        return false;
+    }
 
-            // Legacy: Check ActionProvider
-            ActionProvider action = discoveredActions.get(pluginId);
-            if (action != null) {
-                enabledActions.put(pluginId, action);
-                enabledNodes.put(pluginId, action);
-                log.info("  ✅ Enabled action: {}", action.getDisplayName());
-            }
+    /**
+     * Attempts to enable a legacy TriggerProvider by pluginId.
+     */
+    private void tryEnableLegacyTrigger(String pluginId) {
+        TriggerProvider trigger = discoveredTriggers.get(pluginId);
+        if (trigger != null) {
+            enabledTriggers.put(pluginId, trigger);
+            enabledNodes.put(pluginId, trigger);
+            log.info("  ✅ Enabled trigger: {}", trigger.getDisplayName());
+        }
+    }
+
+    /**
+     * Attempts to enable a legacy ActionProvider by pluginId.
+     */
+    private void tryEnableLegacyAction(String pluginId) {
+        ActionProvider action = discoveredActions.get(pluginId);
+        if (action != null) {
+            enabledActions.put(pluginId, action);
+            enabledNodes.put(pluginId, action);
+            log.info("  ✅ Enabled action: {}", action.getDisplayName());
         }
     }
 
@@ -407,16 +443,17 @@ public class PluginService implements PluginServiceInterface {
         // Add new unified PluginProvider implementations
         for (PluginProvider provider : discoveredPluginProviders.values()) {
             plugins.add(new PluginServiceInterface.PluginInfo(
-                    provider.getNodeType(),
-                    provider.getDisplayName(),
+                    provider.getId(),
+                    provider.getName(),
                     provider.getDescription(),
                     provider.getVersion(),
-                    provider.isTrigger() ? PluginType.TRIGGER : PluginType.ACTION,
-                    isPluginEnabled(provider.getNodeType()),
-                    provider.getIconName(),
-                    mapCategory(provider.getCategory()),
-                    provider.getSubtitle(),
-                    provider.getHelpText()));
+                    PluginType.ACTION,
+                    isPluginEnabled(provider.getId()),
+                    null, // iconName
+                    null, // category
+                    null, // subtitle
+                    null // helpText
+            ));
         }
 
         // Legacy: Add TriggerProvider implementations (excluding those also in
@@ -599,6 +636,10 @@ public class PluginService implements PluginServiceInterface {
      * @return an Optional containing the node executor if found
      */
     public Optional<ai.nervemind.plugin.api.NodeExecutor> getExecutor(String nodeType) {
+        ai.nervemind.plugin.api.PluginHandle handle = enabledPluginHandles.get(nodeType);
+        if (handle != null) {
+            return Optional.of(new PluginHandleExecutorAdapter(handle));
+        }
         // Check new unified PluginProvider first
         PluginProvider pluginProvider = enabledPluginProviders.get(nodeType);
         if (pluginProvider != null) {
@@ -644,7 +685,8 @@ public class PluginService implements PluginServiceInterface {
         // Check new unified PluginProvider first
         PluginProvider pluginProvider = enabledPluginProviders.get(nodeType);
         if (pluginProvider != null) {
-            return pluginProvider.isTrigger() && pluginProvider.requiresBackgroundService();
+            // Simplified API: plugins don't have background service flag
+            return false;
         }
 
         // Legacy: Check TriggerProvider
@@ -752,23 +794,16 @@ public class PluginService implements PluginServiceInterface {
         // Check if this is a PluginProvider with custom handles
         PluginProvider provider = enabledPluginProviders.get(nodeType);
         if (provider != null) {
-            List<ai.nervemind.plugin.api.HandleDefinition> handles = provider.getHandles();
-            if (handles != null && !handles.isEmpty()) {
-                return handles.stream()
-                        .map(h -> new HandleInfo(
-                                h.id(),
-                                h.type() == ai.nervemind.plugin.api.HandleType.INPUT
-                                        ? HandleInfo.Type.INPUT
-                                        : HandleInfo.Type.OUTPUT,
-                                switch (h.position()) {
-                                    case LEFT -> HandleInfo.Position.LEFT;
-                                    case RIGHT -> HandleInfo.Position.RIGHT;
-                                    case TOP -> HandleInfo.Position.TOP;
-                                    case BOTTOM -> HandleInfo.Position.BOTTOM;
-                                },
-                                h.label()))
-                        .toList();
+            // Plugins get standard input/output handles by default
+            // The plugin's handles represent the node types it provides, not connection
+            // points
+            boolean isTrigger = provider.isTrigger();
+            List<HandleInfo> handleInfos = new ArrayList<>();
+            if (!isTrigger) {
+                handleInfos.add(new HandleInfo("in", HandleInfo.Type.INPUT, HandleInfo.Position.LEFT, null));
             }
+            handleInfos.add(new HandleInfo("out", HandleInfo.Type.OUTPUT, HandleInfo.Position.RIGHT, null));
+            return handleInfos;
         }
 
         // Check for built-in nodes with multiple handles
@@ -1055,9 +1090,60 @@ public class PluginService implements PluginServiceInterface {
     }
 
     /**
+     * Adapter that exposes a PluginHandle as a NodeDescriptor for the UI registry.
+     */
+    private static class PluginHandleDescriptorAdapter implements NodeDescriptor {
+        private final PluginProvider provider;
+        private final ai.nervemind.plugin.api.PluginHandle handle;
+
+        PluginHandleDescriptorAdapter(PluginProvider provider, ai.nervemind.plugin.api.PluginHandle handle) {
+            this.provider = provider;
+            this.handle = handle;
+        }
+
+        @Override
+        public String getNodeType() {
+            return handle.id();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return handle.name();
+        }
+
+        @Override
+        public String getDescription() {
+            return handle.description();
+        }
+
+        @Override
+        public NodeCategory getCategory() {
+            if (handle.category() != null) {
+                return NodeCategory.valueOf(handle.category().name());
+            }
+            return provider.getCategory();
+        }
+
+        @Override
+        public List<PropertyDefinition> getProperties() {
+            return List.of();
+        }
+
+        @Override
+        public String getIconName() {
+            return provider.getIconName();
+        }
+
+        @Override
+        public String getVersion() {
+            return provider.getVersion();
+        }
+    }
+
+    /**
      * Adapter that wraps a PluginProvider to implement NodeExecutor.
-     * This allows PluginProvider's execute() method to be called through the
-     * NodeExecutor interface.
+     * Delegates execution to the first PluginHandle's executor function,
+     * falling back to the deprecated PluginProvider.execute() for legacy plugins.
      */
     private static class PluginProviderExecutorAdapter implements ai.nervemind.plugin.api.NodeExecutor {
         private final PluginProvider provider;
@@ -1069,17 +1155,60 @@ public class PluginService implements PluginServiceInterface {
         @Override
         public java.util.Map<String, Object> execute(ai.nervemind.plugin.api.ExecutionContext context)
                 throws ai.nervemind.plugin.api.NodeExecutionException {
-            return provider.execute(context);
+            // Use PluginHandle executor
+            List<ai.nervemind.plugin.api.PluginHandle> handles = provider.getHandles();
+            if (handles != null && !handles.isEmpty()) {
+                var executor = handles.get(0).executor();
+                if (executor != null) {
+                    return executor.apply(context.getNodeSettings(), context.getInput());
+                }
+            }
+            throw new ai.nervemind.plugin.api.NodeExecutionException(
+                    "No executor defined for plugin: " + provider.getId());
         }
 
         @Override
         public ai.nervemind.plugin.api.ValidationResult validate(java.util.Map<String, Object> settings) {
-            return provider.validate(settings);
+            return new ai.nervemind.plugin.api.ValidationResult(true, List.of());
         }
 
         @Override
         public void cancel() {
-            provider.cancel();
+            // No-op - cancellation handled at workflow level
+        }
+    }
+
+    /**
+     * Adapter that wraps a PluginHandle to implement NodeExecutor.
+     */
+    private static class PluginHandleExecutorAdapter implements ai.nervemind.plugin.api.NodeExecutor {
+        private final ai.nervemind.plugin.api.PluginHandle handle;
+
+        PluginHandleExecutorAdapter(ai.nervemind.plugin.api.PluginHandle handle) {
+            this.handle = handle;
+        }
+
+        @Override
+        public java.util.Map<String, Object> execute(ai.nervemind.plugin.api.ExecutionContext context)
+                throws ai.nervemind.plugin.api.NodeExecutionException {
+            if (handle.executor() == null) {
+                throw new ai.nervemind.plugin.api.NodeExecutionException("No executor defined for handle: "
+                        + handle.id());
+            }
+            return handle.executor().apply(context.getNodeSettings(), context.getInput());
+        }
+
+        @Override
+        public ai.nervemind.plugin.api.ValidationResult validate(java.util.Map<String, Object> settings) {
+            if (handle.schema() == null) {
+                return new ai.nervemind.plugin.api.ValidationResult(true, List.of());
+            }
+            return new ai.nervemind.plugin.api.ValidationResult(true, List.of());
+        }
+
+        @Override
+        public void cancel() {
+            // No-op for handle-based executor
         }
     }
 }

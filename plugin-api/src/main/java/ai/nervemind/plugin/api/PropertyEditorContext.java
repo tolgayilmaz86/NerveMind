@@ -15,10 +15,9 @@ import java.util.function.Consumer;
  * <h2>Usage Example</h2>
  * 
  * <pre>{@code
- * @Override
- * public javafx.scene.Node createPropertyEditor(String propertyName,
- *         PropertyEditorContext context) {
- *     if ("colorPicker".equals(propertyName)) {
+ * // In your plugin, create custom editors for specific properties
+ * public javafx.scene.Node createCustomEditor(PropertyEditorContext context) {
+ *     if ("colorPicker".equals(context.propertyName())) {
  *         var colorPicker = new ColorPicker();
  *         String currentValue = (String) context.currentValue();
  *         if (currentValue != null) {
@@ -42,7 +41,6 @@ import java.util.function.Consumer;
  * 
  * @author NerveMind Team
  * @since 1.0.0
- * @see PluginProvider#createPropertyEditor(String, PropertyEditorContext)
  * @see PropertyDefinition
  */
 public record PropertyEditorContext(
@@ -89,7 +87,11 @@ public record PropertyEditorContext(
 
     /**
      * Gets another setting value from the node.
-     * Useful for dependent properties.
+     * 
+     * <p>
+     * Useful for creating dependent properties that change behavior
+     * based on other settings.
+     * </p>
      * 
      * @param settingName the name of the setting
      * @return the setting value, or null if not set
